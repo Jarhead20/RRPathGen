@@ -102,9 +102,10 @@ class Main extends JFrame {
                 edit = true; //enable edit mode
                 //if the point clicked was a mid point, gen a new point
                 if(mid){
-
                     ps.add(index,mp);
                     heading.add(index,0.0);
+                } else {
+                    ps.set(index, mp);
                 }
             } else {
                 ps.add(mp);
@@ -165,7 +166,7 @@ class Main extends JFrame {
                     g.setColor(new Color(255,255,255));
                     g.drawLine(p1.x,p1.y,p2.x,p2.y);
                     Marker mid = p1.mid(p2);
-                    g.setColor(new Color(0,0,255));
+                    g.setColor(new Color(0,255,0));
                     g.fillOval((int) Math.floor(mid.x-(SCALE*2)), (int) Math.floor(mid.y-(SCALE*2)), (int)Math.floor(0.5*SCALE*SCALE), (int)Math.floor(0.5*SCALE*SCALE));
 
                 }
