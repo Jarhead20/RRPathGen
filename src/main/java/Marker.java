@@ -1,8 +1,9 @@
 import java.awt.*;
 
 public class Marker {
-    public int x;
-    public int y;
+    public double x;
+    public double y;
+    public double heading;
 
     private Type type = Type.SPLINE;
 
@@ -11,14 +12,28 @@ public class Marker {
         MARKER
 
     }
+    Marker(){
+
+    }
 
     Marker(java.awt.Point p){
-        this.x = p.x;
-        this.y = p.y;
+        this.x = (1.0/Main.getSCALE()*p.x)-72;
+        this.y = (1.0/Main.getSCALE()*p.y)-72;
+
     }
-    Marker(int x, int y){
+    Marker(double x, double y){
         this.x = x;
         this.y = y;
+    }
+    Marker(java.awt.Point p, Type t){
+        this.x = p.x;
+        this.y = p.y;
+        this.type = t;
+    }
+    Marker(double x, double y, Type t){
+        this.x = x;
+        this.y = y;
+        this.type = t;
     }
     public double distance(Marker pt) {
         double px = pt.x - this.x;
@@ -35,7 +50,7 @@ public class Marker {
     public Type getType(){
         return this.type;
     }
-    public Marker setLocation(Point p){
+    public Marker setLocation(Marker p){
         this.x = p.x;
         this.y = p.y;
         return this;

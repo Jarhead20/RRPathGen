@@ -8,16 +8,18 @@ import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class Main extends JFrame {
     public ArrayList ps = new ArrayList<Marker>();
-    public ArrayList heading = new ArrayList<Double>();
+    private static final Pattern p = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
     private JButton button = new JButton("Finish");
     private JButton importButton = new JButton("Import");
     private boolean edit = false;
     private int editIndex = -1;
-    final double SCALE = 4;
-    final int clickSize = 3;
+    static final double SCALE = 8;
+    final double clickSize = 0.3;
     public Main() {
         initComponents();
     }
@@ -32,11 +34,9 @@ class Main extends JFrame {
                 if (button.isEnabled()) {
                     for (int i = 0; i < ps.size(); i++) {
                         Marker marker = (Marker)ps.get(i);
-                        double x = (1.0/SCALE*marker.x)-72;
-                        double y = (1.0/SCALE*marker.y)-72;
                         switch (marker.getType()){
                             case SPLINE:
-                                System.out.println(".splineTo(new Vector2d(" + x + "," + -y + "),Math.toRadians(" + ((double)heading.get(i)+90) + "))");
+                                System.out.println(".splineTo(new Vector2d(" + marker.x + "," + -marker.y + "),Math.toRadians(" + (marker.heading+90) + "))");
                                 break;
                             case MARKER:
                                 System.out.println("marker");
@@ -47,9 +47,6 @@ class Main extends JFrame {
                         }
                     }
                 }
-                if(importButton.isEnabled()){
-                    System.out.println("import");
-                }
             }
         });
         importButton.addActionListener(new ActionListener() {
@@ -59,14 +56,24 @@ class Main extends JFrame {
                         File file = new File(Main.class.getResource("/import.txt").toURI());
                         Scanner reader = new Scanner(file);
                         while (reader.hasNextLine()) {
-                            String data = reader.nextLine();
-                            String[] datas = data.split("/()/"); //TODO: import stuff
+                            String line = reader.nextLine();
+                            Matcher m = p.matcher(line);
+                            Marker marker = new Marker();
+                            String[] data = new String[4];
+                            for (int i = 0; m.find(); i++) {
+                                data[i]=m.group(0);
+                            }
+                            marker.x = Double.parseDouble(data[1]);
+                            marker.y = -Double.parseDouble(data[2]);
+                            marker.heading = Double.parseDouble(data[3])-90;
+
+                            ps.add(marker);
 
                         }
                     } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
                         uriSyntaxException.printStackTrace();
                     }
-
+                    jPanel2.repaint();
                 }
             }
         });
@@ -95,8 +102,8 @@ class Main extends JFrame {
     private void mPressed(MouseEvent e) {
     //TODO: clean up this
         if(!edit){
-            Marker mp = new Marker(e.getPoint());
-            if(e.getButton()==3) mp.setType(Marker.Type.MARKER);
+            Marker mouse = new Marker(e.getPoint());
+            if(e.getButton()==3) mouse.setType(Marker.Type.MARKER);
             double closest = 99999;
             boolean mid = false;
             int index = -1;
@@ -107,7 +114,7 @@ class Main extends JFrame {
                 if(i<ps.size()-1){
 
                     Marker midMark = ((Marker)ps.get(i)).mid((Marker)ps.get(i+1));
-                    double midDist = mp.distance(midMark);
+                    double midDist = mouse.distance(midMark);
                     if(midDist < (clickSize*SCALE) && midDist < closest){
                         closest = midDist;
                         index = i+1;
@@ -115,7 +122,7 @@ class Main extends JFrame {
                     }
                 }
 
-                double distance = mp.distance((Marker)ps.get(i));
+                double distance = mouse.distance((Marker)ps.get(i));
                 //find closest that isn't a mid
                 if(distance < (clickSize*SCALE) && distance < closest){
                     closest = distance;
@@ -123,20 +130,18 @@ class Main extends JFrame {
                     mid = false;
                 }
             }
-
+            mouse.heading = 0.0;
             if(index != -1){
                 editIndex = index;
                 edit = true; //enable edit mode
                 //if the point clicked was a mid point, gen a new point
                 if(mid){
-                    ps.add(index,mp);
-                    heading.add(index,0.0);
+                    ps.add(index,mouse);
                 } else {
-                    ps.set(index, mp);
+                    ps.set(index, mouse);
                 }
             } else {
-                ps.add(mp);
-                heading.add(Math.atan2(0, 0));
+                ps.add(mouse);
             }
         }
         jPanel2.repaint();
@@ -148,19 +153,20 @@ class Main extends JFrame {
     }
 
     private void mDragged(MouseEvent e) {
+        Marker mouse = new Marker(e.getPoint());
         if(edit){
+            Marker mark = (Marker) ps.get(editIndex);
+
             if(e.isAltDown()){
-                Marker p = (Marker) ps.get(editIndex);
-                double angle = (Math.toDegrees(Math.atan2(p.x - e.getX(), p.y - e.getY())));
-                heading.set(editIndex, angle);
+                mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+                ps.set(editIndex, mark);
             } else{
-                Marker mark = (Marker) ps.get(editIndex);
-                ps.set(editIndex,mark.setLocation(e.getPoint()));
+                ps.set(editIndex,mark.setLocation(mouse));
             }
         } else {
-            Marker p = (Marker) ps.get(ps.size()-1);
-            double angle = (Math.toDegrees(Math.atan2(p.x - e.getX(), p.y - e.getY())));
-            heading.set(heading.size()-1, angle);
+            Marker mark = (Marker) ps.get(ps.size()-1);
+            mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            ps.set(ps.size()-1, mark);
         }
         jPanel2.repaint();
     }
@@ -191,16 +197,16 @@ class Main extends JFrame {
                 if(i < ps.size()-1){
                     Marker p2 = (Marker) ps.get(i+1);
                     g.setColor(new Color(255,255,255));
-                    g.drawLine(p1.x,p1.y,p2.x,p2.y);
+                    g.drawLine((int) (SCALE*(p1.x+72)),(int) (SCALE*(p1.y+72)),(int) (SCALE*(p2.x+72)),(int) (SCALE*(p2.y+72)));
                     Marker mid = p1.mid(p2);
                     g.setColor(new Color(0,255,0));
-                    g.fillOval((int) Math.floor(mid.x-(0.25*SCALE*SCALE)), (int) Math.floor(mid.y-(0.25*SCALE*SCALE)), (int)Math.floor(0.5*SCALE*SCALE), (int)Math.floor(0.5*SCALE*SCALE));
+                    g.fillOval((int) Math.floor((SCALE*(mid.x+72))-(0.25*SCALE*SCALE)), (int) Math.floor((SCALE*(mid.y+72))-(0.25*SCALE*SCALE)), (int)Math.floor(0.5*SCALE*SCALE), (int)Math.floor(0.5*SCALE*SCALE));
 
                 }
 
-                double angle = 180 - (double) heading.get(i);
+                double angle = 180 - ((Marker) ps.get(i)).heading;
                 tx.setToIdentity();
-                tx.translate(p1.x, p1.y);
+                tx.translate((SCALE*(p1.x+72)), (SCALE*(p1.y+72)));
                 tx.rotate(Math.toRadians(angle));
                 tx.scale(SCALE,SCALE);
 
@@ -212,10 +218,10 @@ class Main extends JFrame {
 
                 switch (p1.getType()){
                     case MARKER:
-                        g2.setColor(new Color(255,0,255));
+                        g2.setColor(Color.ORANGE);
                         break;
                     case SPLINE:
-                        g2.setColor(new Color(255,255,255));
+                        g2.setColor(Color.white);
                         break;
                     default:
                         g2.setColor(new Color(255,255,255));
@@ -226,6 +232,9 @@ class Main extends JFrame {
                 g2.dispose();
             }
         }
+    }
+    public static double getSCALE(){
+        return SCALE;
     }
 }
 
