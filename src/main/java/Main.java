@@ -17,6 +17,7 @@ class Main extends JFrame {
     private JButton finishButton = new JButton("Finish");
     private JButton importButton = new JButton("Import");
     private JButton flipButton = new JButton("Flip");
+    private JButton clearButton = new JButton("Clear");
     private boolean edit = false;
     private int editIndex = -1;
     static final double SCALE = 8;
@@ -26,11 +27,10 @@ class Main extends JFrame {
     }
 
     private void initComponents() {
-        jPanel2 = new Panel2();
 
-        jPanel2.add(finishButton);
-        jPanel2.add(importButton);
-        jPanel2.add(flipButton);
+        panel = new Panel2();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
         finishButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 for (int i = 0; i < ps.size(); i++) {
@@ -57,7 +57,13 @@ class Main extends JFrame {
                     marker.y *= -1;
                     ps.set(i, marker);
                 }
-                jPanel2.repaint();
+                panel.repaint();
+            }
+        });
+        clearButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ps.clear();
+                panel.repaint();
             }
         });
         importButton.addActionListener(new ActionListener() {
@@ -86,13 +92,13 @@ class Main extends JFrame {
                 } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
                     uriSyntaxException.printStackTrace();
                 }
-                jPanel2.repaint();
+                panel.repaint();
             }
         });
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel2.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        panel.setBackground(new java.awt.Color(255, 255, 255));
+        panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         //event handler stuff
-        jPanel2.addMouseListener(new MouseAdapter() {
+        panel.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
             }
@@ -100,12 +106,12 @@ class Main extends JFrame {
                 mReleased(e);
             }
         });
-        jPanel2.addMouseMotionListener(new MouseMotionAdapter() {
+        panel.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 mDragged(e);
             }
         });
-        this.setContentPane(jPanel2);
+        this.setContentPane(panel);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         pack();
@@ -156,7 +162,7 @@ class Main extends JFrame {
                 ps.add(mouse);
             }
         }
-        jPanel2.repaint();
+        panel.repaint();
     }
 
     private void mReleased(MouseEvent e){
@@ -180,7 +186,7 @@ class Main extends JFrame {
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             ps.set(ps.size()-1, mark);
         }
-        jPanel2.repaint();
+        panel.repaint();
     }
 
     public static void main(String args[]) {
@@ -190,14 +196,22 @@ class Main extends JFrame {
             }
         });
     }
-    private JPanel jPanel2;
+    private JPanel panel;
     public class Panel2 extends JPanel {
         AffineTransform tx = new AffineTransform();
         int xPoly[] = {-5,0,5};
         int yPoly[] = {-5,0,-5};
         Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
         Panel2() {
-            setPreferredSize(new Dimension((int) Math.floor(144*SCALE+100),(int) Math.floor(144*SCALE+100)));
+            setPreferredSize(new Dimension((int) Math.floor(144*SCALE+4),(int) Math.floor(144*SCALE+(30))));
+            JPanel buttons = new JPanel(new GridLayout(1,4,1,1));
+
+            buttons.add(finishButton);
+            buttons.add(importButton);
+            buttons.add(flipButton);
+            buttons.add(clearButton);
+            add(Box.createRigidArea(new Dimension((int) Math.floor(144*SCALE), (int) Math.floor(144*SCALE))));
+            add(buttons);
         }
         @Override
         public void paintComponent(Graphics g) {
@@ -244,6 +258,8 @@ class Main extends JFrame {
                 g2.dispose();
             }
         }
+
+
     }
     public static double getSCALE(){
         return SCALE;
