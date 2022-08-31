@@ -14,6 +14,7 @@
 .splineTo(new Vector2d(52.25,28.5),Math.toRadians(239.93141717813754))
 .splineTo(new Vector2d(46.75,17.5),Math.toRadians(-86.78451600825181))
 .splineTo(new Vector2d(48.0,-8.5),Math.toRadians(-87.79740183823421))
+.addDisplacementMarker(() -> {})
 .splineTo(new Vector2d(48.0,26.75),Math.toRadians(86.9335144988741))
 .splineTo(new Vector2d(47.0,45.0),Math.toRadians(104.93141717813755))
 .splineTo(new Vector2d(40.75,63.75),Math.toRadians(170.53767779197437))

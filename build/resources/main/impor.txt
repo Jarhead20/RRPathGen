@@ -1,4 +1,0 @@
-.splineTo(new Vector2d(-52.5,-61.5),Math.toRadians(270.0))
-.splineTo(new Vector2d(21.0,-3.5),Math.toRadians(90.0))
-.splineTo(new Vector2d(-42.0,47.0),Math.toRadians(90.0))
-.splineTo(new Vector2d(-50.5,-3.375),Math.toRadians(90.0))

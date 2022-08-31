@@ -14,8 +14,9 @@ import java.util.regex.Pattern;
 class Main extends JFrame {
     public ArrayList ps = new ArrayList<Marker>();
     private static final Pattern p = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
-    private JButton button = new JButton("Finish");
+    private JButton finishButton = new JButton("Finish");
     private JButton importButton = new JButton("Import");
+    private JButton flipButton = new JButton("Flip");
     private boolean edit = false;
     private int editIndex = -1;
     static final double SCALE = 8;
@@ -27,36 +28,46 @@ class Main extends JFrame {
     private void initComponents() {
         jPanel2 = new Panel2();
 
-        jPanel2.add(button);
+        jPanel2.add(finishButton);
         jPanel2.add(importButton);
-        button.addActionListener(new ActionListener() {
+        jPanel2.add(flipButton);
+        finishButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (button.isEnabled()) {
-                    for (int i = 0; i < ps.size(); i++) {
-                        Marker marker = (Marker)ps.get(i);
-                        switch (marker.getType()){
-                            case SPLINE:
-                                System.out.println(".splineTo(new Vector2d(" + marker.x + "," + -marker.y + "),Math.toRadians(" + (marker.heading+90) + "))");
-                                break;
-                            case MARKER:
-                                System.out.println("marker");
-                                break;
-                            default:
-                                System.out.println("what");
-                                break;
-                        }
+                for (int i = 0; i < ps.size(); i++) {
+                    Marker marker = (Marker)ps.get(i);
+                    switch (marker.getType()){
+                        case SPLINE:
+                            System.out.println(".splineTo(new Vector2d(" + marker.x + "," + -marker.y + "),Math.toRadians(" + (marker.heading+90) + "))");
+                            break;
+                        case MARKER:
+                            System.out.println(".splineTo(new Vector2d(" + marker.x + "," + -marker.y + "),Math.toRadians(" + (marker.heading+90) + "))");
+                            System.out.println(".addDisplacementMarker(() -> {})");
+                            break;
+                        default:
+                            System.out.println("what");
+                            break;
                     }
                 }
             }
         });
+        flipButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                for (int i = 0; i < ps.size(); i++) {
+                    Marker marker = (Marker)ps.get(i);
+                    marker.y *= -1;
+                    ps.set(i, marker);
+                }
+                jPanel2.repaint();
+            }
+        });
         importButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(importButton.isEnabled()){
-                    try {
-                        File file = new File(Main.class.getResource("/import.txt").toURI());
-                        Scanner reader = new Scanner(file);
-                        while (reader.hasNextLine()) {
-                            String line = reader.nextLine();
+                try {
+                    File file = new File(Main.class.getResource("/import.txt").toURI());
+                    Scanner reader = new Scanner(file);
+                    while (reader.hasNextLine()) {
+                        String line = reader.nextLine();
+                        if(line.contains(".splineTo(new Vector2d(")){
                             Matcher m = p.matcher(line);
                             Marker marker = new Marker();
                             String[] data = new String[4];
@@ -68,13 +79,14 @@ class Main extends JFrame {
                             marker.heading = Double.parseDouble(data[3])-90;
 
                             ps.add(marker);
-
+                        } else if(line.contains(".addDisplacementMarker(")){
+                            ((Marker)ps.get(ps.size()-1)).setType(Marker.Type.MARKER);
                         }
-                    } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
-                        uriSyntaxException.printStackTrace();
                     }
-                    jPanel2.repaint();
+                } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
+                    uriSyntaxException.printStackTrace();
                 }
+                jPanel2.repaint();
             }
         });
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
