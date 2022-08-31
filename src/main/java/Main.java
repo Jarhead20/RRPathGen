@@ -14,10 +14,18 @@ import java.util.regex.Pattern;
 class Main extends JFrame {
     public ArrayList ps = new ArrayList<Marker>();
     private static final Pattern p = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
-    private JButton finishButton = new JButton("Finish");
+    private JButton exportButton = new JButton("Export");
     private JButton importButton = new JButton("Import");
     private JButton flipButton = new JButton("Flip");
     private JButton clearButton = new JButton("Clear");
+
+    private final JPopupMenu menu = new JPopupMenu("Menu");
+
+    private JMenuItem open = new JMenuItem("Delete");
+    private JMenuItem cut = new JMenuItem("Cut");
+    private JMenuItem copy = new JMenuItem("Copy");
+    private JMenuItem paste = new JMenuItem("Paste");
+
     private boolean edit = false;
     private int editIndex = -1;
     static final double SCALE = 8;
@@ -27,11 +35,16 @@ class Main extends JFrame {
     }
 
     private void initComponents() {
-
         panel = new Panel2();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        finishButton.addActionListener(new ActionListener() {
+        open.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ps.remove(editIndex);
+                panel.repaint();
+            }
+        });
+        exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 for (int i = 0; i < ps.size(); i++) {
                     Marker marker = (Marker)ps.get(i);
@@ -121,7 +134,8 @@ class Main extends JFrame {
     //TODO: clean up this
         if(!edit){
             Marker mouse = new Marker(e.getPoint());
-            if(e.getButton()==3) mouse.setType(Marker.Type.MARKER);
+//            if(e.getButton()==3) mouse.setType(Marker.Type.MARKER);
+
             double closest = 99999;
             boolean mid = false;
             int index = -1;
@@ -139,26 +153,31 @@ class Main extends JFrame {
                         mid = true;
                     }
                 }
-
-                double distance = mouse.distance((Marker)ps.get(i));
+                Marker close = (Marker)ps.get(i);
+                double distance = mouse.distance(close);
                 //find closest that isn't a mid
                 if(distance < (clickSize*SCALE) && distance < closest){
                     closest = distance;
                     index = i;
+                    mouse.heading = close.heading;
                     mid = false;
                 }
             }
-            mouse.heading = 0.0;
+
             if(index != -1){
-                editIndex = index;
-                edit = true; //enable edit mode
-                //if the point clicked was a mid point, gen a new point
-                if(mid){
-                    ps.add(index,mouse);
-                } else {
-                    ps.set(index, mouse);
+                if (SwingUtilities.isRightMouseButton(e) && !mid){
+                    menu.show(panel , e.getX(), e.getY());
+                    editIndex = index;
+                    panel.repaint();
+                    return;
+                } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
+                    editIndex = index;
+                    edit = true;
+                    //if the point clicked was a mid point, gen a new point
+                    if(mid) ps.add(index,mouse);
+                    else ps.set(index, mouse);
                 }
-            } else {
+            } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
                 ps.add(mouse);
             }
         }
@@ -166,12 +185,15 @@ class Main extends JFrame {
     }
 
     private void mReleased(MouseEvent e){
-        edit = false;
-        editIndex = -1;
+        if(SwingUtilities.isLeftMouseButton(e)){
+            edit = false;
+            editIndex = -1;
+        }
     }
 
     private void mDragged(MouseEvent e) {
         Marker mouse = new Marker(e.getPoint());
+        if (SwingUtilities.isRightMouseButton(e)) return;
         if(edit){
             Marker mark = (Marker) ps.get(editIndex);
 
@@ -206,7 +228,13 @@ class Main extends JFrame {
             setPreferredSize(new Dimension((int) Math.floor(144*SCALE+4),(int) Math.floor(144*SCALE+(30))));
             JPanel buttons = new JPanel(new GridLayout(1,4,1,1));
 
-            buttons.add(finishButton);
+            menu.add(open);
+            menu.add(cut);
+            menu.add(copy);
+            menu.add(paste);
+            add(menu);
+
+            buttons.add(exportButton);
             buttons.add(importButton);
             buttons.add(flipButton);
             buttons.add(clearButton);
@@ -222,10 +250,10 @@ class Main extends JFrame {
                 Marker p1 = (Marker) ps.get(i);
                 if(i < ps.size()-1){
                     Marker p2 = (Marker) ps.get(i+1);
-                    g.setColor(new Color(255,255,255));
+                    g.setColor(Color.white);
                     g.drawLine((int) (SCALE*(p1.x+72)),(int) (SCALE*(p1.y+72)),(int) (SCALE*(p2.x+72)),(int) (SCALE*(p2.y+72)));
                     Marker mid = p1.mid(p2);
-                    g.setColor(new Color(0,255,0));
+                    g.setColor(Color.green);
                     g.fillOval((int) Math.floor((SCALE*(mid.x+72))-(0.25*SCALE*SCALE)), (int) Math.floor((SCALE*(mid.y+72))-(0.25*SCALE*SCALE)), (int)Math.floor(0.5*SCALE*SCALE), (int)Math.floor(0.5*SCALE*SCALE));
 
                 }
@@ -239,7 +267,7 @@ class Main extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setTransform(tx);
 
-                g2.setColor(new Color(0,0,255));
+                g2.setColor(Color.blue);
                 g2.fillOval((int) Math.floor(-0.25*SCALE),(int) Math.floor(-0.25*SCALE),(int) Math.floor(0.5*SCALE),(int) Math.floor(0.5*SCALE));
 
                 switch (p1.getType()){
@@ -250,7 +278,7 @@ class Main extends JFrame {
                         g2.setColor(Color.white);
                         break;
                     default:
-                        g2.setColor(new Color(255,255,255));
+                        g2.setColor(Color.PINK);
                         break;
                 }
                 g2.fill(poly);
