@@ -8,4 +8,5 @@ Main.java
  Main$3
  Main$4
  Main$5
+ Main$6
  Main$Panel2
