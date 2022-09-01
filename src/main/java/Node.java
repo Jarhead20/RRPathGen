@@ -1,9 +1,11 @@
-import java.awt.*;
+import java.util.ArrayList;
 
-public class Marker {
+public class Node {
     public double x;
     public double y;
     public double heading;
+
+    public ArrayList undo = new ArrayList<Node>();
 
     private Type type = Type.SPLINE;
 
@@ -12,36 +14,37 @@ public class Marker {
         MARKER
 
     }
-    Marker(){
+    Node(){
 
     }
 
-    Marker(java.awt.Point p){
+    Node(java.awt.Point p){
         this.x = (1.0/Main.getSCALE()*p.x)-72;
         this.y = (1.0/Main.getSCALE()*p.y)-72;
 
     }
-    Marker(double x, double y){
+    Node(double x, double y){
         this.x = x;
         this.y = y;
     }
-    Marker(java.awt.Point p, Type t){
+    Node(java.awt.Point p, Type t){
         this.x = p.x;
         this.y = p.y;
         this.type = t;
     }
-    Marker(double x, double y, Type t){
+    Node(double x, double y, Type t){
         this.x = x;
         this.y = y;
         this.type = t;
     }
-    public double distance(Marker pt) {
+    public double distance(Node pt) {
         double px = pt.x - this.x;
         double py = pt.y - this.y;
         return Math.sqrt(px * px + py * py);
     }
-    public Marker mid(Marker pt){
-        return new Marker((this.x+pt.x)/2,(this.y + pt.y)/2);
+
+    public Node mid(Node pt){
+        return new Node((this.x+pt.x)/2,(this.y + pt.y)/2);
     }
 
     public void setType(Type t){
@@ -50,10 +53,16 @@ public class Marker {
     public Type getType(){
         return this.type;
     }
-    public Marker setLocation(Marker p){
+    public Node setLocation(Node p){
         this.x = p.x;
         this.y = p.y;
         return this;
     }
+
+    public double headingTo(Node n){
+        return (Math.toDegrees(Math.atan2(this.x - n.x, this.y - n.y)));
+    }
+
+
 
 }
