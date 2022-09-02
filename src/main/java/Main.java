@@ -11,10 +11,13 @@ class Main extends JFrame {
 
 
     static final double SCALE = 8;
-    public static NodeManager nodeM = new NodeManager(new ArrayList<>());
+    public NodeManager nodeM = new NodeManager(new ArrayList<>());
+    public NodeManager undo = new NodeManager(new ArrayList<>());
+
     final double clickSize = 0.3;
     private DrawPanel panel;
     private boolean edit = false;
+    private Node preEdit;
     public Main() {
         initComponents();
     }
@@ -32,7 +35,7 @@ class Main extends JFrame {
     }
 
     private void initComponents() {
-        panel = new DrawPanel(nodeM);
+        panel = new DrawPanel(nodeM, undo, this);
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -109,15 +112,22 @@ class Main extends JFrame {
                     nodeM.editIndex = index;
                     edit = true;
                     //if the point clicked was a mid point, gen a new point
-                    if(mid) nodeM.add(index,mouse);
-                    else nodeM.set(index, mouse);
+                    if(mid) {
+                        preEdit = (new Node(-1,-1, index));
+                        nodeM.add(index,mouse);
+                    }
+                    else {
+                        preEdit = nodeM.get(index);
+                        nodeM.set(index, mouse);
+                    }
                 }
             } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
                 int size = nodeM.size();
                 if(size > 0){
-                    Node n1 = nodeM.get(size-1);
+                    Node n1 = nodeM.last();
                     mouse.heading = n1.headingTo(mouse);
                 }
+                preEdit = (new Node(-1,-1, nodeM.size()));
                 nodeM.add(mouse);
             }
         }
@@ -126,7 +136,10 @@ class Main extends JFrame {
 
     private void mReleased(MouseEvent e){
         if(SwingUtilities.isLeftMouseButton(e)){
+            undo.add(preEdit);
+            System.out.println(preEdit.index);
             edit = false;
+
             nodeM.editIndex = -1;
         }
     }
@@ -137,21 +150,49 @@ class Main extends JFrame {
         if(edit){
             int index = nodeM.editIndex;
             Node mark = nodeM.get(index);
+//            preEdit = new Node(mark.x, mark.y,mark.heading, index);
+            System.out.println("1 " + preEdit.heading);
             if(index > 0){
                 mark.heading = nodeM.get(index-1).headingTo(mouse);
             }
             if(e.isAltDown()){
                 mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
-                nodeM.set(nodeM.editIndex, mark);
             } else{
                 nodeM.set(nodeM.editIndex,mark.setLocation(mouse));
             }
+//            System.out.println("2 " + preEdit.heading);
         } else {
-            Node mark = nodeM.get(nodeM.size()-1);
+            Node mark = nodeM.last();
+            mark.index = nodeM.size()-1;
+//            preEdit = mark;
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             nodeM.set(nodeM.size()-1, mark);
         }
         panel.repaint();
+    }
+    public void undo(){
+        System.out.println("s " + undo.size());
+        Node node = undo.last();
+        System.out.println("index " + node.index);
+        if(node.index < 0){
+            nodeM.add(-node.index, node);
+        } else if(node.x == -1){
+            nodeM.remove(node.index);
+        } else if(node.x == -2) {
+            for (int i = 0; i < nodeM.size(); i++) {
+                Node n = nodeM.get(i);
+                n.y *= -1;
+                nodeM.set(i, n);
+            }
+        } else {
+            if(node.index == -1){
+                node.index = nodeM.size()-1;
+            }
+            System.out.println(node.index);
+            nodeM.set(node.index, node);
+
+        }
+        undo.removeLast();
     }
 }
 

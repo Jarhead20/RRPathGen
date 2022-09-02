@@ -9,7 +9,9 @@ public class NodeManager {
         this.nodes = nodes;
     }
     public Node get(int index){
-        return (Node) nodes.get(index);
+        Node n = (Node) nodes.get(index);
+        n.index = index;
+        return n;
     }
     public void set(int index, Node n){
         nodes.set(index, n);
@@ -23,6 +25,9 @@ public class NodeManager {
     public int size(){
         return nodes.size();
     }
+    public Node last(){
+        return (Node) nodes.get(nodes.size()-1);
+    }
     public void clear(){
         nodes.clear();
     }
@@ -32,5 +37,9 @@ public class NodeManager {
     public void remove(int n){
         nodes.remove(n);
     }
+    public void removeLast(){
+        remove(size()-1);
+    }
+
 
 }

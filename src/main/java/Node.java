@@ -1,11 +1,11 @@
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
 public class Node {
     public double x;
     public double y;
     public double heading;
-
-    public ArrayList undo = new ArrayList<Node>();
+    public int index = -1;
 
     private Type type = Type.SPLINE;
 
@@ -27,6 +27,29 @@ public class Node {
         this.x = x;
         this.y = y;
     }
+
+    Node(int index){
+        this.index = index;
+    }
+
+    Node(java.awt.Point p, int index){
+        this.x = (1.0/Main.getSCALE()*p.x)-72;
+        this.y = (1.0/Main.getSCALE()*p.y)-72;
+        this.index = index;
+    }
+    Node(double x, double y, int index){
+        this.x = x;
+        this.y = y;
+        this.index = index;
+    }
+
+    Node(double x, double y,double heading, int index){
+        this.x = x;
+        this.y = y;
+        this.heading = heading;
+        this.index = index;
+    }
+
     Node(java.awt.Point p, Type t){
         this.x = p.x;
         this.y = p.y;

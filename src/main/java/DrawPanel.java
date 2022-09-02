@@ -38,7 +38,7 @@ public class DrawPanel extends JPanel {
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
     private final double SCALE = Main.getSCALE();
 
-    DrawPanel(NodeManager nodeM) {
+    DrawPanel(NodeManager nodeM, NodeManager undo, Main main) {
         this.nodeM = nodeM;
         setPreferredSize(new Dimension((int) Math.floor(144 * SCALE + 4), (int) Math.floor(144 * SCALE + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
@@ -81,6 +81,7 @@ public class DrawPanel extends JPanel {
         });
         flipButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                undo.add(new Node(-2,-2));
                 for (int i = 0; i < nodeM.size(); i++) {
                     Node node = nodeM.get(i);
                     node.y *= -1;
@@ -89,8 +90,15 @@ public class DrawPanel extends JPanel {
                 repaint();
             }
         });
+        undoButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                main.undo();
+                repaint();
+            }
+        });
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                //todo: add undo for this
                 nodeM.clear();
                 repaint();
             }
@@ -140,7 +148,10 @@ public class DrawPanel extends JPanel {
 
         open.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                Node n = nodeM.get(nodeM.editIndex);
+                n.index = -nodeM.editIndex;
+                System.out.println(n.index);
+                undo.add(n);
                 nodeM.remove(nodeM.editIndex);
                 repaint();
             }
