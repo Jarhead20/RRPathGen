@@ -13,6 +13,7 @@ class Main extends JFrame {
     static final double SCALE = 8;
     public NodeManager nodeM = new NodeManager(new ArrayList<>());
     public NodeManager undo = new NodeManager(new ArrayList<>());
+    public NodeManager redo = new NodeManager(new ArrayList<>());
 
     final double clickSize = 0.3;
     private DrawPanel panel;
@@ -35,7 +36,7 @@ class Main extends JFrame {
     }
 
     private void initComponents() {
-        panel = new DrawPanel(nodeM, undo, this);
+        panel = new DrawPanel(nodeM, undo, redo,this);
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -103,7 +104,7 @@ class Main extends JFrame {
                     mouse.heading = n1.headingTo(n2);
                 }
 
-                if (SwingUtilities.isRightMouseButton(e) && !mid){
+                if (SwingUtilities.isRightMouseButton(e) && !mid){ //opens right click context menu
                     panel.getMenu().show(panel,e.getX(),e.getY());
                     nodeM.editIndex = index;
                     panel.repaint();
@@ -113,11 +114,16 @@ class Main extends JFrame {
                     edit = true;
                     //if the point clicked was a mid point, gen a new point
                     if(mid) {
-                        preEdit = (new Node(-1,-1, index));
+                        preEdit = (new Node(index));
+                        preEdit.state = 2;
+                        redo.clear();
                         nodeM.add(index,mouse);
                     }
-                    else {
-                        preEdit = nodeM.get(index);
+                    else { //editing existing node
+                        Node prev = nodeM.get(index);
+                        preEdit = new Node(prev.x,prev.y, prev.heading, index); //storing the existing data for undo
+                        preEdit.state = 4;
+                        redo.clear();
                         nodeM.set(index, mouse);
                     }
                 }
@@ -127,7 +133,9 @@ class Main extends JFrame {
                     Node n1 = nodeM.last();
                     mouse.heading = n1.headingTo(mouse);
                 }
-                preEdit = (new Node(-1,-1, nodeM.size()));
+                preEdit = (new Node(mouse.x, mouse.y, mouse.heading, nodeM.size()));
+                preEdit.state = 2;
+                redo.clear();
                 nodeM.add(mouse);
             }
         }
@@ -137,9 +145,7 @@ class Main extends JFrame {
     private void mReleased(MouseEvent e){
         if(SwingUtilities.isLeftMouseButton(e)){
             undo.add(preEdit);
-            System.out.println(preEdit.index);
             edit = false;
-
             nodeM.editIndex = -1;
         }
     }
@@ -150,49 +156,116 @@ class Main extends JFrame {
         if(edit){
             int index = nodeM.editIndex;
             Node mark = nodeM.get(index);
-//            preEdit = new Node(mark.x, mark.y,mark.heading, index);
-            System.out.println("1 " + preEdit.heading);
+
+//            System.out.println("1 " + preEdit.heading);
             if(index > 0){
                 mark.heading = nodeM.get(index-1).headingTo(mouse);
             }
             if(e.isAltDown()){
+
                 mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             } else{
-                nodeM.set(nodeM.editIndex,mark.setLocation(mouse));
+                mark.setLocation(mouse);
             }
 //            System.out.println("2 " + preEdit.heading);
         } else {
             Node mark = nodeM.last();
             mark.index = nodeM.size()-1;
-//            preEdit = mark;
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             nodeM.set(nodeM.size()-1, mark);
         }
         panel.repaint();
     }
     public void undo(){
-        System.out.println("s " + undo.size());
+        if(undo.size()<1) return;
         Node node = undo.last();
-        System.out.println("index " + node.index);
-        if(node.index < 0){
-            nodeM.add(-node.index, node);
-        } else if(node.x == -1){
-            nodeM.remove(node.index);
-        } else if(node.x == -2) {
-            for (int i = 0; i < nodeM.size(); i++) {
-                Node n = nodeM.get(i);
-                n.y *= -1;
-                nodeM.set(i, n);
-            }
-        } else {
-            if(node.index == -1){
-                node.index = nodeM.size()-1;
-            }
-            System.out.println(node.index);
-            nodeM.set(node.index, node);
-
+        Node r;
+        Node temp;
+        System.out.println("undo");
+        System.out.println("u " + undo.size());
+        System.out.println("r " + redo.size());
+        System.out.println("s " + node.state);
+        switch (node.state){
+            case 1: //undo delete
+                nodeM.add(node.index, node);
+                r = node;
+                redo.add(r);
+                break;
+            case 2: //undo add new node
+                temp = nodeM.get(node.index);
+                r = new Node(temp.x, temp.y, temp.heading, temp.index);
+                r.state = 2;
+                redo.add(r);
+                nodeM.remove(node.index);
+                break;
+            case 3: //undo flip
+                for (int i = 0; i < nodeM.size(); i++) {
+                    Node n = nodeM.get(i);
+                    n.y *= -1;
+                    nodeM.set(i, n);
+                }
+                r = node;
+                redo.add(r);
+                break;
+            case 4:  //undo drag
+                if(node.index == -1){
+                    node.index = nodeM.size()-1;
+                }
+                temp = nodeM.get(node.index);
+                r = new Node(temp.x, temp.y, temp.heading, temp.index);
+                r.state = 4;
+                nodeM.set(node.index, node);
+                redo.add(r);
+                break;
         }
+
+
         undo.removeLast();
+    }
+    public void redo(){
+        if(redo.size()<1) return;
+
+        Node node = redo.last();
+        Node u;
+        Node temp;
+        System.out.println("redo");
+        System.out.println("u " + undo.size());
+        System.out.println("r " + redo.size());
+        System.out.println("s " + node.state);
+        switch (node.state){
+            case 1: //redo delete
+                temp = nodeM.get(node.index);
+                u = new Node(temp.x, temp.y, temp.heading, temp.index);
+                u.state = 1;
+                undo.add(u);
+                nodeM.remove(node.index);
+                break;
+            case 2: //redo add new node
+                nodeM.add(node.index, node);
+                u = node;
+                undo.add(u);
+                break;
+            case 3: //redo flip
+                for (int i = 0; i < nodeM.size(); i++) {
+                    Node n = nodeM.get(i);
+                    n.y *= -1;
+                    nodeM.set(i, n);
+                }
+                u = node;
+                undo.add(u);
+                break;
+            case 4:  //redo drag
+                if(node.index == -1){
+                    node.index = nodeM.size()-1;
+                }
+                temp = nodeM.get(node.index);
+                u = new Node(temp.x, temp.y, temp.heading, temp.index);
+                u.state = 4;
+                nodeM.set(node.index, node);
+                undo.add(u);
+        }
+
+        redo.removeLast();
     }
 }
 

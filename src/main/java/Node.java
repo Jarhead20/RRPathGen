@@ -6,6 +6,7 @@ public class Node {
     public double y;
     public double heading;
     public int index = -1;
+    public int state = 1;
 
     private Type type = Type.SPLINE;
 

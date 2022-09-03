@@ -29,16 +29,17 @@ public class DrawPanel extends JPanel {
 
     private final JButton exportButton = new JButton("Export");
     private final JButton importButton = new JButton("Import");
-    private final JButton flipButton = new JButton("Flip");
+    public final JButton flipButton = new JButton("Flip");
     private final JButton clearButton = new JButton("Clear");
     private final JButton undoButton = new JButton("Undo");
+    private final JButton redoButton = new JButton("Redo");
     AffineTransform tx = new AffineTransform();
     int[] xPoly = {-5, 0, 5};
     int[] yPoly = {-5, 0, -5};
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
     private final double SCALE = Main.getSCALE();
 
-    DrawPanel(NodeManager nodeM, NodeManager undo, Main main) {
+    DrawPanel(NodeManager nodeM, NodeManager undo, NodeManager redo, Main main) {
         this.nodeM = nodeM;
         setPreferredSize(new Dimension((int) Math.floor(144 * SCALE + 4), (int) Math.floor(144 * SCALE + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
@@ -54,6 +55,7 @@ public class DrawPanel extends JPanel {
         buttons.add(flipButton);
         buttons.add(clearButton);
         buttons.add(undoButton);
+        buttons.add(redoButton);
         add(Box.createRigidArea(new Dimension((int) Math.floor(144 * SCALE), (int) Math.floor(144 * SCALE))));
         add(buttons);
 
@@ -81,7 +83,9 @@ public class DrawPanel extends JPanel {
         });
         flipButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                undo.add(new Node(-2,-2));
+                Node un = new Node(-2,-2);
+                un.state = 3;
+                undo.add(un);
                 for (int i = 0; i < nodeM.size(); i++) {
                     Node node = nodeM.get(i);
                     node.y *= -1;
@@ -96,9 +100,17 @@ public class DrawPanel extends JPanel {
                 repaint();
             }
         });
+        redoButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                main.redo();
+                repaint();
+            }
+        });
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //todo: add undo for this
+                undo.clear();
+                redo.clear();
                 nodeM.clear();
                 repaint();
             }
@@ -149,8 +161,8 @@ public class DrawPanel extends JPanel {
         open.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Node n = nodeM.get(nodeM.editIndex);
-                n.index = -nodeM.editIndex;
-                System.out.println(n.index);
+                n.index = nodeM.editIndex;
+                n.state = 1;
                 undo.add(n);
                 nodeM.remove(nodeM.editIndex);
                 repaint();
