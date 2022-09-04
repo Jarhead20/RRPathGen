@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
@@ -37,10 +38,11 @@ public class DrawPanel extends JPanel {
     int[] xPoly = {-5, 0, 5};
     int[] yPoly = {-5, 0, -5};
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
-    private final double SCALE = Main.getSCALE();
+    private final double SCALE;
 
     DrawPanel(NodeManager nodeM, NodeManager undo, NodeManager redo, Main main) {
         this.nodeM = nodeM;
+        this.SCALE = main.SCALE;
         setPreferredSize(new Dimension((int) Math.floor(144 * SCALE + 4), (int) Math.floor(144 * SCALE + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
 
@@ -170,11 +172,13 @@ public class DrawPanel extends JPanel {
         });
     }
 
+    Path2D.Double path = new Path2D.Double();
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(new ImageIcon(Main.class.getResource("/field-2021-adi-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * SCALE), (int) Math.floor(144 * SCALE), null);
-
+        int ovalScale = 2;
         for (int i = 0; i < nodeM.size(); i++) {
             Node p1 = nodeM.get(i);
             if (i < nodeM.size() - 1) {
@@ -183,7 +187,7 @@ public class DrawPanel extends JPanel {
                 g.drawLine((int) (SCALE * (p1.x + 72)), (int) (SCALE * (p1.y + 72)), (int) (SCALE * (p2.x + 72)), (int) (SCALE * (p2.y + 72)));
                 Node mid = p1.mid(p2);
                 g.setColor(Color.green);
-                g.fillOval((int) Math.floor((SCALE * (mid.x + 72)) - (0.25 * SCALE * SCALE)), (int) Math.floor((SCALE * (mid.y + 72)) - (0.25 * SCALE * SCALE)), (int) Math.floor(0.5 * SCALE * SCALE), (int) Math.floor(0.5 * SCALE * SCALE));
+                g.fillOval((int) Math.floor((SCALE * (mid.x + 72)) - (ovalScale*SCALE)), (int) Math.floor((SCALE * (mid.y + 72)) - (ovalScale*SCALE)), (int) Math.floor(2*ovalScale*SCALE), (int) Math.floor(2*ovalScale*SCALE));
 
             }
 
@@ -197,7 +201,7 @@ public class DrawPanel extends JPanel {
             g2.setTransform(tx);
 
             g2.setColor(Color.blue);
-            g2.fillOval((int) Math.floor(-0.25 * SCALE), (int) Math.floor(-0.25 * SCALE), (int) Math.floor(0.5 * SCALE), (int) Math.floor(0.5 * SCALE));
+            g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
 
             switch (p1.getType()) {
                 case MARKER:

@@ -1,16 +1,19 @@
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 class Main extends JFrame {
 
 
-    static final double SCALE = 8;
+    public static final double SCALE = 8;
     public NodeManager nodeM = new NodeManager(new ArrayList<>());
     public NodeManager undo = new NodeManager(new ArrayList<>());
     public NodeManager redo = new NodeManager(new ArrayList<>());
@@ -29,10 +32,6 @@ class Main extends JFrame {
                 new Main().setVisible(true);
             }
         });
-    }
-
-    public static double getSCALE(){
-        return SCALE;
     }
 
     private void initComponents() {

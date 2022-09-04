@@ -20,8 +20,8 @@ public class Node {
     }
 
     Node(java.awt.Point p){
-        this.x = (1.0/Main.getSCALE()*p.x)-72;
-        this.y = (1.0/Main.getSCALE()*p.y)-72;
+        this.x = (1.0/Main.SCALE*p.x)-72;
+        this.y = (1.0/Main.SCALE*p.y)-72;
 
     }
     Node(double x, double y){
@@ -34,8 +34,8 @@ public class Node {
     }
 
     Node(java.awt.Point p, int index){
-        this.x = (1.0/Main.getSCALE()*p.x)-72;
-        this.y = (1.0/Main.getSCALE()*p.y)-72;
+        this.x = (1.0/Main.SCALE*p.x)-72;
+        this.y = (1.0/Main.SCALE*p.y)-72;
         this.index = index;
     }
     Node(double x, double y, int index){
