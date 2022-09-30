@@ -1,4 +1,7 @@
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.path.Path;
+import com.acmerobotics.roadrunner.path.PathSegment;
+import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -8,6 +11,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 class Main extends JFrame {
@@ -33,6 +37,7 @@ class Main extends JFrame {
             }
         });
     }
+
 
     private void initComponents() {
         panel = new DrawPanel(nodeM, undo, redo,this);
@@ -66,25 +71,34 @@ class Main extends JFrame {
         if(!edit){
             Node mouse = new Node(e.getPoint());
 
-//            if(e.getButton()==3) mouse.setType(Marker.Type.MARKER);
-
             double closest = 99999;
             boolean mid = false;
             int index = -1;
+            Path path = panel.getPath();
+            if(path != null){
+                List<PathSegment> segments = path.getSegments();
+                System.out.println(segments.size() + " " + nodeM.size());
+                for(int i = 0; i < segments.size(); i++) {
+                    Pose2d pose = segments.get(i).get(segments.get(i).length() / 2);
+//                    System.out.println(pose.getX());
+                    double px = pose.getX() - mouse.x;
+                    double py = pose.getY() - mouse.y;
+
+                    double midDist = Math.sqrt(px * px + py * py);
+                    System.out.println(px + " " + py + " " + midDist);
+                    if (midDist < (clickSize * SCALE) && midDist < closest) {
+                        closest = midDist;
+                        index = i+1;
+                        mid = true;
+                        System.out.println("yes");
+                    }
+                }
+            }
 
             for (int i = 0; i < nodeM.size(); i++) {
 
                 //find closest mid
-                if(i<nodeM.size()-1){
 
-                    Node midMark = nodeM.get(i).mid(nodeM.get(i+1));
-                    double midDist = mouse.distance(midMark);
-                    if(midDist < (clickSize*SCALE) && midDist < closest){
-                        closest = midDist;
-                        index = i+1;
-                        mid = true;
-                    }
-                }
                 Node close = nodeM.get(i);
                 double distance = mouse.distance(close);
                 //find closest that isn't a mid

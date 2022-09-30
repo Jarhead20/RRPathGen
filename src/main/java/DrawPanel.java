@@ -1,3 +1,9 @@
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.path.Path;
+import com.acmerobotics.roadrunner.path.PathBuilder;
+import com.acmerobotics.roadrunner.path.QuinticSpline;
+
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -5,11 +11,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +24,7 @@ public class DrawPanel extends JPanel {
     private static final Pattern p = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
 
     private final NodeManager nodeM;
+    private Path path;
 
     private final JPopupMenu menu = new JPopupMenu("Menu");
 
@@ -35,14 +40,15 @@ public class DrawPanel extends JPanel {
     private final JButton undoButton = new JButton("Undo");
     private final JButton redoButton = new JButton("Redo");
     AffineTransform tx = new AffineTransform();
-    int[] xPoly = {-5, 0, 5};
-    int[] yPoly = {-5, 0, -5};
+    int[] xPoly = {0, -2, 0, 2};
+    int[] yPoly = {0, -4, -3, -4};
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
     private final double SCALE;
 
     DrawPanel(NodeManager nodeM, NodeManager undo, NodeManager redo, Main main) {
         this.nodeM = nodeM;
         this.SCALE = main.SCALE;
+        this.path = path;
         setPreferredSize(new Dimension((int) Math.floor(144 * SCALE + 4), (int) Math.floor(144 * SCALE + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
 
@@ -172,55 +178,74 @@ public class DrawPanel extends JPanel {
         });
     }
 
-    Path2D.Double path = new Path2D.Double();
+    Color cyan = new Color(104, 167, 157);
+    Color darkPurple = new Color(105,81,121);
+    Color lightPurple = new Color(147, 88, 172);
+
+    private void renderSplines(Graphics g, Path path, Color color) {
+        g.setColor(color);
+        for (int i = 0; i < path.length(); i++) {
+            Pose2d pose1 = path.get(i-1);
+            Pose2d pose2 = path.get(i);
+            g.drawLine((int) Math.floor((pose1.getX()+72)*SCALE),(int) Math.floor((pose1.getY()+72)*SCALE),(int) Math.floor((pose2.getX()+72)*SCALE),(int) Math.floor((pose2.getY()+72)*SCALE));
+        }
+    }
+
+    private void renderPoints(Graphics g, Path path, Color c1, int ovalScale){
+        path.getSegments().forEach(pathSegment -> {
+            Pose2d mid = pathSegment.get(pathSegment.length()/2);
+            g.setColor(c1);
+            g.fillOval((int) Math.floor((SCALE * (mid.getX() + 72)) - (ovalScale*SCALE)), (int) Math.floor((SCALE * (mid.getY() + 72)) - (ovalScale*SCALE)), (int) Math.floor(2*ovalScale*SCALE), (int) Math.floor(2*ovalScale*SCALE));
+        });
+    }
+
+
 
     @Override
     public void paintComponent(Graphics g) {
+
         super.paintComponent(g);
-        g.drawImage(new ImageIcon(Main.class.getResource("/field-2021-adi-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * SCALE), (int) Math.floor(144 * SCALE), null);
-        int ovalScale = 2;
-        for (int i = 0; i < nodeM.size(); i++) {
-            Node p1 = nodeM.get(i);
-            if (i < nodeM.size() - 1) {
-                Node p2 = nodeM.get(i + 1);
-                g.setColor(Color.white);
-                g.drawLine((int) (SCALE * (p1.x + 72)), (int) (SCALE * (p1.y + 72)), (int) (SCALE * (p2.x + 72)), (int) (SCALE * (p2.y + 72)));
-                Node mid = p1.mid(p2);
-                g.setColor(Color.green);
-                g.fillOval((int) Math.floor((SCALE * (mid.x + 72)) - (ovalScale*SCALE)), (int) Math.floor((SCALE * (mid.y + 72)) - (ovalScale*SCALE)), (int) Math.floor(2*ovalScale*SCALE), (int) Math.floor(2*ovalScale*SCALE));
+        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * SCALE), (int) Math.floor(144 * SCALE), null);
 
+        if(nodeM.size() > 0){
+            Node node = nodeM.get(0);
+            PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y), Math.toRadians(-node.heading-90));
+            for (int i = 1; i < nodeM.size(); i++) {
+                node = nodeM.get(i);
+                pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.heading-90));
             }
+            path = pb.build();
+            renderSplines(g, path, darkPurple);
+            renderPoints(g, path, cyan, 1);
+            renderArrows(g,nodeM, lightPurple, 1);
+        }
+    }
 
-            double angle = 180 - ( nodeM.get(i)).heading;
+    private void renderArrows(Graphics g, NodeManager nodeM, Color c3, int ovalScale) {
+        for (int i = 0; i < nodeM.size(); i++) {
+            Node node = nodeM.get(i);
             tx.setToIdentity();
-            tx.translate((SCALE * (p1.x + 72)), (SCALE * (p1.y + 72)));
-            tx.rotate(Math.toRadians(angle));
+            tx.translate((SCALE * (node.x + 72)), (SCALE * (node.y + 72)));
+            tx.rotate(Math.toRadians(-node.heading+180));
             tx.scale (SCALE, SCALE);
 
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setTransform(tx);
 
-            g2.setColor(Color.blue);
+            g2.setColor(darkPurple);
             g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
-
-            switch (p1.getType()) {
-                case MARKER:
-                    g2.setColor(Color.ORANGE);
-                    break;
-                case SPLINE:
-                    g2.setColor(Color.white);
-                    break;
-                default:
-                    g2.setColor(Color.PINK);
-                    break;
-            }
+            g2.setColor(c3);
             g2.fill(poly);
-
             g2.dispose();
         }
     }
+
     public JPopupMenu getMenu(){
         return menu;
+    }
+
+    public Path getPath(){
+        return path;
     }
 
 }
