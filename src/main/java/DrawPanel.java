@@ -69,24 +69,26 @@ public class DrawPanel extends JPanel {
 
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Node node = nodeM.get(0);
-                System.out.println("drive.trajectorySequenceBuilder(new Pose2d(" + node.x + "," + -node.y + ", Math.toRadians(" + (node.heading+90) + ")))");
-                for (int i = 1; i < nodeM.size(); i++) {
-                    node = nodeM.get(i);
-                    switch (node.getType()){
-                        case SPLINE:
-                            System.out.println(".splineToSplineHeading(new Pose2d(" + node.x + "," + -node.y + ",Math.toRadians(" + (node.heading+90) + ")),Math.toRadians(" + (node.heading+90) + "))");
-                            break;
-                        case MARKER:
-                            System.out.println(".splineToSplineHeading(new Pose2d(" + node.x + "," + -node.y + ",Math.toRadians(" + (node.heading+90) + ")),Math.toRadians(" + (node.heading+90) + "))");
-                            System.out.println(".addDisplacementMarker(() -> {})");
-                            break;
-                        default:
-                            System.out.println("what");
-                            break;
+                if(nodeM.size() > 0){
+                    Node node = nodeM.get(0);
+                    System.out.println("drive.trajectorySequenceBuilder(new Pose2d(" + node.x + "," + -node.y + ", Math.toRadians(" + (node.heading+90) + ")))");
+                    for (int i = 1; i < nodeM.size(); i++) {
+                        node = nodeM.get(i);
+                        switch (node.getType()){
+                            case SPLINE:
+                                System.out.println(".splineToSplineHeading(new Pose2d(" + node.x + "," + -node.y + ",Math.toRadians(" + (node.heading+90) + ")),Math.toRadians(" + (node.heading+90) + "))");
+                                break;
+                            case MARKER:
+                                System.out.println(".splineToSplineHeading(new Pose2d(" + node.x + "," + -node.y + ",Math.toRadians(" + (node.heading+90) + ")),Math.toRadians(" + (node.heading+90) + "))");
+                                System.out.println(".addDisplacementMarker(() -> {})");
+                                break;
+                            default:
+                                System.out.println("what");
+                                break;
+                        }
                     }
+                    System.out.println(".build()");
                 }
-                System.out.println(".build()");
             }
         });
         flipButton.addActionListener(new ActionListener() {
@@ -97,6 +99,7 @@ public class DrawPanel extends JPanel {
                 for (int i = 0; i < nodeM.size(); i++) {
                     Node node = nodeM.get(i);
                     node.y *= -1;
+                    node.heading = 180-node.heading;
                     nodeM.set(i, node);
                 }
                 repaint();

@@ -77,20 +77,16 @@ class Main extends JFrame {
             Path path = panel.getPath();
             if(path != null){
                 List<PathSegment> segments = path.getSegments();
-                System.out.println(segments.size() + " " + nodeM.size());
                 for(int i = 0; i < segments.size(); i++) {
                     Pose2d pose = segments.get(i).get(segments.get(i).length() / 2);
-//                    System.out.println(pose.getX());
                     double px = pose.getX() - mouse.x;
                     double py = pose.getY() - mouse.y;
 
                     double midDist = Math.sqrt(px * px + py * py);
-                    System.out.println(px + " " + py + " " + midDist);
                     if (midDist < (clickSize * SCALE) && midDist < closest) {
                         closest = midDist;
                         index = i+1;
                         mid = true;
-                        System.out.println("yes");
                     }
                 }
             }
@@ -169,8 +165,6 @@ class Main extends JFrame {
         if(edit){
             int index = nodeM.editIndex;
             Node mark = nodeM.get(index);
-
-//            System.out.println("1 " + preEdit.heading);
             if(index > 0){
                 mark.heading = nodeM.get(index-1).headingTo(mouse);
             }
@@ -180,7 +174,6 @@ class Main extends JFrame {
             } else{
                 mark.setLocation(mouse);
             }
-//            System.out.println("2 " + preEdit.heading);
         } else {
             Node mark = nodeM.last();
             mark.index = nodeM.size()-1;
@@ -194,10 +187,6 @@ class Main extends JFrame {
         Node node = undo.last();
         Node r;
         Node temp;
-        System.out.println("undo");
-        System.out.println("u " + undo.size());
-        System.out.println("r " + redo.size());
-        System.out.println("s " + node.state);
         switch (node.state){
             case 1: //undo delete
                 nodeM.add(node.index, node);
@@ -241,10 +230,6 @@ class Main extends JFrame {
         Node node = redo.last();
         Node u;
         Node temp;
-        System.out.println("redo");
-        System.out.println("u " + undo.size());
-        System.out.println("r " + redo.size());
-        System.out.println("s " + node.state);
         switch (node.state){
             case 1: //redo delete
                 temp = nodeM.get(node.index);
