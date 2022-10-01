@@ -2,7 +2,6 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathBuilder;
-import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -28,10 +27,9 @@ public class DrawPanel extends JPanel {
 
     private final JPopupMenu menu = new JPopupMenu("Menu");
 
-    private final JMenuItem open = new JMenuItem("Delete");
-    private final JMenuItem cut = new JMenuItem("Cut");
-    private final JMenuItem copy = new JMenuItem("Copy");
-    private final JMenuItem paste = new JMenuItem("Paste");
+    private final JMenuItem delete = new JMenuItem("Delete");
+    private final JMenuItem makeDisplace = new JMenuItem("Make Displacement Marker");
+    private final JMenuItem makeSpline = new JMenuItem("Make Spline");
 
     private final JButton exportButton = new JButton("Export");
     private final JButton importButton = new JButton("Import");
@@ -52,10 +50,9 @@ public class DrawPanel extends JPanel {
         setPreferredSize(new Dimension((int) Math.floor(144 * SCALE + 4), (int) Math.floor(144 * SCALE + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
 
-        menu.add(open);
-        menu.add(cut);
-        menu.add(copy);
-        menu.add(paste);
+        menu.add(delete);
+        menu.add(makeDisplace);
+        menu.add(makeSpline);
         add(menu);
 
         buttons.add(exportButton);
@@ -71,15 +68,15 @@ public class DrawPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 if(nodeM.size() > 0){
                     Node node = nodeM.get(0);
-                    System.out.println("drive.trajectorySequenceBuilder(new Pose2d(" + node.x + "," + -node.y + ", Math.toRadians(" + (node.heading+90) + ")))");
+                    System.out.printf("drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", node.x, -node.y, (node.heading+90));
                     for (int i = 1; i < nodeM.size(); i++) {
                         node = nodeM.get(i);
                         switch (node.getType()){
                             case SPLINE:
-                                System.out.println(".splineToSplineHeading(new Pose2d(" + node.x + "," + -node.y + ",Math.toRadians(" + (node.heading+90) + ")),Math.toRadians(" + (node.heading+90) + "))");
+                                System.out.printf(".splineTo(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", node.x, -node.y, (node.heading+90));
                                 break;
                             case MARKER:
-                                System.out.println(".splineToSplineHeading(new Pose2d(" + node.x + "," + -node.y + ",Math.toRadians(" + (node.heading+90) + ")),Math.toRadians(" + (node.heading+90) + "))");
+                                System.out.printf(".splineTo(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", node.x, -node.y, (node.heading+90));
                                 System.out.println(".addDisplacementMarker(() -> {})");
                                 break;
                             default:
@@ -169,7 +166,7 @@ public class DrawPanel extends JPanel {
             }
         });
 
-        open.addActionListener(new ActionListener() {
+        delete.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Node n = nodeM.get(nodeM.editIndex);
                 n.index = nodeM.editIndex;
@@ -179,6 +176,17 @@ public class DrawPanel extends JPanel {
                 repaint();
             }
         });
+        makeDisplace.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                nodeM.get(nodeM.editIndex).setType(Node.Type.MARKER);
+            }
+        });
+        makeSpline.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                nodeM.get(nodeM.editIndex).setType(Node.Type.SPLINE);
+            }
+        });
+
     }
 
     Color cyan = new Color(104, 167, 157);
@@ -220,11 +228,11 @@ public class DrawPanel extends JPanel {
             path = pb.build();
             renderSplines(g, path, darkPurple);
             renderPoints(g, path, cyan, 1);
-            renderArrows(g,nodeM, lightPurple, 1);
+            renderArrows(g,nodeM, 1);
         }
     }
 
-    private void renderArrows(Graphics g, NodeManager nodeM, Color c3, int ovalScale) {
+    private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale) {
         for (int i = 0; i < nodeM.size(); i++) {
             Node node = nodeM.get(i);
             tx.setToIdentity();
@@ -237,7 +245,14 @@ public class DrawPanel extends JPanel {
 
             g2.setColor(darkPurple);
             g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
-            g2.setColor(c3);
+            switch (node.getType()){
+                case SPLINE:
+                    g2.setColor(lightPurple);
+                    break;
+                case MARKER:
+                    g2.setColor(cyan);
+                    break;
+            }
             g2.fill(poly);
             g2.dispose();
         }

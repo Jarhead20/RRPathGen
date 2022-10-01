@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 class Main extends JFrame {
 
 
-    public static final double SCALE = 8;
+    public static final double SCALE = 6;
     public NodeManager nodeM = new NodeManager(new ArrayList<>());
     public NodeManager undo = new NodeManager(new ArrayList<>());
     public NodeManager redo = new NodeManager(new ArrayList<>());
@@ -44,7 +44,7 @@ class Main extends JFrame {
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        panel.setBackground(new java.awt.Color(255, 255, 255));
+        panel.setBackground(new java.awt.Color(0, 0, 0));
         panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         //event handler stuff
         panel.addMouseListener(new MouseAdapter() {
