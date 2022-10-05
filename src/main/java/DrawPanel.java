@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
@@ -143,8 +144,8 @@ public class DrawPanel extends JPanel {
                             for (int i = 0; m.find(); i++) {
                                 data[i]=m.group(0);
                             }
-                            node.x = Double.parseDouble(data[1]);
-                            node.y = -Double.parseDouble(data[2]);
+                            node.x = (Double.parseDouble(data[1])+72)* main.scale;
+                            node.y = (-Double.parseDouble(data[2])+72)* main.scale;
                             node.heading = Double.parseDouble(data[3])-90;
 
                             nodeM.add(node);
@@ -212,7 +213,9 @@ public class DrawPanel extends JPanel {
         }
     }
 
-    private void renderRobotPath(Graphics g, Path path, Color color) {
+    private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
+        BufferedImage image = new BufferedImage((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale), BufferedImage.TYPE_4BYTE_ABGR);
+        Graphics2D g2 = (Graphics2D) image.getGraphics();
         for (int i = 0; i < path.length(); i++) {
             Pose2d pose1 = path.get(i-1);
             int x1 = (int) pose1.getX();
@@ -224,12 +227,10 @@ public class DrawPanel extends JPanel {
             outLine.translate(x1, y1);
             outLine.rotate(pose1.getHeading());
 
-            Graphics2D g2 = (Graphics2D) g.create();
             g2.setColor(color);
             g2.setTransform(outLine);
             g2.fillRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
 //            g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2), (int) Math.floor(rX),(int) Math.floor(rY));
-            g2.dispose();
 
 //            g.setColor(new Color(0,255,0));
 //            double theta1 = pose1.getHeading() - Math.toRadians(90);
@@ -239,6 +240,12 @@ public class DrawPanel extends JPanel {
 //            g.drawLine((int) (x1+(Math.cos(theta1)*rX)), (int) (y1+(Math.sin(theta1)*rY)), (int) (x2+(Math.cos(theta2)*rX)), (int) (y2+(Math.sin(theta2)*rY)));
 //            g.drawLine((int) (x1-(Math.cos(theta1)*rX)), (int) (y1-(Math.sin(theta1)*rY)), (int) (x2-(Math.cos(theta2)*rX)), (int) (y2-(Math.sin(theta2)*rY)));
         }
+        Composite comp = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                (float) transparency));
+        g.drawImage(image, 0,0,null);
+        g.setComposite(comp);
+        g2.dispose();
     }
 
     private void renderPoints(Graphics g, Path path, Color c1, int ovalScale){
@@ -277,10 +284,12 @@ public class DrawPanel extends JPanel {
                 )));
             }
             path = new Path(segments);
-            renderRobotPath(g, path, darkPurple);
+
+            renderRobotPath((Graphics2D) g, path, darkPurple, 0.5f);
             renderSplines(g, path, cyan);
             renderPoints(g, path, cyan, 1);
             renderArrows(g, nodeM, 1);
+
         }
     }
 
@@ -295,7 +304,7 @@ public class DrawPanel extends JPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setTransform(tx);
 
-            g2.setColor(cyan);
+            g2.setColor(darkPurple);
             g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
             switch (node.getType()){
                 case SPLINE:

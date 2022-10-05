@@ -107,6 +107,7 @@ class Main extends JFrame {
                     Node n1 = nodeM.get(index-1);
                     Node n2 = nodeM.get(index);
                     mouse.heading = n1.headingTo(n2);
+                    mouse.setType(n2.getType());
                 }
 
                 if (SwingUtilities.isRightMouseButton(e) && !mid){ //opens right click context menu
