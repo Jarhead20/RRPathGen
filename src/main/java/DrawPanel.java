@@ -15,7 +15,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +29,8 @@ public class DrawPanel extends JPanel {
 
     private static final Pattern p = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
 
-    private final NodeManager nodeM;
+    private LinkedList<NodeManager> managers;
+
     private Path path;
     private Main main;
     private final JPopupMenu menu = new JPopupMenu("Menu");
@@ -48,8 +51,8 @@ public class DrawPanel extends JPanel {
     int[] yPoly = {0, -4, -3, -4};
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
-    DrawPanel(NodeManager nodeM, NodeManager undo, NodeManager redo, Main main) {
-        this.nodeM = nodeM;
+    DrawPanel(LinkedList<NodeManager> managers, Main main) {
+        this.managers = managers;
         this.main = main;
         setPreferredSize(new Dimension((int) Math.floor(144 * main.scale + 4), (int) Math.floor(144 * main.scale + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
@@ -59,6 +62,13 @@ public class DrawPanel extends JPanel {
         menu.add(makeSpline);
         add(menu);
 
+        exportButton.setFocusable(false);
+        importButton.setFocusable(false);
+        flipButton.setFocusable(false);
+        clearButton.setFocusable(false);
+        undoButton.setFocusable(false);
+        redoButton.setFocusable(false);
+
         buttons.add(exportButton);
         buttons.add(importButton);
         buttons.add(flipButton);
@@ -66,18 +76,18 @@ public class DrawPanel extends JPanel {
         buttons.add(undoButton);
         buttons.add(redoButton);
         add(Box.createRigidArea(new Dimension((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale))));
-
         add(buttons);
-
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(nodeM.size() > 0){
-                    Node node = nodeM.get(0);
+                if(main.currentManager.size() > 0){
+                    Node node = main.currentManager.get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
                     System.out.printf("drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.heading+90));
-                    for (int i = 1; i < nodeM.size(); i++) {
-                        node = nodeM.get(i);
+                    for (int i = 1; i < main.currentManager.size(); i++) {
+                        node = main.currentManager.get(i);
+                        x = main.toInches(node.x);
+                        y = main.toInches(node.y);
                         switch (node.getType()){
                             case SPLINE:
                                 System.out.printf(".splineTo(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.heading+90));
@@ -99,12 +109,12 @@ public class DrawPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 Node un = new Node(-2,-2);
                 un.state = 3;
-                undo.add(un);
-                for (int i = 0; i < nodeM.size(); i++) {
-                    Node node = nodeM.get(i);
+                main.currentManager.undo.add(un);
+                for (int i = 0; i < main.currentManager.size(); i++) {
+                    Node node = main.currentManager.get(i);
                     node.y *= -1;
                     node.heading = 180-node.heading;
-                    nodeM.set(i, node);
+                    main.currentManager.set(i, node);
                 }
                 repaint();
             }
@@ -124,20 +134,22 @@ public class DrawPanel extends JPanel {
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //todo: add undo for this
-                undo.clear();
-                redo.clear();
-                nodeM.clear();
+                main.currentManager.undo.clear();
+                main.currentManager.redo.clear();
+                main.currentManager.clear();
+                if(main.currentManager.id > 0) main.currentManager = managers.get(main.currentManager.id-1);
                 repaint();
             }
         });
         importButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                 try {
                     File file = new File(Main.class.getResource("/import.txt").toURI());
                     Scanner reader = new Scanner(file);
                     while (reader.hasNextLine()) {
                         String line = reader.nextLine();
-                        if(line.contains(".splineTo(new Vector2d(")){
+                        if(line.contains("new Pose2d(")){
                             Matcher m = p.matcher(line);
                             Node node = new Node();
                             String[] data = new String[4];
@@ -147,50 +159,43 @@ public class DrawPanel extends JPanel {
                             node.x = (Double.parseDouble(data[1])+72)* main.scale;
                             node.y = (-Double.parseDouble(data[2])+72)* main.scale;
                             node.heading = Double.parseDouble(data[3])-90;
-
-                            nodeM.add(node);
+                            manager.add(node);
                         } else if(line.contains(".addDisplacementMarker(")){
-                            (nodeM.get(nodeM.size()-1)).setType(Node.Type.MARKER);
+                            (manager.get(manager.size()-1)).setType(Node.Type.MARKER);
                         }
                     }
                 } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
                     uriSyntaxException.printStackTrace();
                 }
+                managers.add(manager);
+                main.currentManager = manager;
                 repaint();
             }
         });
         menu.addPopupMenuListener(new PopupMenuListener() {
-            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-
-            }
-
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                repaint();
-            }
-
-            public void popupMenuCanceled(PopupMenuEvent e) {
-                repaint();
-            }
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) { }
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { repaint(); }
+            public void popupMenuCanceled(PopupMenuEvent e) { repaint(); }
         });
 
         delete.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Node n = nodeM.get(nodeM.editIndex);
-                n.index = nodeM.editIndex;
+                Node n = main.currentManager.get(main.currentManager.editIndex);
+                n.index = main.currentManager.editIndex;
                 n.state = 1;
-                undo.add(n);
-                nodeM.remove(nodeM.editIndex);
+                main.currentManager.undo.add(n);
+                main.currentManager.remove(main.currentManager.editIndex);
                 repaint();
             }
         });
         makeDisplace.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                nodeM.get(nodeM.editIndex).setType(Node.Type.MARKER);
+                main.currentManager.get(main.currentManager.editIndex).setType(Node.Type.MARKER);
             }
         });
         makeSpline.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                nodeM.get(nodeM.editIndex).setType(Node.Type.SPLINE);
+                main.currentManager.get(main.currentManager.editIndex).setType(Node.Type.SPLINE);
             }
         });
     }
@@ -241,8 +246,7 @@ public class DrawPanel extends JPanel {
 //            g.drawLine((int) (x1-(Math.cos(theta1)*rX)), (int) (y1-(Math.sin(theta1)*rY)), (int) (x2-(Math.cos(theta2)*rX)), (int) (y2-(Math.sin(theta2)*rY)));
         }
         Composite comp = g.getComposite();
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                (float) transparency));
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
         g.drawImage(image, 0,0,null);
         g.setComposite(comp);
         g2.dispose();
@@ -262,36 +266,39 @@ public class DrawPanel extends JPanel {
 
         super.paintComponent(g);
         g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale), null);
+        for (NodeManager manager : managers) {
+            if(manager.size() > 0) {
+                java.util.List<PathSegment> segments = new ArrayList<>();
 
-        if(nodeM.size() > 0) {
-            java.util.List<PathSegment> segments = new ArrayList<>();
+                Node node = manager.get(0);
+                for (int i = 1; i < manager.size(); i++) {
+                    final Node prevNode = node;
+                    node = manager.get(i);
+                    double currentX = node.x;
+                    double currentY = node.y;
+                    double prevX = prevNode.x;
+                    double prevY = prevNode.y;
+                    final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
+                    final double prevHeading = Math.toRadians(-prevNode.heading - 90);
+                    final double heading = Math.toRadians(-node.heading - 90);
+                    segments.add(new PathSegment(new QuinticSpline(
+                            new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
+                            new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
+                            0.25, 1, 4
+                    )));
+                }
+                path = new Path(segments);
 
-            Node node = nodeM.get(0);
-            for (int i = 1; i < nodeM.size(); i++) {
-                final Node prevNode = node;
-                node = nodeM.get(i);
-                double currentX = node.x;
-                double currentY = node.y;
-                double prevX = prevNode.x;
-                double prevY = prevNode.y;
-                final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
-                final double prevHeading = Math.toRadians(-prevNode.heading - 90);
-                final double heading = Math.toRadians(-node.heading - 90);
-                segments.add(new PathSegment(new QuinticSpline(
-                        new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
-                        new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
-                        0.25, 1, 4
-                )));
+                renderRobotPath((Graphics2D) g, path, darkPurple, 0.5f);
+                renderSplines(g, path, cyan);
+                renderPoints(g, path, cyan, 1);
+                renderArrows(g, manager, 1);
+
             }
-            path = new Path(segments);
-
-            renderRobotPath((Graphics2D) g, path, darkPurple, 0.5f);
-            renderSplines(g, path, cyan);
-            renderPoints(g, path, cyan, 1);
-            renderArrows(g, nodeM, 1);
-
         }
     }
+
+
 
     private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale) {
         for (int i = 0; i < nodeM.size(); i++) {

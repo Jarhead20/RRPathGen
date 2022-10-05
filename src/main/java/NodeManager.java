@@ -2,11 +2,21 @@ import java.util.ArrayList;
 
 public class NodeManager {
 
+    public NodeManager undo;
+    public NodeManager redo;
     public int editIndex = -1;
-    private final ArrayList nodes;
+    private ArrayList nodes;
+    private String name;
+    public int id;
 
-    NodeManager(ArrayList<Node> nodes){
+    NodeManager(ArrayList<Node> nodes, int id){
         this.nodes = nodes;
+        this.id = id;
+        this.name = "untitled" + id;
+        if(id != -1){
+            undo = new NodeManager(new ArrayList<>(), -1);
+            redo = new NodeManager(new ArrayList<>(), -1);
+        }
     }
     public Node get(int index){
         Node n = (Node) nodes.get(index);
