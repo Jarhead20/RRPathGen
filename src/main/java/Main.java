@@ -1,29 +1,24 @@
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.path.ParametricCurve;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathSegment;
-import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 class Main extends JFrame {
 
 
-    public static final double SCALE = 6;
+    public double scale = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
     public NodeManager nodeM = new NodeManager(new ArrayList<>());
     public NodeManager undo = new NodeManager(new ArrayList<>());
     public NodeManager redo = new NodeManager(new ArrayList<>());
 
-    final double clickSize = 0.3;
+    final double clickSize = 2;
+    final int snapSize = 20;
     private DrawPanel panel;
     private boolean edit = false;
     private Node preEdit;
@@ -70,7 +65,7 @@ class Main extends JFrame {
     private void mPressed(MouseEvent e) {
     //TODO: clean up this
         if(!edit){
-            Node mouse = new Node(e.getPoint());
+            Node mouse = new Node(e.getPoint(), scale);
 
             double closest = 99999;
             boolean mid = false;
@@ -85,7 +80,7 @@ class Main extends JFrame {
                     double py = pose.getY() - mouse.y;
 
                     double midDist = Math.sqrt(px * px + py * py);
-                    if (midDist < (clickSize * SCALE) && midDist < closest) {
+                    if (midDist < (clickSize * scale) && midDist < closest) {
                         closest = midDist;
                         index = i+1;
                         mid = true;
@@ -94,19 +89,18 @@ class Main extends JFrame {
             }
 
             for (int i = 0; i < nodeM.size(); i++) {
-
-
-
                 Node close = nodeM.get(i);
                 double distance = mouse.distance(close);
                 //find closest that isn't a mid
-                if(distance < (clickSize*SCALE) && distance < closest){
+                if(distance < (clickSize* scale) && distance < closest){
                     closest = distance;
                     index = i;
                     mouse.heading = close.heading;
                     mid = false;
                 }
             }
+
+            mouse = snap(mouse, e);
 
             if(index != -1){
                 if(index >0){
@@ -128,6 +122,7 @@ class Main extends JFrame {
                         preEdit = (new Node(index));
                         preEdit.state = 2;
                         redo.clear();
+
                         nodeM.add(index,mouse);
                     }
                     else { //editing existing node
@@ -162,28 +157,20 @@ class Main extends JFrame {
     }
 
     private void mDragged(MouseEvent e) {
-        Node mouse = new Node(e.getPoint());
+        Node mouse = new Node(e.getPoint(), scale);
         if (SwingUtilities.isRightMouseButton(e)) return;
         if(edit){
             int index = nodeM.editIndex;
             Node mark = nodeM.get(index);
-            if(index > 0){
-                mark.heading = nodeM.get(index-1).headingTo(mouse);
-            }
-            if(e.isAltDown()){
-
-                mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
-            } else{
-                mark.setLocation(mouse);
-//                Path path = panel.getPath();
-//                path.getSegments().set(index, new PathSegment(new ParametricCurve() {
-//                }path.getSegments().get(index).start(), path.getSegments().get(index).end()));
-            }
+            if(index > 0) mark.heading = nodeM.get(index-1).headingTo(mouse);
+            if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            else mark.setLocation(snap(mouse, e));
         } else {
             Node mark = nodeM.last();
             mark.index = nodeM.size()-1;
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
-            nodeM.set(nodeM.size()-1, mark);
+
+            nodeM.set(nodeM.size()-1, snap(mark,e));
         }
         panel.repaint();
     }
@@ -270,5 +257,18 @@ class Main extends JFrame {
 
         redo.removeLast();
     }
+
+    private Node snap(Node node, MouseEvent e){
+        if(e.isControlDown()) {
+            node.x = scale*(Math.round(node.x/scale));
+            node.y = scale*(Math.round(node.y/scale));
+        }
+        return node;
+    }
+
+    public double toInches(double in){
+        return (1.0/scale * in)-72;
+    }
+
 }
 

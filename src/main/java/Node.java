@@ -1,6 +1,3 @@
-import java.awt.geom.Line2D;
-import java.util.ArrayList;
-
 public class Node {
     public double x;
     public double y;
@@ -19,9 +16,9 @@ public class Node {
 
     }
 
-    Node(java.awt.Point p){
-        this.x = (1.0/Main.SCALE*p.x)-72;
-        this.y = (1.0/Main.SCALE*p.y)-72;
+    Node(java.awt.Point p, double scale){
+        this.x = p.x;
+        this.y = p.y;
 
     }
     Node(double x, double y){
@@ -33,17 +30,6 @@ public class Node {
         this.index = index;
     }
 
-    Node(java.awt.Point p, int index){
-        this.x = (1.0/Main.SCALE*p.x)-72;
-        this.y = (1.0/Main.SCALE*p.y)-72;
-        this.index = index;
-    }
-    Node(double x, double y, int index){
-        this.x = x;
-        this.y = y;
-        this.index = index;
-    }
-
     Node(double x, double y,double heading, int index){
         this.x = x;
         this.y = y;
@@ -51,24 +37,10 @@ public class Node {
         this.index = index;
     }
 
-    Node(java.awt.Point p, Type t){
-        this.x = p.x;
-        this.y = p.y;
-        this.type = t;
-    }
-    Node(double x, double y, Type t){
-        this.x = x;
-        this.y = y;
-        this.type = t;
-    }
     public double distance(Node pt) {
         double px = pt.x - this.x;
         double py = pt.y - this.y;
         return Math.sqrt(px * px + py * py);
-    }
-
-    public Node mid(Node pt){
-        return new Node((this.x+pt.x)/2,(this.y + pt.y)/2);
     }
 
     public void setType(Type t){
