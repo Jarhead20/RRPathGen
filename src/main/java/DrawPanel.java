@@ -2,6 +2,8 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathBuilder;
+import com.acmerobotics.roadrunner.path.PathSegment;
+import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -13,6 +15,7 @@ import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -186,7 +189,6 @@ public class DrawPanel extends JPanel {
                 nodeM.get(nodeM.editIndex).setType(Node.Type.SPLINE);
             }
         });
-
     }
 
     Color cyan = new Color(104, 167, 157);
@@ -210,25 +212,32 @@ public class DrawPanel extends JPanel {
         });
     }
 
-
-
     @Override
     public void paintComponent(Graphics g) {
 
         super.paintComponent(g);
         g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * SCALE), (int) Math.floor(144 * SCALE), null);
 
-        if(nodeM.size() > 0){
+        if(nodeM.size() > 0) {
+            java.util.List<PathSegment> segments = new ArrayList<>();
+
             Node node = nodeM.get(0);
-            PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y), Math.toRadians(-node.heading-90));
             for (int i = 1; i < nodeM.size(); i++) {
+                final Node prevNode = node;
                 node = nodeM.get(i);
-                pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.heading-90));
+                final double derivMag = Math.hypot(node.x - prevNode.x, node.y - prevNode.y);
+                final double prevHeading = Math.toRadians(-prevNode.heading - 90);
+                final double heading = Math.toRadians(-node.heading - 90);
+                segments.add(new PathSegment(new QuinticSpline(
+                        new QuinticSpline.Knot(prevNode.x, prevNode.y, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
+                        new QuinticSpline.Knot(node.x, node.y, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
+                        0.25, 1, 4
+                )));
             }
-            path = pb.build();
+            path = new Path(segments);
             renderSplines(g, path, darkPurple);
             renderPoints(g, path, cyan, 1);
-            renderArrows(g,nodeM, 1);
+            renderArrows(g, nodeM, 1);
         }
     }
 

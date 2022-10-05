@@ -1,4 +1,5 @@
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.path.ParametricCurve;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.path.QuinticSpline;
@@ -75,6 +76,7 @@ class Main extends JFrame {
             boolean mid = false;
             int index = -1;
             Path path = panel.getPath();
+            //find closest mid
             if(path != null){
                 List<PathSegment> segments = path.getSegments();
                 for(int i = 0; i < segments.size(); i++) {
@@ -93,7 +95,7 @@ class Main extends JFrame {
 
             for (int i = 0; i < nodeM.size(); i++) {
 
-                //find closest mid
+
 
                 Node close = nodeM.get(i);
                 double distance = mouse.distance(close);
@@ -173,6 +175,9 @@ class Main extends JFrame {
                 mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             } else{
                 mark.setLocation(mouse);
+//                Path path = panel.getPath();
+//                path.getSegments().set(index, new PathSegment(new ParametricCurve() {
+//                }path.getSegments().get(index).start(), path.getSegments().get(index).end()));
             }
         } else {
             Node mark = nodeM.last();
