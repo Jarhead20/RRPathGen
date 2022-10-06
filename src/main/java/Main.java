@@ -291,6 +291,7 @@ class Main extends JFrame {
                     currentManager = manager;
                 }
             }
+        panel.repaint();
     }
 
 }

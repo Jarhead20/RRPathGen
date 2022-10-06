@@ -288,8 +288,8 @@ public class DrawPanel extends JPanel {
                     )));
                 }
                 path = new Path(segments);
-
-                renderRobotPath((Graphics2D) g, path, darkPurple, 0.5f);
+                Color pathColor = manager.equals(main.currentManager) ? lightPurple.brighter() : lightPurple;
+                renderRobotPath((Graphics2D) g, path, pathColor, 0.5f);
                 renderSplines(g, path, cyan);
                 renderPoints(g, path, cyan, 1);
                 renderArrows(g, manager, 1);
