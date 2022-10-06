@@ -7,7 +7,7 @@ public class NodeManager {
     public int editIndex = -1;
     private ArrayList nodes;
     private String name;
-    public int id;
+    private int id;
 
     NodeManager(ArrayList<Node> nodes, int id){
         this.nodes = nodes;

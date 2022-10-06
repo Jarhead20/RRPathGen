@@ -13,12 +13,13 @@ class Main extends JFrame {
 
 
     public double scale = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
-    public NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
+    private NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
     private LinkedList<NodeManager> managers = new LinkedList<>();
     final double clickSize = 2;
     private DrawPanel panel;
     private boolean edit = false;
     private Node preEdit;
+    public int currentM = 0;
     public Main() {
         initComponents();
     }
@@ -95,8 +96,8 @@ class Main extends JFrame {
                 }
             }
 
-            for (int i = 0; i < currentManager.size(); i++) {
-                Node close = currentManager.get(i);
+            for (int i = 0; i < getCurrentManager().size(); i++) {
+                Node close = getCurrentManager().get(i);
                 double distance = mouse.distance(close);
                 //find closest that isn't a mid
                 if(distance < (clickSize* scale) && distance < closest){
@@ -111,46 +112,46 @@ class Main extends JFrame {
 
             if(index != -1){
                 if(index >0){
-                    Node n1 = currentManager.get(index-1);
-                    Node n2 = currentManager.get(index);
+                    Node n1 = getCurrentManager().get(index-1);
+                    Node n2 = getCurrentManager().get(index);
                     mouse.heading = n1.headingTo(n2);
                     mouse.setType(n2.getType());
                 }
 
                 if (SwingUtilities.isRightMouseButton(e) && !mid){ //opens right click context menu
                     panel.getMenu().show(panel,e.getX(),e.getY());
-                    currentManager.editIndex = index;
+                    getCurrentManager().editIndex = index;
                     panel.repaint();
                     return;
                 } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
-                    currentManager.editIndex = index;
+                    getCurrentManager().editIndex = index;
                     edit = true;
                     //if the point clicked was a mid point, gen a new point
                     if(mid) {
                         preEdit = (new Node(index));
                         preEdit.state = 2;
-                        currentManager.redo.clear();
+                        getCurrentManager().redo.clear();
 
-                        currentManager.add(index,mouse);
+                        getCurrentManager().add(index,mouse);
                     }
                     else { //editing existing node
-                        Node prev = currentManager.get(index);
+                        Node prev = getCurrentManager().get(index);
                         preEdit = new Node(prev.x,prev.y, prev.heading, index); //storing the existing data for undo
                         preEdit.state = 4;
-                        currentManager.redo.clear();
-                        currentManager.set(index, mouse);
+                        getCurrentManager().redo.clear();
+                        getCurrentManager().set(index, mouse);
                     }
                 }
             } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
-                int size = currentManager.size();
+                int size = getCurrentManager().size();
                 if(size > 0){
-                    Node n1 = currentManager.last();
+                    Node n1 = getCurrentManager().last();
                     mouse.heading = n1.headingTo(mouse);
                 }
-                preEdit = (new Node(mouse.x, mouse.y, mouse.heading, currentManager.size()));
+                preEdit = (new Node(mouse.x, mouse.y, mouse.heading, getCurrentManager().size()));
                 preEdit.state = 2;
-                currentManager.redo.clear();
-                currentManager.add(mouse);
+                getCurrentManager().redo.clear();
+                getCurrentManager().add(mouse);
             }
         }
         panel.repaint();
@@ -158,9 +159,9 @@ class Main extends JFrame {
 
     private void mReleased(MouseEvent e){
         if(SwingUtilities.isLeftMouseButton(e)){
-            currentManager.undo.add(preEdit);
+            getCurrentManager().undo.add(preEdit);
             edit = false;
-            currentManager.editIndex = -1;
+            getCurrentManager().editIndex = -1;
         }
     }
 
@@ -168,102 +169,102 @@ class Main extends JFrame {
         Node mouse = new Node(e.getPoint(), scale);
         if (SwingUtilities.isRightMouseButton(e)) return;
         if(edit){
-            int index = currentManager.editIndex;
-            Node mark = currentManager.get(index);
-            if(index > 0) mark.heading = currentManager.get(index-1).headingTo(mouse);
+            int index = getCurrentManager().editIndex;
+            Node mark = getCurrentManager().get(index);
+            if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
             if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             else mark.setLocation(snap(mouse, e));
         } else {
-            Node mark = currentManager.last();
-            mark.index = currentManager.size()-1;
+            Node mark = getCurrentManager().last();
+            mark.index = getCurrentManager().size()-1;
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
 
-            currentManager.set(currentManager.size()-1, snap(mark,e));
+            getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
         }
         panel.repaint();
     }
     public void undo(){
-        if(currentManager.undo.size()<1) return;
-        Node node = currentManager.undo.last();
+        if(getCurrentManager().undo.size()<1) return;
+        Node node = getCurrentManager().undo.last();
         Node r;
         Node temp;
         switch (node.state){
             case 1: //undo delete
-                currentManager.add(node.index, node);
+                getCurrentManager().add(node.index, node);
                 r = node;
-                currentManager.redo.add(r);
+                getCurrentManager().redo.add(r);
                 break;
             case 2: //undo add new node
-                temp = currentManager.get(node.index);
+                temp = getCurrentManager().get(node.index);
                 r = new Node(temp.x, temp.y, temp.heading, temp.index);
                 r.state = 2;
-                currentManager.redo.add(r);
-                currentManager.remove(node.index);
+                getCurrentManager().redo.add(r);
+                getCurrentManager().remove(node.index);
                 break;
             case 3: //undo flip
-                for (int i = 0; i < currentManager.size(); i++) {
-                    Node n = currentManager.get(i);
+                for (int i = 0; i < getCurrentManager().size(); i++) {
+                    Node n = getCurrentManager().get(i);
                     n.y *= -1;
-                    currentManager.set(i, n);
+                    getCurrentManager().set(i, n);
                 }
                 r = node;
-                currentManager.redo.add(r);
+                getCurrentManager().redo.add(r);
                 break;
             case 4:  //undo drag
                 if(node.index == -1){
-                    node.index = currentManager.size()-1;
+                    node.index = getCurrentManager().size()-1;
                 }
-                temp = currentManager.get(node.index);
+                temp = getCurrentManager().get(node.index);
                 r = new Node(temp.x, temp.y, temp.heading, temp.index);
                 r.state = 4;
-                currentManager.set(node.index, node);
-                currentManager.redo.add(r);
+                getCurrentManager().set(node.index, node);
+                getCurrentManager().redo.add(r);
                 break;
         }
 
 
-        currentManager.undo.removeLast();
+        getCurrentManager().undo.removeLast();
     }
     public void redo(){
-        if(currentManager.redo.size()<1) return;
+        if(getCurrentManager().redo.size()<1) return;
 
-        Node node = currentManager.redo.last();
+        Node node = getCurrentManager().redo.last();
         Node u;
         Node temp;
         switch (node.state){
             case 1: //redo delete
-                temp = currentManager.get(node.index);
+                temp = getCurrentManager().get(node.index);
                 u = new Node(temp.x, temp.y, temp.heading, temp.index);
                 u.state = 1;
-                currentManager.undo.add(u);
-                currentManager.remove(node.index);
+                getCurrentManager().undo.add(u);
+                getCurrentManager().remove(node.index);
                 break;
             case 2: //redo add new node
-                currentManager.add(node.index, node);
+                getCurrentManager().add(node.index, node);
                 u = node;
-                currentManager.undo.add(u);
+                getCurrentManager().undo.add(u);
                 break;
             case 3: //redo flip
-                for (int i = 0; i < currentManager.size(); i++) {
-                    Node n = currentManager.get(i);
+                for (int i = 0; i < getCurrentManager().size(); i++) {
+                    Node n = getCurrentManager().get(i);
                     n.y *= -1;
-                    currentManager.set(i, n);
+                    getCurrentManager().set(i, n);
                 }
                 u = node;
-                currentManager.undo.add(u);
+                getCurrentManager().undo.add(u);
                 break;
             case 4:  //redo drag
                 if(node.index == -1){
-                    node.index = currentManager.size()-1;
+                    node.index = getCurrentManager().size()-1;
                 }
-                temp = currentManager.get(node.index);
+                temp = getCurrentManager().get(node.index);
                 u = new Node(temp.x, temp.y, temp.heading, temp.index);
                 u.state = 4;
-                currentManager.set(node.index, node);
-                currentManager.undo.add(u);
+                getCurrentManager().set(node.index, node);
+                getCurrentManager().undo.add(u);
         }
 
-        currentManager.redo.removeLast();
+        getCurrentManager().redo.removeLast();
     }
 
     private Node snap(Node node, MouseEvent e){
@@ -280,19 +281,29 @@ class Main extends JFrame {
 
     private void keyInput(KeyEvent e){
         if(e.getKeyCode() == KeyEvent.VK_LEFT)
-            if(currentManager.id > 0)
-                currentManager = managers.get(currentManager.id-1);
+            if(currentM > 0){
+                currentM--;
+                panel.resetPath();
+            }
+
             if(e.getKeyCode() == KeyEvent.VK_RIGHT){
-                if(currentManager.id+1 < managers.size()){
-                    currentManager = managers.get(currentManager.id+1);
-                } else if(currentManager.size() > 0){
+                if(currentM+1 < managers.size()){
+                    currentM++;
+                    panel.resetPath();
+                } else if(getCurrentManager().size() > 0){
                     NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                     managers.add(manager);
-                    currentManager = manager;
+                    panel.resetPath();
+                    currentM++;
                 }
             }
+        panel.renderBackgroundSplines();
         panel.repaint();
     }
 
+    public NodeManager getCurrentManager() {
+        currentManager = managers.get(currentM);
+        return currentManager;
+    }
 }
 

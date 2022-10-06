@@ -45,6 +45,7 @@ public class DrawPanel extends JPanel {
     private final JButton clearButton = new JButton("Clear");
     private final JButton undoButton = new JButton("Undo");
     private final JButton redoButton = new JButton("Redo");
+    private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
     AffineTransform outLine = new AffineTransform();
     int[] xPoly = {0, -2, 0, 2};
@@ -54,6 +55,7 @@ public class DrawPanel extends JPanel {
     DrawPanel(LinkedList<NodeManager> managers, Main main) {
         this.managers = managers;
         this.main = main;
+        preRenderedSplines = new BufferedImage((int) Math.floor(144*main.scale), (int) Math.floor(144*main.scale), BufferedImage.TYPE_4BYTE_ABGR);
         setPreferredSize(new Dimension((int) Math.floor(144 * main.scale + 4), (int) Math.floor(144 * main.scale + (30))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
 
@@ -79,13 +81,13 @@ public class DrawPanel extends JPanel {
         add(buttons);
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(main.currentManager.size() > 0){
-                    Node node = main.currentManager.get(0);
+                if(getCurrentManager().size() > 0){
+                    Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
                     System.out.printf("drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.heading+90));
-                    for (int i = 1; i < main.currentManager.size(); i++) {
-                        node = main.currentManager.get(i);
+                    for (int i = 1; i < getCurrentManager().size(); i++) {
+                        node = getCurrentManager().get(i);
                         x = main.toInches(node.x);
                         y = main.toInches(node.y);
                         switch (node.getType()){
@@ -109,12 +111,11 @@ public class DrawPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 Node un = new Node(-2,-2);
                 un.state = 3;
-                System.out.println(main.currentManager.size());
-                for (int i = 0; i < main.currentManager.size(); i++) {
-                    Node node = main.currentManager.get(i);
+                for (int i = 0; i < getCurrentManager().size(); i++) {
+                    Node node = getCurrentManager().get(i);
                     node.y = 144*main.scale-node.y;
                     node.heading = 180-node.heading;
-                    main.currentManager.set(i, node);
+                    getCurrentManager().set(i, node);
                 }
                 repaint();
             }
@@ -134,10 +135,34 @@ public class DrawPanel extends JPanel {
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //todo: add undo for this
-                main.currentManager.undo.clear();
-                main.currentManager.redo.clear();
-                main.currentManager.clear();
-                if(main.currentManager.id > 0) main.currentManager = managers.get(main.currentManager.id-1);
+                getCurrentManager().undo.clear();
+                getCurrentManager().redo.clear();
+                getCurrentManager().clear();
+                int id = main.currentM;
+                for (int i = id; i < managers.size()-1; i++) {
+                    managers.set(i, managers.get(i+1));
+                }
+                if(managers.size() > 1)
+                    managers.removeLast();
+                else main.currentM = 0;
+                if(main.currentM > 0)
+                    main.currentM--;
+                resetPath();
+
+//                if(newId > 0)
+//                    getCurrentManager() = managers.get(newId-1);
+//                else if(managers.size() > 0)
+//                    getCurrentManager() = managers.get(newId);
+
+//                if(getCurrentManager().id > 0) {
+//                    getCurrentManager() = managers.get(id-1);
+//                    managers.remove(id);
+//                }
+//                 else if (managers.size() > 0) {
+//                    getCurrentManager() = managers.get(id+1);
+//                    managers.remove(id);
+//                }
+                renderBackgroundSplines();
                 repaint();
             }
         });
@@ -168,7 +193,8 @@ public class DrawPanel extends JPanel {
                     uriSyntaxException.printStackTrace();
                 }
                 managers.add(manager);
-                main.currentManager = manager;
+                main.currentM = managers.size();
+                renderBackgroundSplines();
                 repaint();
             }
         });
@@ -180,29 +206,27 @@ public class DrawPanel extends JPanel {
 
         delete.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Node n = main.currentManager.get(main.currentManager.editIndex);
-                n.index = main.currentManager.editIndex;
+                Node n = getCurrentManager().get(getCurrentManager().editIndex);
+                n.index = getCurrentManager().editIndex;
                 n.state = 1;
-                main.currentManager.undo.add(n);
-                main.currentManager.remove(main.currentManager.editIndex);
+                getCurrentManager().undo.add(n);
+                getCurrentManager().remove(getCurrentManager().editIndex);
                 repaint();
             }
         });
         makeDisplace.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                main.currentManager.get(main.currentManager.editIndex).setType(Node.Type.MARKER);
+                getCurrentManager().get(getCurrentManager().editIndex).setType(Node.Type.MARKER);
             }
         });
         makeSpline.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                main.currentManager.get(main.currentManager.editIndex).setType(Node.Type.SPLINE);
+                getCurrentManager().get(getCurrentManager().editIndex).setType(Node.Type.SPLINE);
             }
         });
     }
 
-    Color cyan = new Color(104, 167, 157);
-    Color darkPurple = new Color(105,81,121);
-    Color lightPurple = new Color(147, 88, 172);
+
 
     private void renderSplines(Graphics g, Path path, Color color) {
         for (int i = 0; i < path.length(); i++) {
@@ -260,47 +284,86 @@ public class DrawPanel extends JPanel {
         });
     }
 
+
+    Color cyan = new Color(104, 167, 157);
+    Color darkPurple = new Color(124, 78, 158);
+    Color lightPurple = new Color(147, 88, 172);
+    Color dLightPurple = lightPurple.darker();
+    Color dCyan = cyan.darker();
+    Color dDarkPurple = darkPurple.darker();
+
     @Override
     public void paintComponent(Graphics g) {
-
-
         super.paintComponent(g);
         g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale), null);
-        for (NodeManager manager : managers) {
-            if(manager.size() > 0) {
-                java.util.List<PathSegment> segments = new ArrayList<>();
+        g.drawImage(preRenderedSplines, 0,0,null);
+        if(getCurrentManager().size() > 0) {
+            java.util.List<PathSegment> segments = new ArrayList<>();
 
-                Node node = manager.get(0);
-                for (int i = 1; i < manager.size(); i++) {
-                    final Node prevNode = node;
-                    node = manager.get(i);
-                    double currentX = node.x;
-                    double currentY = node.y;
-                    double prevX = prevNode.x;
-                    double prevY = prevNode.y;
-                    final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
-                    final double prevHeading = Math.toRadians(-prevNode.heading - 90);
-                    final double heading = Math.toRadians(-node.heading - 90);
-                    segments.add(new PathSegment(new QuinticSpline(
-                            new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
-                            new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
-                            0.25, 1, 4
-                    )));
+            Node node = getCurrentManager().get(0);
+            for (int i = 1; i < getCurrentManager().size(); i++) {
+                final Node prevNode = node;
+                node = getCurrentManager().get(i);
+                double currentX = node.x;
+                double currentY = node.y;
+                double prevX = prevNode.x;
+                double prevY = prevNode.y;
+                final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
+                final double prevHeading = Math.toRadians(-prevNode.heading - 90);
+                final double heading = Math.toRadians(-node.heading - 90);
+                segments.add(new PathSegment(new QuinticSpline(
+                        new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
+                        new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
+                        0.25, 1, 4
+                )));
+            }
+            path = new Path(segments);
+
+            renderRobotPath((Graphics2D) g, path, lightPurple, 0.5f);
+            renderSplines(g, path, cyan);
+            renderPoints(g, path, cyan, 1);
+            renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
+        }
+    }
+
+    public void renderBackgroundSplines(){
+        preRenderedSplines = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        Graphics g = preRenderedSplines.getGraphics();
+        for (NodeManager manager : managers){
+            if(!manager.equals(getCurrentManager())){
+                if(manager.size() > 0) {
+
+                    java.util.List<PathSegment> segments = new ArrayList<>();
+
+                    Node node = manager.get(0);
+                    for (int i = 1; i < manager.size(); i++) {
+                        final Node prevNode = node;
+                        node = manager.get(i);
+                        double currentX = node.x;
+                        double currentY = node.y;
+                        double prevX = prevNode.x;
+                        double prevY = prevNode.y;
+                        final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
+                        final double prevHeading = Math.toRadians(-prevNode.heading - 90);
+                        final double heading = Math.toRadians(-node.heading - 90);
+                        segments.add(new PathSegment(new QuinticSpline(
+                                new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
+                                new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
+                                0.25, 1, 4
+                        )));
+                    }
+                    Path path = new Path(segments);
+
+                    renderRobotPath((Graphics2D) g, path, dLightPurple, 0.5f);
+                    renderSplines(g, path, dCyan);
+                    renderPoints(g, path, dCyan, 1);
+                    renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
                 }
-                path = new Path(segments);
-                Color pathColor = manager.equals(main.currentManager) ? lightPurple.brighter() : lightPurple;
-                renderRobotPath((Graphics2D) g, path, pathColor, 0.5f);
-                renderSplines(g, path, cyan);
-                renderPoints(g, path, cyan, 1);
-                renderArrows(g, manager, 1);
-
             }
         }
     }
 
-
-
-    private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale) {
+    private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale, Color color1, Color color2, Color color3) {
         for (int i = 0; i < nodeM.size(); i++) {
             Node node = nodeM.get(i);
             tx.setToIdentity();
@@ -311,14 +374,14 @@ public class DrawPanel extends JPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setTransform(tx);
 
-            g2.setColor(darkPurple);
+            g2.setColor(color1);
             g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
             switch (node.getType()){
                 case SPLINE:
-                    g2.setColor(lightPurple);
+                    g2.setColor(color2);
                     break;
                 case MARKER:
-                    g2.setColor(cyan);
+                    g2.setColor(color3);
                     break;
             }
             g2.fill(poly);
@@ -330,8 +393,16 @@ public class DrawPanel extends JPanel {
         return menu;
     }
 
+    private NodeManager getCurrentManager(){
+        return main.getCurrentManager();
+    }
+
     public Path getPath(){
         return path;
+    }
+
+    public void resetPath(){
+        path = null;
     }
 
 }
