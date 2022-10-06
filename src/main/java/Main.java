@@ -283,7 +283,6 @@ class Main extends JFrame {
             if(currentManager.id > 0)
                 currentManager = managers.get(currentManager.id-1);
             if(e.getKeyCode() == KeyEvent.VK_RIGHT){
-                System.out.println("yes");
                 if(currentManager.id+1 < managers.size()){
                     currentManager = managers.get(currentManager.id+1);
                 } else if(currentManager.size() > 0){
@@ -292,9 +291,6 @@ class Main extends JFrame {
                     currentManager = manager;
                 }
             }
-
-
-        System.out.println(currentManager.id + " " + managers.size());
     }
 
 }

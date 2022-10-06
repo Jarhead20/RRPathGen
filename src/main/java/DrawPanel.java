@@ -109,10 +109,10 @@ public class DrawPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 Node un = new Node(-2,-2);
                 un.state = 3;
-                main.currentManager.undo.add(un);
+                System.out.println(main.currentManager.size());
                 for (int i = 0; i < main.currentManager.size(); i++) {
                     Node node = main.currentManager.get(i);
-                    node.y *= -1;
+                    node.y = 144*main.scale-node.y;
                     node.heading = 180-node.heading;
                     main.currentManager.set(i, node);
                 }
