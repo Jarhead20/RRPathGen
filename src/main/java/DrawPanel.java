@@ -17,7 +17,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +26,8 @@ public class DrawPanel extends JPanel {
     private final double robotWidth = 10.7;
     private final double robotLength = 13;
 
-    private static final Pattern p = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
+    private static final Pattern numberPattern = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
+    private static final Pattern pathName = Pattern.compile("(?:^\\s*Trajectory\\s+(\\w*))");
 
     private LinkedList<NodeManager> managers;
 
@@ -85,17 +85,17 @@ public class DrawPanel extends JPanel {
                     Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
-                    System.out.printf("drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.heading+90));
+                    System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.heading+90));
                     for (int i = 1; i < getCurrentManager().size(); i++) {
                         node = getCurrentManager().get(i);
                         x = main.toInches(node.x);
                         y = main.toInches(node.y);
                         switch (node.getType()){
                             case SPLINE:
-                                System.out.printf(".splineTo(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.heading+90));
+                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
                                 break;
                             case MARKER:
-                                System.out.printf(".splineTo(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.heading+90));
+                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
                                 System.out.println(".addDisplacementMarker(() -> {})");
                                 break;
                             default:
@@ -103,7 +103,7 @@ public class DrawPanel extends JPanel {
                                 break;
                         }
                     }
-                    System.out.println(".build()");
+                    System.out.println(".build();");
                 }
             }
         });
@@ -168,32 +168,52 @@ public class DrawPanel extends JPanel {
         });
         importButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
+                NodeManager manager = null;
                 try {
                     File file = new File(Main.class.getResource("/import.txt").toURI());
                     Scanner reader = new Scanner(file);
+                    boolean discard = true;
                     while (reader.hasNextLine()) {
                         String line = reader.nextLine();
-                        if(line.contains("new Pose2d(")){
-                            Matcher m = p.matcher(line);
-                            Node node = new Node();
-                            String[] data = new String[4];
-                            for (int i = 0; m.find(); i++) {
-                                data[i]=m.group(0);
+
+                        if (line.contains("trajectoryBuilder")){
+                            discard = false;
+                            Matcher matcher = pathName.matcher(line);
+                            matcher.find();
+                            String name = matcher.group(1).trim();
+                            manager = new NodeManager(new ArrayList<>(), managers.size(), name);
+                            managers.add(manager);
+                        }
+                        if(!discard){
+                            if(line.contains("new Vector2d(") || line.contains("new Pose2d(")){
+                                Matcher m = numberPattern.matcher(line);
+                                Node node = new Node();
+                                String[] data = new String[4];
+                                for (int i = 0; m.find(); i++) {
+                                    data[i]=m.group(0);
+                                }
+                                try{
+                                    node.x = (Double.parseDouble(data[1])+72)* main.scale;
+                                    node.y = (-Double.parseDouble(data[2])+72)* main.scale;
+                                    node.heading = Double.parseDouble(data[3])-90;
+                                } catch (Exception error){
+//                                    error.printStackTrace();
+                                    node.x = 72* main.scale;
+                                    node.y = 72* main.scale;
+                                    node.heading = 0;
+                                }
+                                manager.add(node);
+                            } else if(line.contains(".addDisplacementMarker(")){
+                                (manager.get(manager.size()-1)).setType(Node.Type.MARKER);
+                            } else {
+                                discard = true;
                             }
-                            node.x = (Double.parseDouble(data[1])+72)* main.scale;
-                            node.y = (-Double.parseDouble(data[2])+72)* main.scale;
-                            node.heading = Double.parseDouble(data[3])-90;
-                            manager.add(node);
-                        } else if(line.contains(".addDisplacementMarker(")){
-                            (manager.get(manager.size()-1)).setType(Node.Type.MARKER);
                         }
                     }
                 } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
                     uriSyntaxException.printStackTrace();
                 }
-                managers.add(manager);
-                main.currentM = managers.size();
+                main.currentM = managers.size()-1;
                 renderBackgroundSplines();
                 repaint();
             }

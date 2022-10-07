@@ -6,7 +6,7 @@ public class NodeManager {
     public NodeManager redo;
     public int editIndex = -1;
     private ArrayList nodes;
-    private String name;
+    public String name;
     private int id;
 
     NodeManager(ArrayList<Node> nodes, int id){
@@ -18,6 +18,17 @@ public class NodeManager {
             redo = new NodeManager(new ArrayList<>(), -1);
         }
     }
+
+    NodeManager(ArrayList<Node> nodes, int id, String name){
+        this.nodes = nodes;
+        this.id = id;
+        this.name = name;
+        if(id != -1){
+            undo = new NodeManager(new ArrayList<>(), -1);
+            redo = new NodeManager(new ArrayList<>(), -1);
+        }
+    }
+
     public Node get(int index){
         Node n = (Node) nodes.get(index);
         n.index = index;
