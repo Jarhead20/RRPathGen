@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileInputStream;
 import java.util.*;
 import java.util.List;
 
@@ -20,7 +21,10 @@ class Main extends JFrame {
     private boolean edit = false;
     private Node preEdit;
     public int currentM = 0;
+    public double robotWidth;
+    public double robotLength;
     public Main() {
+        loadConfig();
         initComponents();
     }
 
@@ -32,6 +36,21 @@ class Main extends JFrame {
         });
     }
 
+    private void loadConfig() {
+        try{
+            FileInputStream stream =  new FileInputStream(Main.class.getResource("/config.properties").getFile());
+            Properties prop = new Properties();
+            prop.load(stream);
+            stream.close();
+            if(prop.getProperty("SCALE").matches("0")) scale = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
+            else scale = Double.parseDouble(prop.getProperty("SCALE"));
+            robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
+            robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
+            System.out.println(robotWidth);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     private void initComponents() {
         managers.add(currentManager);

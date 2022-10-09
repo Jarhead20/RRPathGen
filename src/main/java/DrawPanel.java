@@ -23,9 +23,6 @@ import java.util.regex.Pattern;
 
 public class DrawPanel extends JPanel {
 
-    private final double robotWidth = 10.7;
-    private final double robotLength = 13;
-
     private static final Pattern numberPattern = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
     private static final Pattern pathName = Pattern.compile("(?:^\\s*Trajectory\\s+(\\w*))");
 
@@ -269,8 +266,8 @@ public class DrawPanel extends JPanel {
             Pose2d pose1 = path.get(i-1);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
-            double rX = robotWidth*main.scale;
-            double rY = robotLength*main.scale;
+            double rX = main.robotLength*main.scale;
+            double rY = main.robotWidth*main.scale;
 
             outLine.setToIdentity();
             outLine.translate(x1, y1);
