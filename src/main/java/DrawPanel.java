@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.path.QuinticSpline;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
@@ -35,8 +37,14 @@ public class DrawPanel extends JPanel {
     private final JMenuItem delete = new JMenuItem("Delete");
     private final JMenuItem makeDisplace = new JMenuItem("Make Displacement Marker");
     private final JMenuItem makeSpline = new JMenuItem("Make Spline");
+    private final JMenuItem setXY = new JMenuItem("Set X, Y");
 
-    JTextField field = new JTextField("Enter code");
+    JTextField codeField = new JTextField("");
+    NumberFormat format = NumberFormat.getInstance();
+    NumberFormatter formatter = new NumberFormatter(format);
+    JTextField fX = new JFormattedTextField(formatter);
+    JTextField fY = new JFormattedTextField(formatter);
+
 
 
     private final JButton exportButton = new JButton("Export");
@@ -62,6 +70,7 @@ public class DrawPanel extends JPanel {
         menu.add(delete);
         menu.add(makeDisplace);
         menu.add(makeSpline);
+        menu.add(setXY);
         add(menu);
 
         exportButton.setFocusable(false);
@@ -79,16 +88,52 @@ public class DrawPanel extends JPanel {
         buttons.add(redoButton);
         add(Box.createRigidArea(new Dimension((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale))));
         add(buttons);
-        add(field);
-        field.setVisible(false);
+        add(codeField);
+        add(fX);
+        add(fY);
+        fX.setVisible(false);
+        fY.setVisible(false);
+        codeField.setVisible(false);
 
-        field.addActionListener(new ActionListener() {
+        codeField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Node node = getCurrentManager().get(getCurrentManager().editIndex);
                 node.setType(Node.Type.MARKER);
-                node.code = field.getText();
-                field.setVisible(false);
+                node.code = codeField.getText();
+                codeField.setVisible(false);
+                repaint();
+            }
+        });
+
+        fX.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fY.grabFocus();
+            }
+        });
+
+        fY.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Node node = getCurrentManager().get(getCurrentManager().editIndex);
+                node.y = (Double.parseDouble(fY.getText())+72)* main.scale;
+                node.x = (Double.parseDouble(fX.getText())+72)* main.scale;
+                fX.setVisible(false);
+                fY.setVisible(false);
+                repaint();
+            }
+        });
+
+        setXY.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Node node = getCurrentManager().get(getCurrentManager().editIndex);
+                fX.setBounds((int)node.x, (int)node.y, 40,20);
+                fY.setBounds((int)node.x + 50, (int)node.y, 40,20);
+                fX.setVisible(true);
+                fY.setVisible(true);
+                fX.grabFocus();
             }
         });
 
@@ -254,8 +299,10 @@ public class DrawPanel extends JPanel {
         makeDisplace.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Node node = getCurrentManager().get(getCurrentManager().editIndex);
-                field.setBounds((int)node.x, (int)node.y, 100,20);
-                field.setVisible(true);
+                codeField.setBounds((int)node.x, (int)node.y, 100,20);
+                codeField.setText("");
+                codeField.setVisible(true);
+                codeField.grabFocus();
             }
         });
         makeSpline.addActionListener(new ActionListener() {

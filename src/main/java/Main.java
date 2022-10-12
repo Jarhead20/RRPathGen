@@ -317,7 +317,11 @@ class Main extends JFrame {
             }
         }
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
-            if(panel.field.isVisible()) panel.field.setVisible(false);
+            if(panel.codeField.isVisible()) panel.codeField.setVisible(false);
+        if(e.getKeyCode() == KeyEvent.VK_TAB)
+            if(panel.fX.isVisible() && panel.fY.isVisible()){
+                panel.fY.grabFocus();
+            }
         panel.renderBackgroundSplines();
         panel.repaint();
     }
