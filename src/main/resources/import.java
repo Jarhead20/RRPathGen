@@ -117,7 +117,7 @@ public class TestAuto extends LinearOpMode {
 
         telemetry.addData("Realtime analysis", TSEPos);
 
-        Trajectory idk = drive.trajectoryBuilder(new Pose2d(), Math.toRadians(90))
+        Trajectory idk = drive.trajectoryBuilder(new Pose2d(), Math.toRadians(90), true)
                 .splineTo(new Vector2d(36, 36), Math.toRadians(0))
                 .build();
 
