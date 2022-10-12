@@ -305,17 +305,19 @@ class Main extends JFrame {
                 panel.resetPath();
             }
 
-            if(e.getKeyCode() == KeyEvent.VK_RIGHT){
-                if(currentM+1 < managers.size()){
-                    currentM++;
-                    panel.resetPath();
-                } else if(getCurrentManager().size() > 0){
-                    NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
-                    managers.add(manager);
-                    panel.resetPath();
-                    currentM++;
-                }
+        if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+            if(currentM+1 < managers.size()){
+                currentM++;
+                panel.resetPath();
+            } else if(getCurrentManager().size() > 0){
+                NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
+                managers.add(manager);
+                panel.resetPath();
+                currentM++;
             }
+        }
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            if(panel.field.isVisible()) panel.field.setVisible(false);
         panel.renderBackgroundSplines();
         panel.repaint();
     }

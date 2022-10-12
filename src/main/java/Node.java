@@ -4,6 +4,7 @@ public class Node {
     public double heading;
     public int index = -1;
     public int state = 1;
+    public String code = "";
 
     private Type type = Type.SPLINE;
 

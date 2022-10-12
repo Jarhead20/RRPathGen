@@ -7,6 +7,7 @@ public class NodeManager {
     public int editIndex = -1;
     private ArrayList nodes;
     public String name;
+    public boolean reversed = false;
     private int id;
 
     NodeManager(ArrayList<Node> nodes, int id){

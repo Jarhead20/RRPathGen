@@ -36,6 +36,9 @@ public class DrawPanel extends JPanel {
     private final JMenuItem makeDisplace = new JMenuItem("Make Displacement Marker");
     private final JMenuItem makeSpline = new JMenuItem("Make Spline");
 
+    JTextField field = new JTextField("Enter code");
+
+
     private final JButton exportButton = new JButton("Export");
     private final JButton importButton = new JButton("Import");
     public final JButton flipButton = new JButton("Flip");
@@ -76,6 +79,19 @@ public class DrawPanel extends JPanel {
         buttons.add(redoButton);
         add(Box.createRigidArea(new Dimension((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale))));
         add(buttons);
+        add(field);
+        field.setVisible(false);
+
+        field.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Node node = getCurrentManager().get(getCurrentManager().editIndex);
+                node.setType(Node.Type.MARKER);
+                node.code = field.getText();
+                field.setVisible(false);
+            }
+        });
+
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(getCurrentManager().size() > 0){
@@ -93,7 +109,7 @@ public class DrawPanel extends JPanel {
                                 break;
                             case MARKER:
                                 System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
-                                System.out.println(".addDisplacementMarker(() -> {})");
+                                System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
                                 break;
                             default:
                                 System.out.println("what");
@@ -167,7 +183,7 @@ public class DrawPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 NodeManager manager = null;
                 try {
-                    File file = new File(Main.class.getResource("/import.txt").toURI());
+                    File file = new File(Main.class.getResource("/import.java").toURI());
                     Scanner reader = new Scanner(file);
                     boolean discard = true;
                     while (reader.hasNextLine()) {
@@ -178,7 +194,10 @@ public class DrawPanel extends JPanel {
                             Matcher matcher = pathName.matcher(line);
                             matcher.find();
                             String name = matcher.group(1).trim();
-                            manager = new NodeManager(new ArrayList<>(), managers.size(), name);
+                            if(getCurrentManager().size() > 0)
+                                manager = new NodeManager(new ArrayList<>(), managers.size(), name);
+                            else manager = getCurrentManager();
+                            if(line.contains("true")) manager.reversed = true;
                             managers.add(manager);
                         }
                         if(!discard){
@@ -197,8 +216,9 @@ public class DrawPanel extends JPanel {
 //                                    error.printStackTrace();
                                     node.x = 72* main.scale;
                                     node.y = 72* main.scale;
-                                    node.heading = 0;
+                                    node.heading = 270;
                                 }
+                                if(manager.reversed && manager.size() == 0) node.heading += 180;
                                 manager.add(node);
                             } else if(line.contains(".addDisplacementMarker(")){
                                 (manager.get(manager.size()-1)).setType(Node.Type.MARKER);
@@ -233,7 +253,9 @@ public class DrawPanel extends JPanel {
         });
         makeDisplace.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                getCurrentManager().get(getCurrentManager().editIndex).setType(Node.Type.MARKER);
+                Node node = getCurrentManager().get(getCurrentManager().editIndex);
+                field.setBounds((int)node.x, (int)node.y, 100,20);
+                field.setVisible(true);
             }
         });
         makeSpline.addActionListener(new ActionListener() {
@@ -385,7 +407,10 @@ public class DrawPanel extends JPanel {
             Node node = nodeM.get(i);
             tx.setToIdentity();
             tx.translate(node.x, node.y);
-            tx.rotate(Math.toRadians(-node.heading+180));
+            if(nodeM.reversed)
+                tx.rotate(Math.toRadians(-node.heading));
+            else
+                tx.rotate(Math.toRadians(-node.heading+180));
             tx.scale (main.scale, main.scale);
 
             Graphics2D g2 = (Graphics2D) g.create();
