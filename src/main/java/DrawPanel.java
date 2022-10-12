@@ -10,6 +10,8 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -91,9 +93,35 @@ public class DrawPanel extends JPanel {
         add(codeField);
         add(fX);
         add(fY);
+        fX.setFocusable(false);
+        fY.setFocusable(false);
+        codeField.setFocusable(false);
         fX.setVisible(false);
         fY.setVisible(false);
         codeField.setVisible(false);
+
+        codeField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                escape();
+            }
+        });
+
+        fX.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                escape();
+            }
+        });
+
+        fY.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                escape();
+            }
+        });
+
+
 
         codeField.addActionListener(new ActionListener() {
             @Override
@@ -102,6 +130,9 @@ public class DrawPanel extends JPanel {
                 node.setType(Node.Type.MARKER);
                 node.code = codeField.getText();
                 codeField.setVisible(false);
+                codeField.setFocusable(false);
+                setFocusable(true);
+                grabFocus();
                 repaint();
             }
         });
@@ -121,6 +152,10 @@ public class DrawPanel extends JPanel {
                 node.x = (Double.parseDouble(fX.getText())+72)* main.scale;
                 fX.setVisible(false);
                 fY.setVisible(false);
+                fX.setFocusable(false);
+                fY.setFocusable(false);
+                setFocusable(true);
+                grabFocus();
                 repaint();
             }
         });
@@ -133,6 +168,9 @@ public class DrawPanel extends JPanel {
                 fY.setBounds((int)node.x + 50, (int)node.y, 40,20);
                 fX.setVisible(true);
                 fY.setVisible(true);
+                fX.setFocusable(true);
+                fY.setFocusable(true);
+                setFocusable(false);
                 fX.grabFocus();
             }
         });
@@ -302,7 +340,10 @@ public class DrawPanel extends JPanel {
                 codeField.setBounds((int)node.x, (int)node.y, 100,20);
                 codeField.setText("");
                 codeField.setVisible(true);
+                codeField.setFocusable(true);
+                setFocusable(false);
                 codeField.grabFocus();
+
             }
         });
         makeSpline.addActionListener(new ActionListener() {
@@ -492,6 +533,18 @@ public class DrawPanel extends JPanel {
 
     public void resetPath(){
         path = null;
+    }
+
+    private void escape (){
+        codeField.setVisible(false);
+        codeField.setFocusable(false);
+        fX.setVisible(false);
+        fY.setVisible(false);
+        fX.setFocusable(false);
+        fY.setFocusable(false);
+        setFocusable(true);
+        grabFocus();
+        repaint();
     }
 
 }
