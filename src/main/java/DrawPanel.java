@@ -103,21 +103,21 @@ public class DrawPanel extends JPanel {
         codeField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                escape();
+                escape(e);
             }
         });
 
         fX.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                escape();
+                escape(e);
             }
         });
 
         fY.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                escape();
+                escape(e);
             }
         });
 
@@ -535,16 +535,18 @@ public class DrawPanel extends JPanel {
         path = null;
     }
 
-    private void escape (){
-        codeField.setVisible(false);
-        codeField.setFocusable(false);
-        fX.setVisible(false);
-        fY.setVisible(false);
-        fX.setFocusable(false);
-        fY.setFocusable(false);
-        setFocusable(true);
-        grabFocus();
-        repaint();
+    private void escape (KeyEvent e){
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            codeField.setVisible(false);
+            codeField.setFocusable(false);
+            fX.setVisible(false);
+            fY.setVisible(false);
+            fX.setFocusable(false);
+            fY.setFocusable(false);
+            setFocusable(true);
+            grabFocus();
+            repaint();
+        }
     }
 
 }
