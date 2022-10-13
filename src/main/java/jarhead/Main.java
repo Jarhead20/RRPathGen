@@ -220,7 +220,7 @@ class Main extends JFrame {
                 break;
             case 2: //undo add new node
                 temp = getCurrentManager().get(node.index);
-                r = new Node(temp.x, temp.y, temp.heading, temp.index);
+                r = temp.copy();
                 r.state = 2;
                 getCurrentManager().redo.add(r);
                 getCurrentManager().remove(node.index);
@@ -239,7 +239,7 @@ class Main extends JFrame {
                     node.index = getCurrentManager().size()-1;
                 }
                 temp = getCurrentManager().get(node.index);
-                r = new Node(temp.x, temp.y, temp.heading, temp.index);
+                r = temp.copy();
                 r.state = 4;
                 getCurrentManager().set(node.index, node);
                 getCurrentManager().redo.add(r);
@@ -258,7 +258,7 @@ class Main extends JFrame {
         switch (node.state){
             case 1: //redo delete
                 temp = getCurrentManager().get(node.index);
-                u = new Node(temp.x, temp.y, temp.heading, temp.index);
+                u = temp.copy();
                 u.state = 1;
                 getCurrentManager().undo.add(u);
                 getCurrentManager().remove(node.index);
@@ -282,7 +282,7 @@ class Main extends JFrame {
                     node.index = getCurrentManager().size()-1;
                 }
                 temp = getCurrentManager().get(node.index);
-                u = new Node(temp.x, temp.y, temp.heading, temp.index);
+                u = temp.copy();
                 u.state = 4;
                 getCurrentManager().set(node.index, node);
                 getCurrentManager().undo.add(u);

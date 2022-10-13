@@ -45,9 +45,11 @@ public class DrawPanel extends JPanel {
 
     JTextField codeField = new JTextField("");
     NumberFormat format = NumberFormat.getInstance();
-    NumberFormatter formatter = new NumberFormatter(format);
-    JTextField fX = new JFormattedTextField(formatter);
-    JTextField fY = new JFormattedTextField(formatter);
+//    NumberFormatter formatter = new NumberFormatter(format);
+//    JTextField fX = new JFormattedTextField(formatter);
+//    JTextField fY = new JFormattedTextField(formatter);
+    JTextField fX = new JTextField("");
+    JTextField fY = new JTextField("");
 
 
 
@@ -150,8 +152,21 @@ public class DrawPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Node node = getCurrentManager().get(getCurrentManager().editIndex);
-                node.y = (Double.parseDouble(fY.getText())+72)* main.scale;
-                node.x = (Double.parseDouble(fX.getText())+72)* main.scale;
+
+                double x = node.x;
+                double y = node.y;
+                if(fY.getText().length() > 0)
+                    y = (Double.parseDouble(fY.getText())+72)* main.scale;
+                if(fX.getText().length() > 0)
+                    x = (Double.parseDouble(fX.getText())+72)* main.scale;
+                if(x != node.x || y != node.y){
+                    Node temp = node.copy();
+                    temp.state = 4;
+                    getCurrentManager().undo.add(temp);
+                    node.x = x;
+                    node.y = y;
+
+                }
                 fX.setVisible(false);
                 fY.setVisible(false);
                 fX.setFocusable(false);
@@ -174,6 +189,8 @@ public class DrawPanel extends JPanel {
                 fY.setFocusable(true);
                 setFocusable(false);
                 fX.grabFocus();
+                fX.setText("");
+                fY.setText("");
             }
         });
 
@@ -247,19 +264,6 @@ public class DrawPanel extends JPanel {
                     main.currentM--;
                 resetPath();
 
-//                if(newId > 0)
-//                    getCurrentManager() = managers.get(newId-1);
-//                else if(managers.size() > 0)
-//                    getCurrentManager() = managers.get(newId);
-
-//                if(getCurrentManager().id > 0) {
-//                    getCurrentManager() = managers.get(id-1);
-//                    managers.remove(id);
-//                }
-//                 else if (managers.size() > 0) {
-//                    getCurrentManager() = managers.get(id+1);
-//                    managers.remove(id);
-//                }
                 renderBackgroundSplines();
                 repaint();
             }

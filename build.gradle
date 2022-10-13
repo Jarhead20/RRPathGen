@@ -5,20 +5,27 @@ plugins {
 group 'jarhead'
 version '1.0'
 
+
 repositories {
     mavenCentral()
     maven { url = 'https://maven.brott.dev/' }
 }
 
 dependencies {
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     implementation 'com.acmerobotics.roadrunner:core:0.5.5'
 }
 
+tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
+
 jar {
+
     sourceSets {
+
         main {
+
             resources {
                 srcDirs "src/main/resources"
             }

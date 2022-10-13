@@ -58,6 +58,14 @@ public class Node {
         return this;
     }
 
+    public Node copy(){
+        Node node = new Node(this.x, this.y, this.heading, this.index);
+        node.code = this.code;
+        node.state = this.state;
+        node.type = this.type;
+        return node;
+    }
+
     public double headingTo(Node n){
         return (Math.toDegrees(Math.atan2(this.x - n.x, this.y - n.y)));
     }
