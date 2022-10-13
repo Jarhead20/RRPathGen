@@ -1,3 +1,5 @@
+package jarhead;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathSegment;
@@ -356,8 +358,8 @@ public class DrawPanel extends JPanel {
 
 
     private void renderSplines(Graphics g, Path path, Color color) {
-        for (int i = 0; i < path.length(); i++) {
-            Pose2d pose1 = path.get(i-1);
+        for (double i = 0; i < path.length(); i+=main.resolution) {
+            Pose2d pose1 = path.get(i-main.resolution);
             Pose2d pose2 = path.get(i);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
@@ -372,7 +374,7 @@ public class DrawPanel extends JPanel {
     private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
         BufferedImage image = new BufferedImage((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
-        for (int i = 0; i < path.length(); i++) {
+        for (double i = 0; i < path.length(); i+=main.resolution) {
             Pose2d pose1 = path.get(i-1);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
@@ -385,8 +387,10 @@ public class DrawPanel extends JPanel {
 
             g2.setColor(color);
             g2.setTransform(outLine);
+//            if(i == 0 || i >= path.length()-1)
             g2.fillRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
-//            g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2), (int) Math.floor(rX),(int) Math.floor(rY));
+//            else
+//                g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2), (int) Math.floor(rX),(int) Math.floor(rY));
 
 //            g.setColor(new Color(0,255,0));
 //            double theta1 = pose1.getHeading() - Math.toRadians(90);

@@ -1,3 +1,5 @@
+package jarhead;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathSegment;
@@ -7,6 +9,7 @@ import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
@@ -23,6 +26,7 @@ class Main extends JFrame {
     public int currentM = 0;
     public double robotWidth;
     public double robotLength;
+    public double resolution;
     public Main() {
         loadConfig();
         initComponents();
@@ -38,7 +42,8 @@ class Main extends JFrame {
 
     private void loadConfig() {
         try{
-            FileInputStream stream =  new FileInputStream(Main.class.getResource("/config.properties").getFile());
+            System.out.println(Main.class.getResource("/config.properties").getPath());
+            InputStream stream = Main.class.getResourceAsStream("/config.properties");
             Properties prop = new Properties();
             prop.load(stream);
             stream.close();
@@ -46,7 +51,7 @@ class Main extends JFrame {
             else scale = Double.parseDouble(prop.getProperty("SCALE"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
-            System.out.println(robotWidth);
+            resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -315,6 +320,10 @@ class Main extends JFrame {
                 panel.resetPath();
                 currentM++;
             }
+        }
+        if(e.getKeyCode() == KeyEvent.VK_R) {
+            getCurrentManager().reversed = !getCurrentManager().reversed;
+            getCurrentManager().get(0).heading += 180;
         }
 
 
