@@ -535,6 +535,9 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale, Color color1, Color color2, Color color3) {
+        Graphics2D g2d = (Graphics2D) g.create();
+        BufferedImage bufferedImage = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        Graphics2D g2 = bufferedImage.createGraphics();
         for (int i = 0; i < nodeM.size(); i++) {
             Node node = nodeM.get(i);
             tx.setToIdentity();
@@ -545,7 +548,7 @@ public class DrawPanel extends JPanel {
                 tx.rotate(Math.toRadians(-node.heading+180));
             tx.scale (scale, scale);
 
-            Graphics2D g2 = (Graphics2D) g.create();
+
             g2.setTransform(tx);
 
             g2.setColor(color1);
@@ -559,8 +562,8 @@ public class DrawPanel extends JPanel {
                     break;
             }
             g2.fill(poly);
-            g2.dispose();
         }
+        g2d.drawImage(bufferedImage, 0,0,null);
     }
 
     public JPopupMenu getMenu(){
