@@ -6,14 +6,12 @@ import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -22,6 +20,7 @@ import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,6 +35,10 @@ public class DrawPanel extends JPanel {
 
     private Path path;
     private Main main;
+    private Node preEdit;
+    private boolean edit = false;
+    final double clickSize = 2;
+    private double scale;
     private final JPopupMenu menu = new JPopupMenu("Menu");
 
     private final JMenuItem delete = new JMenuItem("Delete");
@@ -45,11 +48,11 @@ public class DrawPanel extends JPanel {
 
     JTextField codeField = new JTextField("");
     NumberFormat format = NumberFormat.getInstance();
-//    NumberFormatter formatter = new NumberFormatter(format);
-//    JTextField fX = new JFormattedTextField(formatter);
-//    JTextField fY = new JFormattedTextField(formatter);
-    JTextField fX = new JTextField("");
-    JTextField fY = new JTextField("");
+    NumberFormatter formatter = new NumberFormatter(format);
+    JTextField fX = new JFormattedTextField(formatter);
+    JTextField fY = new JFormattedTextField(formatter);
+//    JTextField fX = new JTextField("");
+//    JTextField fY = new JTextField("");
 
 
 
@@ -69,8 +72,10 @@ public class DrawPanel extends JPanel {
     DrawPanel(LinkedList<NodeManager> managers, Main main) {
         this.managers = managers;
         this.main = main;
-        preRenderedSplines = new BufferedImage((int) Math.floor(144*main.scale), (int) Math.floor(144*main.scale), BufferedImage.TYPE_4BYTE_ABGR);
-        setPreferredSize(new Dimension((int) Math.floor(144 * main.scale + 4), (int) Math.floor(144 * main.scale + (30))));
+        this.scale = main.scale;
+        this.setBackground(Color.darkGray.darker());
+        preRenderedSplines = new BufferedImage((int) Math.floor(144*scale), (int) Math.floor(144*scale), BufferedImage.TYPE_4BYTE_ABGR);
+        setPreferredSize(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale + (scale*4))));
         JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
 
         menu.add(delete);
@@ -86,13 +91,41 @@ public class DrawPanel extends JPanel {
         undoButton.setFocusable(false);
         redoButton.setFocusable(false);
 
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+
+        this.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                mPressed(e);
+            }
+            public void mouseReleased(MouseEvent e) {
+                mReleased(e);
+            }
+        });
+
+        this.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                mDragged(e);
+            }
+        });
+        this.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {}
+            @Override
+            public void keyReleased(KeyEvent e) {keyInput(e);}
+            @Override
+            public void keyPressed(KeyEvent e) { }
+        });
+        this.setFocusable(true);
+
         buttons.add(exportButton);
         buttons.add(importButton);
         buttons.add(flipButton);
         buttons.add(clearButton);
         buttons.add(undoButton);
         buttons.add(redoButton);
-        add(Box.createRigidArea(new Dimension((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale))));
+        add(Box.createRigidArea(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale))));
+        buttons.setMaximumSize(new Dimension((int) Math.floor(144 * scale),(int)scale*4));
         add(buttons);
         add(codeField);
         add(fX);
@@ -156,9 +189,9 @@ public class DrawPanel extends JPanel {
                 double x = node.x;
                 double y = node.y;
                 if(fY.getText().length() > 0)
-                    y = (Double.parseDouble(fY.getText())+72)* main.scale;
+                    y = (Double.parseDouble(fY.getText())+72)* scale;
                 if(fX.getText().length() > 0)
-                    x = (Double.parseDouble(fX.getText())+72)* main.scale;
+                    x = (Double.parseDouble(fX.getText())+72)* scale;
                 if(x != node.x || y != node.y){
                     Node temp = node.copy();
                     temp.state = 4;
@@ -167,10 +200,12 @@ public class DrawPanel extends JPanel {
                     node.y = y;
 
                 }
+
                 fX.setVisible(false);
                 fY.setVisible(false);
                 fX.setFocusable(false);
                 fY.setFocusable(false);
+
                 setFocusable(true);
                 grabFocus();
                 repaint();
@@ -188,6 +223,7 @@ public class DrawPanel extends JPanel {
                 fX.setFocusable(true);
                 fY.setFocusable(true);
                 setFocusable(false);
+                main.settingsPanel.setFocusable(false);
                 fX.grabFocus();
                 fX.setText("");
                 fY.setText("");
@@ -228,7 +264,7 @@ public class DrawPanel extends JPanel {
                 un.state = 3;
                 for (int i = 0; i < getCurrentManager().size(); i++) {
                     Node node = getCurrentManager().get(i);
-                    node.y = 144*main.scale-node.y;
+                    node.y = 144*scale-node.y;
                     node.heading = 180-node.heading;
                     getCurrentManager().set(i, node);
                 }
@@ -298,13 +334,13 @@ public class DrawPanel extends JPanel {
                                     data[i]=m.group(0);
                                 }
                                 try{
-                                    node.x = (Double.parseDouble(data[1])+72)* main.scale;
-                                    node.y = (-Double.parseDouble(data[2])+72)* main.scale;
+                                    node.x = (Double.parseDouble(data[1])+72)* scale;
+                                    node.y = (-Double.parseDouble(data[2])+72)* scale;
                                     node.heading = Double.parseDouble(data[3])-90;
                                 } catch (Exception error){
 //                                    error.printStackTrace();
-                                    node.x = 72* main.scale;
-                                    node.y = 72* main.scale;
+                                    node.x = 72* scale;
+                                    node.y = 72* scale;
                                     node.heading = 270;
                                 }
                                 if(manager.reversed && manager.size() == 0) node.heading += 180;
@@ -376,14 +412,14 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
-        BufferedImage image = new BufferedImage((int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale), BufferedImage.TYPE_4BYTE_ABGR);
+        BufferedImage image = new BufferedImage((int) Math.floor(144 * scale), (int) Math.floor(144 * scale), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         for (double i = 0; i < path.length(); i+=main.resolution) {
             Pose2d pose1 = path.get(i-1);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
-            double rX = main.robotLength*main.scale;
-            double rY = main.robotWidth*main.scale;
+            double rX = main.robotLength*scale;
+            double rY = main.robotWidth*scale;
 
             outLine.setToIdentity();
             outLine.translate(x1, y1);
@@ -415,7 +451,7 @@ public class DrawPanel extends JPanel {
         path.getSegments().forEach(pathSegment -> {
             Pose2d mid = pathSegment.get(pathSegment.length()/2);
             g.setColor(c1);
-            g.fillOval((int) Math.floor(mid.getX() - (ovalScale*main.scale)), (int) Math.floor(mid.getY() - (ovalScale*main.scale)), (int) Math.floor(2*ovalScale*main.scale), (int) Math.floor(2*ovalScale*main.scale));
+            g.fillOval((int) Math.floor(mid.getX() - (ovalScale*scale)), (int) Math.floor(mid.getY() - (ovalScale*scale)), (int) Math.floor(2*ovalScale*scale), (int) Math.floor(2*ovalScale*scale));
         });
     }
 
@@ -430,7 +466,7 @@ public class DrawPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * main.scale), (int) Math.floor(144 * main.scale), null);
+        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * scale), (int) Math.floor(144 * scale), null);
         g.drawImage(preRenderedSplines, 0,0,null);
         if(getCurrentManager().size() > 0) {
             java.util.List<PathSegment> segments = new ArrayList<>();
@@ -507,7 +543,7 @@ public class DrawPanel extends JPanel {
                 tx.rotate(Math.toRadians(-node.heading));
             else
                 tx.rotate(Math.toRadians(-node.heading+180));
-            tx.scale (main.scale, main.scale);
+            tx.scale (scale, scale);
 
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setTransform(tx);
@@ -555,6 +591,157 @@ public class DrawPanel extends JPanel {
             grabFocus();
             repaint();
         }
+    }
+
+    private void mPressed(MouseEvent e) {
+        //TODO: clean up this
+        this.grabFocus();
+        if(!edit){
+            Node mouse = new Node(e.getPoint(), scale);
+
+            double closest = 99999;
+            boolean mid = false;
+            int index = -1;
+            Path path = getPath();
+            //find closest mid
+            if(path != null){
+                List<PathSegment> segments = path.getSegments();
+                for(int i = 0; i < segments.size(); i++) {
+                    Pose2d pose = segments.get(i).get(segments.get(i).length() / 2);
+                    double px = pose.getX() - mouse.x;
+                    double py = pose.getY() - mouse.y;
+
+                    double midDist = Math.sqrt(px * px + py * py);
+                    if (midDist < (clickSize * scale) && midDist < closest) {
+                        closest = midDist;
+                        index = i+1;
+                        mid = true;
+                    }
+                }
+            }
+
+            for (int i = 0; i < getCurrentManager().size(); i++) {
+                Node close = getCurrentManager().get(i);
+                double distance = mouse.distance(close);
+                //find closest that isn't a mid
+                if(distance < (clickSize* scale) && distance < closest){
+                    closest = distance;
+                    index = i;
+                    mouse.heading = close.heading;
+                    mid = false;
+                }
+            }
+
+            mouse = snap(mouse, e);
+
+            if(index != -1){
+                if(index >0){
+                    Node n1 = getCurrentManager().get(index-1);
+                    Node n2 = getCurrentManager().get(index);
+                    mouse.heading = n1.headingTo(n2);
+                    mouse.setType(n2.getType());
+                }
+
+                if (SwingUtilities.isRightMouseButton(e) && !mid){ //opens right click context menu
+                    getMenu().show(this,e.getX(),e.getY());
+                    getCurrentManager().editIndex = index;
+                    repaint();
+                    return;
+                } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
+                    getCurrentManager().editIndex = index;
+                    edit = true;
+                    //if the point clicked was a mid point, gen a new point
+                    if(mid) {
+                        preEdit = (new Node(index));
+                        preEdit.state = 2;
+                        getCurrentManager().redo.clear();
+
+                        getCurrentManager().add(index,mouse);
+                    }
+                    else { //editing existing node
+                        Node prev = getCurrentManager().get(index);
+                        preEdit = new Node(prev.x,prev.y, prev.heading, index); //storing the existing data for undo
+                        preEdit.state = 4;
+                        getCurrentManager().redo.clear();
+                        getCurrentManager().set(index, mouse);
+                    }
+                }
+            } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
+                int size = getCurrentManager().size();
+                if(size > 0){
+                    Node n1 = getCurrentManager().last();
+                    mouse.heading = n1.headingTo(mouse);
+                }
+                preEdit = (new Node(mouse.x, mouse.y, mouse.heading, getCurrentManager().size()));
+                preEdit.state = 2;
+                getCurrentManager().redo.clear();
+                getCurrentManager().add(mouse);
+            }
+        }
+        repaint();
+    }
+
+    private void mReleased(MouseEvent e){
+        if(SwingUtilities.isLeftMouseButton(e)){
+            getCurrentManager().undo.add(preEdit);
+            edit = false;
+            getCurrentManager().editIndex = -1;
+        }
+    }
+
+    private void mDragged(MouseEvent e) {
+        Node mouse = new Node(e.getPoint(), scale);
+        if (SwingUtilities.isRightMouseButton(e)) return;
+        if(edit){
+            int index = getCurrentManager().editIndex;
+            Node mark = getCurrentManager().get(index);
+            if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
+            if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            else mark.setLocation(snap(mouse, e));
+        } else {
+            Node mark = getCurrentManager().last();
+            mark.index = getCurrentManager().size()-1;
+            mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+
+            getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
+        }
+        repaint();
+    }
+
+    private void keyInput(KeyEvent e){
+        if(e.getKeyCode() == KeyEvent.VK_LEFT)
+            if(main.currentM > 0){
+                main.currentM--;
+                resetPath();
+            }
+
+        if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+            if(main.currentM+1 < managers.size()){
+                main.currentM++;
+                resetPath();
+            } else if(getCurrentManager().size() > 0){
+                NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
+                managers.add(manager);
+                resetPath();
+                main.currentM++;
+            }
+        }
+        if(e.getKeyCode() == KeyEvent.VK_R) {
+            getCurrentManager().reversed = !getCurrentManager().reversed;
+            getCurrentManager().get(0).heading += 180;
+        }
+
+
+        renderBackgroundSplines();
+        repaint();
+    }
+
+    private Node snap(Node node, MouseEvent e){
+        if(e.isControlDown()) {
+            node.x = scale*(Math.round(node.x/scale));
+            node.y = scale*(Math.round(node.y/scale));
+        }
+        return node;
     }
 
 }
