@@ -222,8 +222,6 @@ public class DrawPanel extends JPanel {
                 fY.setVisible(true);
                 fX.setFocusable(true);
                 fY.setFocusable(true);
-                setFocusable(false);
-                main.settingsPanel.setFocusable(false);
                 fX.grabFocus();
                 fX.setText("");
                 fY.setText("");
@@ -383,9 +381,7 @@ public class DrawPanel extends JPanel {
                 codeField.setText("");
                 codeField.setVisible(true);
                 codeField.setFocusable(true);
-                setFocusable(false);
                 codeField.grabFocus();
-
             }
         });
         makeSpline.addActionListener(new ActionListener() {
@@ -636,7 +632,6 @@ public class DrawPanel extends JPanel {
             }
 
             mouse = snap(mouse, e);
-
             if(index != -1){
                 if(index >0){
                     Node n1 = getCurrentManager().get(index-1);
@@ -663,7 +658,7 @@ public class DrawPanel extends JPanel {
                     }
                     else { //editing existing node
                         Node prev = getCurrentManager().get(index);
-                        preEdit = new Node(prev.x,prev.y, prev.heading, index); //storing the existing data for undo
+                        preEdit = prev.copy(); //storing the existing data for undo
                         preEdit.state = 4;
                         getCurrentManager().redo.clear();
                         getCurrentManager().set(index, mouse);
@@ -675,7 +670,8 @@ public class DrawPanel extends JPanel {
                     Node n1 = getCurrentManager().last();
                     mouse.heading = n1.headingTo(mouse);
                 }
-                preEdit = (new Node(mouse.x, mouse.y, mouse.heading, getCurrentManager().size()));
+                preEdit = mouse.copy();
+                preEdit.index = getCurrentManager().size();
                 preEdit.state = 2;
                 getCurrentManager().redo.clear();
                 getCurrentManager().add(mouse);

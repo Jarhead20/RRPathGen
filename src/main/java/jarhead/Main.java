@@ -1,16 +1,9 @@
 package jarhead;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.path.Path;
-import com.acmerobotics.roadrunner.path.PathSegment;
-
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.InputStream;
 import java.util.*;
-import java.util.List;
 
 class Main extends JFrame {
 
@@ -20,7 +13,7 @@ class Main extends JFrame {
     private LinkedList<NodeManager> managers = new LinkedList<>();
 
     public DrawPanel drawPanel;
-    public SettingsPanel settingsPanel;
+    public InfoPanel infoPanel;
 
 
     public int currentM = 0;
@@ -62,17 +55,14 @@ class Main extends JFrame {
         }
     }
 
-    private void initComponents() {
+    public void initComponents() {
         managers.add(currentManager);
         drawPanel = new DrawPanel(managers,this);
-        settingsPanel = new SettingsPanel(this);
+        infoPanel = new InfoPanel(this);
 
-
-
-        settingsPanel.setOpaque(true);
         this.getContentPane().setBackground(Color.darkGray.darker());
         this.getContentPane().setLayout(new BorderLayout());
-        this.getContentPane().add(settingsPanel, BorderLayout.EAST);
+        this.getContentPane().add(infoPanel, BorderLayout.EAST);
         this.getContentPane().add(drawPanel, BorderLayout.WEST);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -165,13 +155,9 @@ class Main extends JFrame {
         getCurrentManager().redo.removeLast();
     }
 
-
-
     public double toInches(double in){
         return (1.0/scale * in)-72;
     }
-
-
 
     public NodeManager getCurrentManager() {
         currentManager = managers.get(currentM);
