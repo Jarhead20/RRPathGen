@@ -14,7 +14,7 @@ class Main extends JFrame {
 
     public DrawPanel drawPanel;
     public InfoPanel infoPanel;
-
+    public ButtonPanel buttonPanel;
 
     public int currentM = 0;
     public double robotWidth;
@@ -56,14 +56,30 @@ class Main extends JFrame {
     }
 
     public void initComponents() {
-        managers.add(currentManager);
+        if(managers.size() == 0)
+            managers.add(currentManager);
         drawPanel = new DrawPanel(managers,this);
+        buttonPanel = new ButtonPanel(managers,this);
         infoPanel = new InfoPanel(this);
-
         this.getContentPane().setBackground(Color.darkGray.darker());
-        this.getContentPane().setLayout(new BorderLayout());
-        this.getContentPane().add(infoPanel, BorderLayout.EAST);
-        this.getContentPane().add(drawPanel, BorderLayout.WEST);
+        this.getContentPane().setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 3;
+        c.gridy = 0;
+        c.gridheight=3;
+        this.getContentPane().add(infoPanel, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 2;
+        this.getContentPane().add(buttonPanel, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        c.gridheight = 2;
+        this.getContentPane().add(drawPanel, c);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         this.pack();

@@ -56,18 +56,17 @@ public class SettingsPanel extends JPanel {
                     double oldScale = main.scale;
                     main.loadConfig();
                     double newScale = main.scale;
+//                    System.out.println(oldScale + " " + newScale);
                     if(finalI == 0){
-                        double d = newScale/oldScale;
                         main.getManagers().forEach(nodeManager -> {
-                            scale(nodeManager, d);
-                            scale(nodeManager.undo, d);
-                            scale(nodeManager.redo, d);
+                            scale(nodeManager, newScale, oldScale);
+                            scale(nodeManager.undo, newScale, oldScale);
+                            scale(nodeManager.redo, newScale, oldScale);
                         });
                     }
-
-
                     main.remove(main.drawPanel);
                     main.remove(main.infoPanel);
+                    main.remove(main.buttonPanel);
                     main.initComponents();
                 }
             });
@@ -76,14 +75,13 @@ public class SettingsPanel extends JPanel {
 
 
     }
-    private void scale(NodeManager manager, double d){
+    private void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
-            n.x *= d;
-            n.y *= d;
+            n.x /= os;
+            n.x *= ns;
+            n.y /= os;
+            n.y *= ns;
         }
     }
-
-
-
 }

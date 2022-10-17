@@ -22,7 +22,7 @@ public class InfoPanel extends JPanel {
 
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.add(editPanel, BorderLayout.NORTH);
-        this.add(Box.createVerticalStrut((int)main.scale*75));
+        this.add(Box.createVerticalStrut((int)main.scale*80));
         this.add(settingsPanel, BorderLayout.SOUTH);
 
         this.setBackground(Color.darkGray.darker());
