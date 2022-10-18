@@ -1,5 +1,8 @@
 package jarhead;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.InputStream;
@@ -17,6 +20,7 @@ class Main extends JFrame {
     public ButtonPanel buttonPanel;
 
     public int currentM = 0;
+    public int currentN = -1;
     public double robotWidth;
     public double robotLength;
     public double resolution;
@@ -56,6 +60,8 @@ class Main extends JFrame {
     }
 
     public void initComponents() {
+        FlatDarculaLaf.setup();
+
         if(managers.size() == 0)
             managers.add(currentManager);
         drawPanel = new DrawPanel(managers,this);
@@ -67,7 +73,7 @@ class Main extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 3;
         c.gridy = 0;
-        c.gridheight=3;
+        c.gridheight=4;
         this.getContentPane().add(infoPanel, c);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;

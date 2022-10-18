@@ -1,8 +1,6 @@
 package jarhead;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,6 +34,8 @@ public class ButtonPanel extends JPanel {
         this.setMinimumSize(new Dimension(0,20));
         this.setLayout(new GridLayout(1, 4, 1, 1));
 
+
+
         exportButton.setFocusable(false);
         importButton.setFocusable(false);
         flipButton.setFocusable(false);
@@ -49,15 +49,12 @@ public class ButtonPanel extends JPanel {
         this.add(undoButton);
         this.add(redoButton);
         this.setMaximumSize(new Dimension((int) Math.floor(144 * scale),(int)scale*4));
-
-        this.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.red),
-                this.getBorder()));
         this.setVisible(true);
 
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(getCurrentManager().size() > 0){
+                    main.infoPanel.editPanel.saveValues();
                     Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
@@ -67,10 +64,10 @@ public class ButtonPanel extends JPanel {
                         x = main.toInches(node.x);
                         y = main.toInches(node.y);
                         switch (node.getType()){
-                            case SPLINE:
+                            case splineTo:
                                 System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
                                 break;
-                            case MARKER:
+                            case displacementMarker:
                                 System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
                                 System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
                                 break;
@@ -111,7 +108,6 @@ public class ButtonPanel extends JPanel {
         });
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println(1);
                 //todo: add undo for this
                 getCurrentManager().undo.clear();
                 getCurrentManager().redo.clear();
@@ -148,7 +144,10 @@ public class ButtonPanel extends JPanel {
                             String name = matcher.group(1).trim();
                             if(getCurrentManager().size() > 0)
                                 manager = new NodeManager(new ArrayList<>(), managers.size(), name);
-                            else manager = getCurrentManager();
+                            else {
+                                manager = getCurrentManager();
+                                manager.name = name;
+                            }
                             if(line.contains("true")) manager.reversed = true;
                             managers.add(manager);
                         }
@@ -173,7 +172,7 @@ public class ButtonPanel extends JPanel {
                                 if(manager.reversed && manager.size() == 0) node.heading += 180;
                                 manager.add(node);
                             } else if(line.contains(".addDisplacementMarker(")){
-                                (manager.get(manager.size()-1)).setType(Node.Type.MARKER);
+                                (manager.get(manager.size()-1)).setType(Node.Type.displacementMarker);
                             } else {
                                 discard = true;
                             }
@@ -182,7 +181,9 @@ public class ButtonPanel extends JPanel {
                 } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
                     uriSyntaxException.printStackTrace();
                 }
+
                 main.currentM = managers.size()-1;
+                main.infoPanel.editPanel.name.setText(getCurrentManager().name);
                 main.drawPanel.renderBackgroundSplines();
                 main.drawPanel.repaint();
             }

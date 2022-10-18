@@ -6,24 +6,13 @@ import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class DrawPanel extends JPanel {
@@ -54,15 +43,9 @@ public class DrawPanel extends JPanel {
         this.managers = managers;
         this.main = main;
         this.scale = main.scale;
-        this.setBackground(Color.darkGray.darker());
         preRenderedSplines = new BufferedImage((int) Math.floor(144*scale), (int) Math.floor(144*scale), BufferedImage.TYPE_4BYTE_ABGR);
         this.setPreferredSize(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale)));
-
-
-
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-//        this.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
@@ -71,9 +54,6 @@ public class DrawPanel extends JPanel {
                 mReleased(e);
             }
         });
-        this.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.red),
-                this.getBorder()));
         this.setVisible(true);
 
         this.addMouseMotionListener(new MouseMotionAdapter() {
@@ -249,10 +229,10 @@ public class DrawPanel extends JPanel {
             g2.setColor(color1);
             g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
             switch (node.getType()){
-                case SPLINE:
+                case splineTo:
                     g2.setColor(color2);
                     break;
-                case MARKER:
+                case displacementMarker:
                     g2.setColor(color3);
                     break;
             }
@@ -321,6 +301,7 @@ public class DrawPanel extends JPanel {
                     Node n2 = getCurrentManager().get(index);
                     mouse.heading = n1.headingTo(n2);
                     mouse.setType(n2.getType());
+                    mouse.code = n2.code;
                 }
 
                 if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
@@ -331,7 +312,7 @@ public class DrawPanel extends JPanel {
                         preEdit = (new Node(index));
                         preEdit.state = 2;
                         getCurrentManager().redo.clear();
-
+                        main.currentN = getCurrentManager().size();
                         getCurrentManager().add(index,mouse);
                     }
                     else { //editing existing node
@@ -339,6 +320,8 @@ public class DrawPanel extends JPanel {
                         preEdit = prev.copy(); //storing the existing data for undo
                         preEdit.state = 4;
                         getCurrentManager().redo.clear();
+                        main.currentN = index;
+                        main.infoPanel.editPanel.update();
                         getCurrentManager().set(index, mouse);
                     }
                 }
@@ -352,6 +335,7 @@ public class DrawPanel extends JPanel {
                 preEdit.index = getCurrentManager().size();
                 preEdit.state = 2;
                 getCurrentManager().redo.clear();
+                main.currentN = getCurrentManager().size();
                 getCurrentManager().add(mouse);
             }
         }
@@ -375,12 +359,15 @@ public class DrawPanel extends JPanel {
             if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
             if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             else mark.setLocation(snap(mouse, e));
+            main.currentN = index;
+            main.infoPanel.editPanel.update();
         } else {
             Node mark = getCurrentManager().last();
             mark.index = getCurrentManager().size()-1;
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
-
+            main.currentN = getCurrentManager().size()-1;
             getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
+            main.infoPanel.editPanel.update();
         }
         repaint();
     }
@@ -389,17 +376,20 @@ public class DrawPanel extends JPanel {
         if(e.getKeyCode() == KeyEvent.VK_LEFT)
             if(main.currentM > 0){
                 main.currentM--;
+                main.currentN = -1;
                 resetPath();
             }
 
         if(e.getKeyCode() == KeyEvent.VK_RIGHT){
             if(main.currentM+1 < managers.size()){
                 main.currentM++;
+                main.currentN = -1;
                 resetPath();
             } else if(getCurrentManager().size() > 0){
                 NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                 managers.add(manager);
                 resetPath();
+                main.currentN = -1;
                 main.currentM++;
             }
         }
@@ -408,7 +398,7 @@ public class DrawPanel extends JPanel {
             getCurrentManager().get(0).heading += 180;
         }
 
-
+        main.infoPanel.editPanel.update();
         renderBackgroundSplines();
         repaint();
     }

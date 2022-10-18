@@ -14,78 +14,135 @@ public class EditPanel extends JPanel {
 
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
-    private LinkedList<JTextField> fields = new LinkedList<>();
+    public JFormattedTextField x = new JFormattedTextField(formatter);
+    public JFormattedTextField y = new JFormattedTextField(formatter);
+    public JFormattedTextField heading = new JFormattedTextField(formatter);
+    public JTextField name = new JTextField(10);
+    public JTextField type = new JTextField(10);
+    public JTextField code = new JTextField(10);
 
     EditPanel(Main main){
         this.main = main;
         this.setOpaque(true);
-
-        this.setBackground(Color.darkGray.darker());
         this.setLayout(new SpringLayout());
-        String[] labels = {"Name", "X", "Y", "Heading", "Type", "Code"};
-        for (String label : labels) {
-            JTextField input = new JFormattedTextField(formatter);
-            input.setForeground(Color.lightGray);
-            input.setBackground(Color.darkGray.darker());
-            input.setCursor(new Cursor(2));
-            input.setCaretColor(Color.lightGray);
-            input.setColumns(10);
-//            input.setText(main.prop.getProperty(label.replaceAll(" ","_").toUpperCase()));
-//            input.setMaximumSize(new Dimension((int)main.scale*5,10));
-            JLabel l = new JLabel(label + ": ", JLabel.TRAILING);
-            l.setForeground(Color.lightGray);
-            this.add(l);
-            l.setLabelFor(input);
-            this.add(input);
-            fields.add(input);
-        }
+        JLabel lX = new JLabel("X: ", JLabel.TRAILING);
+        JLabel lY = new JLabel("Y: ", JLabel.TRAILING);
+        JLabel lHeading = new JLabel("Heading: ", JLabel.TRAILING);
+        JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
+        JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
+        JLabel lCode = new JLabel("Code: ", JLabel.TRAILING);
 
-        SpringUtilities.makeCompactGrid(this,labels.length,2,6,6,6,6);
-        this.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.red),
-                this.getBorder()));
+        this.add(lName);
+        lName.setLabelFor(name);
+        this.add(name);
+
+        this.add(lX);
+        lX.setLabelFor(x);
+        this.add(x);
+
+        this.add(lY);
+        lY.setLabelFor(y);
+        this.add(y);
+
+        this.add(lHeading);
+        lHeading.setLabelFor(heading);
+        this.add(heading);
+
+        this.add(lType);
+        lType.setLabelFor(type);
+        this.add(type);
+
+        this.add(lCode);
+        lCode.setLabelFor(code);
+        this.add(code);
+
+        SpringUtilities.makeCompactGrid(this,6,2,6,6,6,6);
         this.setVisible(true);
 
-//        for (int i = 0; i < fields.size(); i++) {
-//            JTextField field = fields.get(i);
-//            int finalI = i;
-//            field.addActionListener(new ActionListener() {
-//                @Override
-//                public void actionPerformed(ActionEvent e) {
-//                    main.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
-//                    double oldScale = main.scale;
-//                    main.loadConfig();
-//                    double newScale = main.scale;
-//                    if(finalI == 0){
-//                        double d = newScale/oldScale;
-//                        main.getManagers().forEach(nodeManager -> {
-//                            scale(nodeManager, d);
-//                            scale(nodeManager.undo, d);
-//                            scale(nodeManager.redo, d);
-//                        });
-//                    }
-//
-//
-//                    main.remove(main.drawPanel);
-//                    DrawPanel drawPanel = new DrawPanel(main.getManagers(), main);
-//                    main.drawPanel = drawPanel;
-//                    main.getContentPane().add(drawPanel, BorderLayout.WEST);
-//                    main.pack();
-//                }
-//            });
-//        }
+        name.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                main.getCurrentManager().name = name.getText();
+                main.drawPanel.repaint();
+            }
+        });
+
+        x.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(main.currentN != -1) getCurrentNode().x = (Double.parseDouble(x.getText())+72)*main.scale;
+                main.drawPanel.repaint();
+            }
+        });
 
 
+        y.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(main.currentN != -1) getCurrentNode().y = (Double.parseDouble(y.getText())+72)*main.scale;
+                main.drawPanel.repaint();
+            }
+        });
+
+
+        heading.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(main.currentN != -1) getCurrentNode().heading = Double.parseDouble(heading.getText());
+                main.drawPanel.repaint();
+            }
+        });
+
+        type.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(main.currentN != -1) getCurrentNode().setType(Node.Type.valueOf(type.getText()));
+                main.drawPanel.repaint();
+            }
+        });
+
+        code.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(main.currentN != -1) {
+                    System.out.println(code.getText());
+                    getCurrentNode().code = code.getText();
+                }
+                main.drawPanel.repaint();
+            }
+        });
+    }
+
+    public void saveValues(){
+        Node node = getCurrentNode();
+        main.getCurrentManager().name = name.getText();
+        node.x = (Double.parseDouble(x.getText())+72)*main.scale;
+        node.y = (Double.parseDouble(y.getText())+72)*main.scale;
+        node.heading = Double.parseDouble(heading.getText());
+        node.setType(Node.Type.valueOf(type.getText()));
+        node.code = code.getText();
+        main.drawPanel.repaint();
 
     }
-    private void scale(NodeManager manager, double d){
-        for (int j = 0; j < manager.size(); j++) {
-            Node n = manager.get(j);
-            n.x *= d;
-            n.y *= d;
+    public Node getCurrentNode(){
+        return main.getCurrentManager().get(main.currentN);
+    }
+
+    public void update() {
+        if(main.currentN == -1){
+            heading.setText("");
+            x.setText("");
+            y.setText("");
+            type.setText("");
+            name.setText(main.getCurrentManager().name);
+            code.setText("");
+        } else {
+            heading.setText(Math.round((getCurrentNode().heading)*100)/100.0 + "");
+            x.setText(Math.round(main.toInches(getCurrentNode().x)*100)/100.0 + "");
+            y.setText(Math.round(main.toInches(getCurrentNode().y)*100)/100.0 + "");
+            type.setText(getCurrentNode().getType().name());
+            name.setText(main.getCurrentManager().name);
+            code.setText(getCurrentNode().code);
         }
     }
-
-
-
 }
