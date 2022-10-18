@@ -397,7 +397,7 @@ public class DrawPanel extends JPanel {
             getCurrentManager().reversed = !getCurrentManager().reversed;
             getCurrentManager().get(0).heading += 180;
         }
-        if(e.isControlDown && e.getKeyCode() == KeyEvent.VK_Z){
+        if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z){
             main.undo();
         }
 
