@@ -44,7 +44,6 @@ public class DrawPanel extends JPanel {
         this.main = main;
         this.scale = main.scale;
         preRenderedSplines = new BufferedImage((int) Math.floor(144*scale), (int) Math.floor(144*scale), BufferedImage.TYPE_4BYTE_ABGR);
-        renderBackgroundSplines();
         this.setPreferredSize(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale)));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.addMouseListener(new MouseAdapter() {
@@ -397,6 +396,9 @@ public class DrawPanel extends JPanel {
         if(e.getKeyCode() == KeyEvent.VK_R) {
             getCurrentManager().reversed = !getCurrentManager().reversed;
             getCurrentManager().get(0).heading += 180;
+        }
+        if(e.isControlDown && e.getKeyCode() == KeyEvent.VK_Z){
+            main.undo();
         }
 
         main.infoPanel.editPanel.update();
