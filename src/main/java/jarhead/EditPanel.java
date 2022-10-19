@@ -114,15 +114,16 @@ public class EditPanel extends JPanel {
     }
 
     public void saveValues(){
-        Node node = getCurrentNode();
-        main.getCurrentManager().name = name.getText();
-        node.x = (Double.parseDouble(x.getText())+72)*main.scale;
-        node.y = (Double.parseDouble(y.getText())+72)*main.scale;
-        node.heading = Double.parseDouble(heading.getText());
-        node.setType(Node.Type.valueOf(type.getText()));
-        node.code = code.getText();
-        main.drawPanel.repaint();
-
+        if(main.currentN != -1){
+            Node node = getCurrentNode();
+            main.getCurrentManager().name = name.getText();
+            node.x = (Double.parseDouble(x.getText())+72)*main.scale;
+            node.y = (Double.parseDouble(y.getText())+72)*main.scale;
+            node.heading = Double.parseDouble(heading.getText());
+            node.setType(Node.Type.valueOf(type.getText()));
+            node.code = code.getText();
+            main.drawPanel.repaint();
+        }
     }
     public Node getCurrentNode(){
         return main.getCurrentManager().get(main.currentN);

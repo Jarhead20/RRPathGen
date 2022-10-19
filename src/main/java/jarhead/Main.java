@@ -42,7 +42,7 @@ class Main extends JFrame {
         try{
             if(prop == null){
                 prop = new Properties();
-                InputStream stream = Main.class.getResourceAsStream("/config.properties");
+                InputStream stream = Main.class.getClassLoader().getResourceAsStream("config.properties");
                 prop.load(stream);
                 stream.close();
             }

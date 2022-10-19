@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -131,8 +133,8 @@ public class ButtonPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 NodeManager manager = null;
                 try {
-                    File file = new File(Main.class.getResource("/import.java").toURI());
-                    Scanner reader = new Scanner(file);
+                    InputStream stream = getClass().getClassLoader().getResourceAsStream("import.java");
+                    Scanner reader = new Scanner(stream);
                     boolean discard = true;
                     while (reader.hasNextLine()) {
                         String line = reader.nextLine();
@@ -178,8 +180,11 @@ public class ButtonPanel extends JPanel {
                             }
                         }
                     }
-                } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
+                    stream.close();
+                } catch (FileNotFoundException uriSyntaxException) {
                     uriSyntaxException.printStackTrace();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
                 }
 
                 main.currentM = managers.size()-1;
