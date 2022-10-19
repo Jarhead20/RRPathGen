@@ -356,7 +356,7 @@ public class DrawPanel extends JPanel {
         if(edit){
             int index = getCurrentManager().editIndex;
             Node mark = getCurrentManager().get(index);
-            if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
+//            if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
             if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             else mark.setLocation(snap(mouse, e));
             main.currentN = index;
