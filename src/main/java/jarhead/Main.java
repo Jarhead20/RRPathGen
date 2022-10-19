@@ -49,9 +49,10 @@ class Main extends JFrame {
                 prop.load(stream);
                 stream.close();
             }
+            System.out.println(Toolkit.getDefaultToolkit().getScreenResolution());
 
             if(prop.getProperty("SCALE").matches("0")) {
-                scale = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
+                scale = Toolkit.getDefaultToolkit().getScreenResolution()/16; //set scale to 6 for 1080p and 8 for 1440p
             }
             else scale = Double.parseDouble(prop.getProperty("SCALE"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
@@ -67,9 +68,22 @@ class Main extends JFrame {
         drawPanel = new DrawPanel(managers,this);
         settingsPanel = new SettingsPanel(this);
 
+        this.addWindowStateListener(new WindowStateListener() {
+            @Override
+            public void windowStateChanged(WindowEvent e) {
+//                if((e.getOldState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH){
+//                    scale = ((double)getSize().height)/200.0;
+//                    e.getWindow().getGraphicsConfiguration().getDevice().setFullScreenWindow(e.getWindow());
+//                }
 
+//                else if(e.getOldState() == Frame.MAXIMIZED_BOTH) scale = Toolkit.getDefaultToolkit().getScreenResolution()/16;
+                System.out.println(scale);
+//                refresh();
+            }
+        });
 
         settingsPanel.setOpaque(true);
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.getContentPane().setBackground(Color.darkGray.darker());
         this.getContentPane().setLayout(new BorderLayout());
         this.getContentPane().add(settingsPanel, BorderLayout.EAST);
@@ -80,6 +94,11 @@ class Main extends JFrame {
         this.setVisible(true);
     }
 
+    public void refresh(){
+        this.getContentPane().remove(drawPanel);
+        this.getContentPane().remove(settingsPanel);
+        initComponents();
+    }
 
     public void undo(){
         if(getCurrentManager().undo.size()<1) return;
