@@ -5,7 +5,8 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 ## Installation (Jar)
 
 1. Download the jar from the releases page.
-2. Run the jar from the command line `java -jar .\RRPathGen-1.1.0.jar`
+2. Check that you have at least java 8 installed `java --version`
+3. Run the jar from the command line `java -jar .\RRPathGen-1.1.0.jar`
 
 
 ## Installation (Intellij)
