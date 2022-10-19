@@ -26,6 +26,8 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 | Right Arrow         | Previous Path           |
 | R                   | Reverse Robot Direction |
 | Esc                 | Escape                  |
+| Delete              | Delete Selected Node    |
+| Ctrl + Z            | Undo Previous Action    |
 
 ## Acknowledgements 
 The inspiration from this project came from Technic Bots' [Blitz](https://technicbots.com/Blitz) app.<br />
