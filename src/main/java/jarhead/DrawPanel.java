@@ -299,7 +299,7 @@ public class DrawPanel extends JPanel {
                 if(index >0){
                     Node n1 = getCurrentManager().get(index-1);
                     Node n2 = getCurrentManager().get(index);
-                    mouse.heading = n1.headingTo(n2);
+//                    mouse.heading = n1.headingTo(n2);
                     mouse.setType(n2.getType());
                     mouse.code = n2.code;
                 }
