@@ -401,6 +401,19 @@ public class DrawPanel extends JPanel {
             main.undo();
         }
 
+        if(e.getKeyCode() == KeyEvent.VK_DELETE){
+            if(main.currentN >= 0){
+                Node n = getCurrentManager().get(main.currentN);
+                n.index = main.currentN;
+                n.state = 1;
+                getCurrentManager().undo.add(n);
+                getCurrentManager().remove(main.currentN);
+                System.out.println(main.currentN);
+                main.currentN--;
+            }
+        }
+
+
         main.infoPanel.editPanel.update();
         renderBackgroundSplines();
         repaint();

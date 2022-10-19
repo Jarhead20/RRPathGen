@@ -48,7 +48,7 @@ class Main extends JFrame {
             }
 
             if(prop.getProperty("SCALE").matches("0")) {
-                scale = (-100.0+Toolkit.getDefaultToolkit().getScreenSize().height)/144; //set scale to 6 for 1080p and 8 for 1440p
+                scale = ((double)Toolkit.getDefaultToolkit().getScreenSize().height)/160.0; //set scale to 6 for 1080p and 8 for 1440p
             }
             else scale = Double.parseDouble(prop.getProperty("SCALE"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
