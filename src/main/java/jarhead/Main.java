@@ -109,12 +109,14 @@ class Main extends JFrame {
             case 1: //undo delete
                 getCurrentManager().add(node.index, node);
                 r = node;
+                currentN = node.index;
                 getCurrentManager().redo.add(r);
                 break;
             case 2: //undo add new node
                 temp = getCurrentManager().get(node.index);
                 r = temp.copy();
                 r.state = 2;
+                currentN = node.index-1;
                 getCurrentManager().redo.add(r);
                 getCurrentManager().remove(node.index);
                 break;
@@ -124,6 +126,7 @@ class Main extends JFrame {
                     n.y *= -1;
                     getCurrentManager().set(i, n);
                 }
+                currentN = -1;
                 r = node;
                 getCurrentManager().redo.add(r);
                 break;
