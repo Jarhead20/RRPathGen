@@ -18,21 +18,17 @@ public class SettingsPanel extends JPanel {
 
     SettingsPanel(Main main){
         this.main = main;
+        this.setOpaque(true);
 //        this.setPreferredSize(new Dimension((int) Math.floor(30 * main.scale), (int) Math.floor(40 * main.scale)));
-        this.setBackground(Color.darkGray.darker());
         this.setLayout(new SpringLayout());
         String[] labels = {"Scale", "Robot Width", "Robot Length", "Resolution"};
         for (String label : labels) {
             JTextField input = new JFormattedTextField(formatter);
-            input.setForeground(Color.lightGray);
-            input.setBackground(Color.darkGray.darker());
             input.setCursor(new Cursor(2));
-            input.setCaretColor(Color.lightGray);
             input.setColumns(10);
             input.setText(main.prop.getProperty(label.replaceAll(" ","_").toUpperCase()));
-            input.setMaximumSize(new Dimension((int)main.scale*5,10));
+//            input.setMaximumSize(new Dimension((int)main.scale*5,10));
             JLabel l = new JLabel(label + ": ", JLabel.TRAILING);
-            l.setForeground(Color.lightGray);
             this.add(l);
             l.setLabelFor(input);
             this.add(input);
@@ -53,20 +49,13 @@ public class SettingsPanel extends JPanel {
                     main.loadConfig();
                     double newScale = main.scale;
                     if(finalI == 0){
-                        double d = newScale/oldScale;
                         main.getManagers().forEach(nodeManager -> {
-                            scale(nodeManager, d);
-                            scale(nodeManager.undo, d);
-                            scale(nodeManager.redo, d);
+                            scale(nodeManager, newScale, oldScale);
+                            scale(nodeManager.undo, newScale, oldScale);
+                            scale(nodeManager.redo, newScale, oldScale);
                         });
                     }
-
-
-                    main.remove(main.drawPanel);
-                    DrawPanel drawPanel = new DrawPanel(main.getManagers(), main);
-                    main.drawPanel = drawPanel;
-                    main.getContentPane().add(drawPanel, BorderLayout.WEST);
-                    main.pack();
+                    main.refresh();
                 }
             });
         }
@@ -74,14 +63,13 @@ public class SettingsPanel extends JPanel {
 
 
     }
-    private void scale(NodeManager manager, double d){
+    private void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
-            n.x *= d;
-            n.y *= d;
+            n.x /= os;
+            n.x *= ns;
+            n.y /= os;
+            n.y *= ns;
         }
     }
-
-
-
 }

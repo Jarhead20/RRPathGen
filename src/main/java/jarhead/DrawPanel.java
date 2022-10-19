@@ -6,30 +6,18 @@ import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.path.QuinticSpline;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class DrawPanel extends JPanel {
 
-    private static final Pattern numberPattern = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
-    private static final Pattern pathName = Pattern.compile("(?:^\\s*Trajectory\\s+(\\w*))");
+
 
     private LinkedList<NodeManager> managers;
 
@@ -39,29 +27,11 @@ public class DrawPanel extends JPanel {
     private boolean edit = false;
     final double clickSize = 2;
     private double scale;
-    private final JPopupMenu menu = new JPopupMenu("Menu");
-
-    private final JMenuItem delete = new JMenuItem("Delete");
-    private final JMenuItem makeDisplace = new JMenuItem("Make Displacement Marker");
-    private final JMenuItem makeSpline = new JMenuItem("Make Spline");
-    private final JMenuItem setXY = new JMenuItem("Set X, Y");
-
-    JTextField codeField = new JTextField("");
-    NumberFormat format = NumberFormat.getInstance();
-    NumberFormatter formatter = new NumberFormatter(format);
-    JTextField fX = new JFormattedTextField(formatter);
-    JTextField fY = new JFormattedTextField(formatter);
-//    JTextField fX = new JTextField("");
-//    JTextField fY = new JTextField("");
 
 
 
-    private final JButton exportButton = new JButton("Export");
-    private final JButton importButton = new JButton("Import");
-    public final JButton flipButton = new JButton("Flip");
-    private final JButton clearButton = new JButton("Clear");
-    private final JButton undoButton = new JButton("Undo");
-    private final JButton redoButton = new JButton("Redo");
+
+
     private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
     AffineTransform outLine = new AffineTransform();
@@ -73,27 +43,9 @@ public class DrawPanel extends JPanel {
         this.managers = managers;
         this.main = main;
         this.scale = main.scale;
-        this.setBackground(Color.darkGray.darker());
         preRenderedSplines = new BufferedImage((int) Math.floor(144*scale), (int) Math.floor(144*scale), BufferedImage.TYPE_4BYTE_ABGR);
-        setPreferredSize(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale + (scale*4))));
-        JPanel buttons = new JPanel(new GridLayout(1, 4, 1, 1));
-
-        menu.add(delete);
-        menu.add(makeDisplace);
-        menu.add(makeSpline);
-        menu.add(setXY);
-        add(menu);
-
-        exportButton.setFocusable(false);
-        importButton.setFocusable(false);
-        flipButton.setFocusable(false);
-        clearButton.setFocusable(false);
-        undoButton.setFocusable(false);
-        redoButton.setFocusable(false);
-
+        this.setPreferredSize(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale)));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
@@ -102,6 +54,7 @@ public class DrawPanel extends JPanel {
                 mReleased(e);
             }
         });
+        this.setVisible(true);
 
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
@@ -117,285 +70,7 @@ public class DrawPanel extends JPanel {
             public void keyPressed(KeyEvent e) { }
         });
         this.setFocusable(true);
-
-        buttons.add(exportButton);
-        buttons.add(importButton);
-        buttons.add(flipButton);
-        buttons.add(clearButton);
-        buttons.add(undoButton);
-        buttons.add(redoButton);
-        add(Box.createRigidArea(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale))));
-        buttons.setMaximumSize(new Dimension((int) Math.floor(144 * scale),(int)scale*4));
-        add(buttons);
-        add(codeField);
-        add(fX);
-        add(fY);
-        fX.setFocusable(false);
-        fY.setFocusable(false);
-        codeField.setFocusable(false);
-        fX.setVisible(false);
-        fY.setVisible(false);
-        codeField.setVisible(false);
-
-        codeField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                escape(e);
-            }
-        });
-
-        fX.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                escape(e);
-            }
-        });
-
-        fY.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                escape(e);
-            }
-        });
-
-
-
-        codeField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Node node = getCurrentManager().get(getCurrentManager().editIndex);
-                node.setType(Node.Type.MARKER);
-                node.code = codeField.getText();
-                codeField.setVisible(false);
-                codeField.setFocusable(false);
-                setFocusable(true);
-                grabFocus();
-                repaint();
-            }
-        });
-
-        fX.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fY.grabFocus();
-            }
-        });
-
-        fY.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Node node = getCurrentManager().get(getCurrentManager().editIndex);
-
-                double x = node.x;
-                double y = node.y;
-                if(fY.getText().length() > 0)
-                    y = (Double.parseDouble(fY.getText())+72)* scale;
-                if(fX.getText().length() > 0)
-                    x = (Double.parseDouble(fX.getText())+72)* scale;
-                if(x != node.x || y != node.y){
-                    Node temp = node.copy();
-                    temp.state = 4;
-                    getCurrentManager().undo.add(temp);
-                    node.x = x;
-                    node.y = y;
-
-                }
-
-                fX.setVisible(false);
-                fY.setVisible(false);
-                fX.setFocusable(false);
-                fY.setFocusable(false);
-
-                setFocusable(true);
-                grabFocus();
-                repaint();
-            }
-        });
-
-        setXY.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Node node = getCurrentManager().get(getCurrentManager().editIndex);
-                fX.setBounds((int)node.x, (int)node.y, 40,20);
-                fY.setBounds((int)node.x + 50, (int)node.y, 40,20);
-                fX.setVisible(true);
-                fY.setVisible(true);
-                fX.setFocusable(true);
-                fY.setFocusable(true);
-                setFocusable(false);
-                main.settingsPanel.setFocusable(false);
-                fX.grabFocus();
-                fX.setText("");
-                fY.setText("");
-            }
-        });
-
-        exportButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if(getCurrentManager().size() > 0){
-                    Node node = getCurrentManager().get(0);
-                    double x = main.toInches(node.x);
-                    double y = main.toInches(node.y);
-                    System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.heading+90));
-                    for (int i = 1; i < getCurrentManager().size(); i++) {
-                        node = getCurrentManager().get(i);
-                        x = main.toInches(node.x);
-                        y = main.toInches(node.y);
-                        switch (node.getType()){
-                            case SPLINE:
-                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
-                                break;
-                            case MARKER:
-                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
-                                System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
-                                break;
-                            default:
-                                System.out.println("what");
-                                break;
-                        }
-                    }
-                    System.out.println(".build();");
-                }
-            }
-        });
-        flipButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Node un = new Node(-2,-2);
-                un.state = 3;
-                for (int i = 0; i < getCurrentManager().size(); i++) {
-                    Node node = getCurrentManager().get(i);
-                    node.y = 144*scale-node.y;
-                    node.heading = 180-node.heading;
-                    getCurrentManager().set(i, node);
-                }
-                repaint();
-            }
-        });
-        undoButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                main.undo();
-                repaint();
-            }
-        });
-        redoButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                main.redo();
-                repaint();
-            }
-        });
-        clearButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //todo: add undo for this
-                getCurrentManager().undo.clear();
-                getCurrentManager().redo.clear();
-                getCurrentManager().clear();
-                int id = main.currentM;
-                for (int i = id; i < managers.size()-1; i++) {
-                    managers.set(i, managers.get(i+1));
-                }
-                if(managers.size() > 1)
-                    managers.removeLast();
-                else main.currentM = 0;
-                if(main.currentM > 0)
-                    main.currentM--;
-                resetPath();
-
-                renderBackgroundSplines();
-                repaint();
-            }
-        });
-        importButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                NodeManager manager = null;
-                try {
-                    File file = new File(Main.class.getResource("/import.java").toURI());
-                    Scanner reader = new Scanner(file);
-                    boolean discard = true;
-                    while (reader.hasNextLine()) {
-                        String line = reader.nextLine();
-
-                        if (line.contains("trajectoryBuilder")){
-                            discard = false;
-                            Matcher matcher = pathName.matcher(line);
-                            matcher.find();
-                            String name = matcher.group(1).trim();
-                            if(getCurrentManager().size() > 0)
-                                manager = new NodeManager(new ArrayList<>(), managers.size(), name);
-                            else manager = getCurrentManager();
-                            if(line.contains("true")) manager.reversed = true;
-                            managers.add(manager);
-                        }
-                        if(!discard){
-                            if(line.contains("new Vector2d(") || line.contains("new Pose2d(")){
-                                Matcher m = numberPattern.matcher(line);
-                                Node node = new Node();
-                                String[] data = new String[4];
-                                for (int i = 0; m.find(); i++) {
-                                    data[i]=m.group(0);
-                                }
-                                try{
-                                    node.x = (Double.parseDouble(data[1])+72)* scale;
-                                    node.y = (-Double.parseDouble(data[2])+72)* scale;
-                                    node.heading = Double.parseDouble(data[3])-90;
-                                } catch (Exception error){
-//                                    error.printStackTrace();
-                                    node.x = 72* scale;
-                                    node.y = 72* scale;
-                                    node.heading = 270;
-                                }
-                                if(manager.reversed && manager.size() == 0) node.heading += 180;
-                                manager.add(node);
-                            } else if(line.contains(".addDisplacementMarker(")){
-                                (manager.get(manager.size()-1)).setType(Node.Type.MARKER);
-                            } else {
-                                discard = true;
-                            }
-                        }
-                    }
-                } catch (URISyntaxException | FileNotFoundException uriSyntaxException) {
-                    uriSyntaxException.printStackTrace();
-                }
-                main.currentM = managers.size()-1;
-                renderBackgroundSplines();
-                repaint();
-            }
-        });
-        menu.addPopupMenuListener(new PopupMenuListener() {
-            public void popupMenuWillBecomeVisible(PopupMenuEvent e) { }
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { repaint(); }
-            public void popupMenuCanceled(PopupMenuEvent e) { repaint(); }
-        });
-
-        delete.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Node n = getCurrentManager().get(getCurrentManager().editIndex);
-                n.index = getCurrentManager().editIndex;
-                n.state = 1;
-                getCurrentManager().undo.add(n);
-                getCurrentManager().remove(getCurrentManager().editIndex);
-                repaint();
-            }
-        });
-        makeDisplace.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Node node = getCurrentManager().get(getCurrentManager().editIndex);
-                codeField.setBounds((int)node.x, (int)node.y, 100,20);
-                codeField.setText("");
-                codeField.setVisible(true);
-                codeField.setFocusable(true);
-                setFocusable(false);
-                codeField.grabFocus();
-
-            }
-        });
-        makeSpline.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                getCurrentManager().get(getCurrentManager().editIndex).setType(Node.Type.SPLINE);
-            }
-        });
     }
-
-
 
     private void renderSplines(Graphics g, Path path, Color color) {
         for (double i = 0; i < path.length(); i+=main.resolution) {
@@ -554,10 +229,10 @@ public class DrawPanel extends JPanel {
             g2.setColor(color1);
             g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
             switch (node.getType()){
-                case SPLINE:
+                case splineTo:
                     g2.setColor(color2);
                     break;
-                case MARKER:
+                case displacementMarker:
                     g2.setColor(color3);
                     break;
             }
@@ -566,9 +241,7 @@ public class DrawPanel extends JPanel {
         g2d.drawImage(bufferedImage, 0,0,null);
     }
 
-    public JPopupMenu getMenu(){
-        return menu;
-    }
+
 
     private NodeManager getCurrentManager(){
         return main.getCurrentManager();
@@ -580,20 +253,6 @@ public class DrawPanel extends JPanel {
 
     public void resetPath(){
         path = null;
-    }
-
-    private void escape (KeyEvent e){
-        if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
-            codeField.setVisible(false);
-            codeField.setFocusable(false);
-            fX.setVisible(false);
-            fY.setVisible(false);
-            fX.setFocusable(false);
-            fY.setFocusable(false);
-            setFocusable(true);
-            grabFocus();
-            repaint();
-        }
     }
 
     private void mPressed(MouseEvent e) {
@@ -636,21 +295,16 @@ public class DrawPanel extends JPanel {
             }
 
             mouse = snap(mouse, e);
-
             if(index != -1){
                 if(index >0){
                     Node n1 = getCurrentManager().get(index-1);
                     Node n2 = getCurrentManager().get(index);
                     mouse.heading = n1.headingTo(n2);
                     mouse.setType(n2.getType());
+                    mouse.code = n2.code;
                 }
 
-                if (SwingUtilities.isRightMouseButton(e) && !mid){ //opens right click context menu
-                    getMenu().show(this,e.getX(),e.getY());
-                    getCurrentManager().editIndex = index;
-                    repaint();
-                    return;
-                } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
+                if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
                     getCurrentManager().editIndex = index;
                     edit = true;
                     //if the point clicked was a mid point, gen a new point
@@ -658,14 +312,16 @@ public class DrawPanel extends JPanel {
                         preEdit = (new Node(index));
                         preEdit.state = 2;
                         getCurrentManager().redo.clear();
-
+                        main.currentN = getCurrentManager().size();
                         getCurrentManager().add(index,mouse);
                     }
                     else { //editing existing node
                         Node prev = getCurrentManager().get(index);
-                        preEdit = new Node(prev.x,prev.y, prev.heading, index); //storing the existing data for undo
+                        preEdit = prev.copy(); //storing the existing data for undo
                         preEdit.state = 4;
                         getCurrentManager().redo.clear();
+                        main.currentN = index;
+                        main.infoPanel.editPanel.update();
                         getCurrentManager().set(index, mouse);
                     }
                 }
@@ -675,9 +331,11 @@ public class DrawPanel extends JPanel {
                     Node n1 = getCurrentManager().last();
                     mouse.heading = n1.headingTo(mouse);
                 }
-                preEdit = (new Node(mouse.x, mouse.y, mouse.heading, getCurrentManager().size()));
+                preEdit = mouse.copy();
+                preEdit.index = getCurrentManager().size();
                 preEdit.state = 2;
                 getCurrentManager().redo.clear();
+                main.currentN = getCurrentManager().size();
                 getCurrentManager().add(mouse);
             }
         }
@@ -701,12 +359,15 @@ public class DrawPanel extends JPanel {
             if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
             if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             else mark.setLocation(snap(mouse, e));
+            main.currentN = index;
+            main.infoPanel.editPanel.update();
         } else {
             Node mark = getCurrentManager().last();
             mark.index = getCurrentManager().size()-1;
             mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
-
+            main.currentN = getCurrentManager().size()-1;
             getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
+            main.infoPanel.editPanel.update();
         }
         repaint();
     }
@@ -715,17 +376,20 @@ public class DrawPanel extends JPanel {
         if(e.getKeyCode() == KeyEvent.VK_LEFT)
             if(main.currentM > 0){
                 main.currentM--;
+                main.currentN = -1;
                 resetPath();
             }
 
         if(e.getKeyCode() == KeyEvent.VK_RIGHT){
             if(main.currentM+1 < managers.size()){
                 main.currentM++;
+                main.currentN = -1;
                 resetPath();
             } else if(getCurrentManager().size() > 0){
                 NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                 managers.add(manager);
                 resetPath();
+                main.currentN = -1;
                 main.currentM++;
             }
         }
@@ -733,8 +397,11 @@ public class DrawPanel extends JPanel {
             getCurrentManager().reversed = !getCurrentManager().reversed;
             getCurrentManager().get(0).heading += 180;
         }
+        if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z){
+            main.undo();
+        }
 
-
+        main.infoPanel.editPanel.update();
         renderBackgroundSplines();
         repaint();
     }

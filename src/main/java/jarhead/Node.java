@@ -8,11 +8,11 @@ public class Node {
     public int state = 1;
     public String code = "";
 
-    private Type type = Type.SPLINE;
+    private Type type = Type.splineTo;
 
     public enum Type {
-        SPLINE,
-        MARKER
+        splineTo,
+        displacementMarker
 
     }
     Node(){

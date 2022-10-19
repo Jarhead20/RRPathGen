@@ -1,16 +1,12 @@
 package jarhead;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.path.Path;
-import com.acmerobotics.roadrunner.path.PathSegment;
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.InputStream;
 import java.util.*;
-import java.util.List;
 
 class Main extends JFrame {
 
@@ -20,10 +16,11 @@ class Main extends JFrame {
     private LinkedList<NodeManager> managers = new LinkedList<>();
 
     public DrawPanel drawPanel;
-    public SettingsPanel settingsPanel;
-
+    public InfoPanel infoPanel;
+    public ButtonPanel buttonPanel;
 
     public int currentM = 0;
+    public int currentN = -1;
     public double robotWidth;
     public double robotLength;
     public double resolution;
@@ -49,10 +46,9 @@ class Main extends JFrame {
                 prop.load(stream);
                 stream.close();
             }
-            System.out.println(Toolkit.getDefaultToolkit().getScreenResolution());
 
             if(prop.getProperty("SCALE").matches("0")) {
-                scale = Toolkit.getDefaultToolkit().getScreenResolution()/16; //set scale to 6 for 1080p and 8 for 1440p
+                scale = (-100.0+Toolkit.getDefaultToolkit().getScreenSize().height)/144; //set scale to 6 for 1080p and 8 for 1440p
             }
             else scale = Double.parseDouble(prop.getProperty("SCALE"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
@@ -63,31 +59,34 @@ class Main extends JFrame {
         }
     }
 
-    private void initComponents() {
-        managers.add(currentManager);
+    public void initComponents() {
+        FlatDarculaLaf.setup();
+
+        if(managers.size() == 0)
+            managers.add(currentManager);
         drawPanel = new DrawPanel(managers,this);
-        settingsPanel = new SettingsPanel(this);
-
-        this.addWindowStateListener(new WindowStateListener() {
-            @Override
-            public void windowStateChanged(WindowEvent e) {
-//                if((e.getOldState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH){
-//                    scale = ((double)getSize().height)/200.0;
-//                    e.getWindow().getGraphicsConfiguration().getDevice().setFullScreenWindow(e.getWindow());
-//                }
-
-//                else if(e.getOldState() == Frame.MAXIMIZED_BOTH) scale = Toolkit.getDefaultToolkit().getScreenResolution()/16;
-                System.out.println(scale);
-//                refresh();
-            }
-        });
-
-        settingsPanel.setOpaque(true);
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        buttonPanel = new ButtonPanel(managers,this);
+        infoPanel = new InfoPanel(this);
         this.getContentPane().setBackground(Color.darkGray.darker());
-        this.getContentPane().setLayout(new BorderLayout());
-        this.getContentPane().add(settingsPanel, BorderLayout.EAST);
-        this.getContentPane().add(drawPanel, BorderLayout.WEST);
+        this.getContentPane().setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 3;
+        c.gridy = 0;
+        c.gridheight=4;
+        this.getContentPane().add(infoPanel, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 2;
+        this.getContentPane().add(buttonPanel, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        c.gridheight = 2;
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        this.getContentPane().add(drawPanel, c);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         this.pack();
@@ -96,7 +95,8 @@ class Main extends JFrame {
 
     public void refresh(){
         this.getContentPane().remove(drawPanel);
-        this.getContentPane().remove(settingsPanel);
+        this.getContentPane().remove(infoPanel);
+        this.getContentPane().remove(buttonPanel);
         initComponents();
     }
 
