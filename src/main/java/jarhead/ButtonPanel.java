@@ -121,6 +121,8 @@ public class ButtonPanel extends JPanel {
                 else main.currentM = 0;
                 if(main.currentM > 0)
                     main.currentM--;
+                main.currentN = -1;
+                main.infoPanel.editPanel.update();
                 main.drawPanel.resetPath();
 
                 main.drawPanel.renderBackgroundSplines();

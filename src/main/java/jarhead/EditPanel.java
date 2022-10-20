@@ -14,7 +14,8 @@ public class EditPanel extends JPanel {
     NumberFormatter formatter = new NumberFormatter(format);
     public JFormattedTextField x = new JFormattedTextField(formatter);
     public JFormattedTextField y = new JFormattedTextField(formatter);
-    public JFormattedTextField heading = new JFormattedTextField(formatter);
+    public JFormattedTextField splineHeading = new JFormattedTextField(formatter);
+    public JFormattedTextField robotHeading = new JFormattedTextField(formatter);
     public JTextField name = new JTextField(10);
     public JTextField code = new JTextField(10);
     public JComboBox type;
@@ -25,12 +26,14 @@ public class EditPanel extends JPanel {
         this.setLayout(new SpringLayout());
         JLabel lX = new JLabel("X: ", JLabel.TRAILING);
         JLabel lY = new JLabel("Y: ", JLabel.TRAILING);
-        JLabel lHeading = new JLabel("Heading: ", JLabel.TRAILING);
+        JLabel lSplineHeading = new JLabel("Spline Heading: ", JLabel.TRAILING);
+        JLabel lRobotHeading = new JLabel("Robot Heading: ", JLabel.TRAILING);
         JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
         JLabel lCode = new JLabel("Code: ", JLabel.TRAILING);
 
         type = new JComboBox(Node.Type.values());
+        type.setSelectedIndex(-1);
 
         this.add(lName);
         lName.setLabelFor(name);
@@ -44,9 +47,13 @@ public class EditPanel extends JPanel {
         lY.setLabelFor(y);
         this.add(y);
 
-        this.add(lHeading);
-        lHeading.setLabelFor(heading);
-        this.add(heading);
+        this.add(lSplineHeading);
+        lSplineHeading.setLabelFor(splineHeading);
+        this.add(splineHeading);
+
+        this.add(lRobotHeading);
+        lRobotHeading.setLabelFor(robotHeading);
+        this.add(robotHeading);
 
         this.add(lType);
         lType.setLabelFor(type);
@@ -56,7 +63,7 @@ public class EditPanel extends JPanel {
         lCode.setLabelFor(code);
         this.add(code);
 
-        SpringUtilities.makeCompactGrid(this,6,2,6,6,6,6);
+        SpringUtilities.makeCompactGrid(this,7,2,6,6,6,6);
         this.setVisible(true);
 
         name.addActionListener(new ActionListener() {
@@ -85,10 +92,18 @@ public class EditPanel extends JPanel {
         });
 
 
-        heading.addActionListener(new ActionListener() {
+        splineHeading.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().splineHeading = Double.parseDouble(heading.getText());
+                if(main.currentN != -1) getCurrentNode().splineHeading = Double.parseDouble(splineHeading.getText());
+                main.drawPanel.repaint();
+            }
+        });
+
+        robotHeading.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(main.currentN != -1) getCurrentNode().robotHeading = Double.parseDouble(robotHeading.getText());
                 main.drawPanel.repaint();
             }
         });
@@ -119,7 +134,8 @@ public class EditPanel extends JPanel {
             main.getCurrentManager().name = name.getText();
             node.x = (Double.parseDouble(x.getText())+72)*main.scale;
             node.y = (Double.parseDouble(y.getText())+72)*main.scale;
-            node.splineHeading = Double.parseDouble(heading.getText());
+            node.splineHeading = Double.parseDouble(splineHeading.getText());
+            node.robotHeading = Double.parseDouble(robotHeading.getText());
             node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
             node.code = code.getText();
             main.drawPanel.repaint();
@@ -131,14 +147,16 @@ public class EditPanel extends JPanel {
 
     public void update() {
         if(main.currentN == -1){
-            heading.setText("");
+            splineHeading.setText("");
+            robotHeading.setText("");
             x.setText("");
             y.setText("");
             type.setSelectedIndex(-1);
             name.setText(main.getCurrentManager().name);
             code.setText("");
         } else {
-            heading.setText(Math.round((getCurrentNode().splineHeading)*100)/100.0 + "");
+            splineHeading.setText(Math.round((getCurrentNode().splineHeading)*100)/100.0 + "");
+            robotHeading.setText(Math.round((getCurrentNode().robotHeading)*100)/100.0 + "");
             x.setText(Math.round(main.toInches(getCurrentNode().x)*100)/100.0 + "");
             y.setText(Math.round(main.toInches(getCurrentNode().y)*100)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());

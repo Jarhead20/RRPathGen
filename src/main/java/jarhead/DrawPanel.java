@@ -1,9 +1,14 @@
 package jarhead;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.path.ParametricCurve;
 import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.path.QuinticSpline;
+import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
+import com.acmerobotics.roadrunner.path.heading.HeadingInterpolator;
+import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
+import com.acmerobotics.roadrunner.path.heading.SplineInterpolator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -157,11 +162,30 @@ public class DrawPanel extends JPanel {
                 final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
                 final double prevHeading = Math.toRadians(-prevNode.splineHeading - 90);
                 final double heading = Math.toRadians(-node.splineHeading - 90);
-                segments.add(new PathSegment(new QuinticSpline(
+                PathSegment segment;
+                ParametricCurve curve = new QuinticSpline(
                         new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
                         new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
                         0.25, 1, 4
-                )));
+                );
+                switch (prevNode.getType()){
+                    case splineTo:
+                    case displacementMarker:
+                        segment = new PathSegment(curve);
+                        break;
+                    case splineToSplineHeading:
+                        segment = new PathSegment(curve,new SplineInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading - 90)));
+                        break;
+                    case splineToLinearHeading:
+                        segment = new PathSegment(curve, new LinearInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading - 90)));
+                        break;
+                    case splineToConstantHeading:
+                        segment = new PathSegment(curve,new ConstantInterpolator(Math.toRadians(-prevNode.robotHeading - 90)));
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + node.getType());
+                }
+                segments.add(segment);
             }
             path = new Path(segments);
 
@@ -218,9 +242,9 @@ public class DrawPanel extends JPanel {
             tx.setToIdentity();
             tx.translate(node.x, node.y);
             if(nodeM.reversed)
-                tx.rotate(Math.toRadians(-node.splineHeading));
+                tx.rotate(Math.toRadians(-node.robotHeading));
             else
-                tx.rotate(Math.toRadians(-node.splineHeading +180));
+                tx.rotate(Math.toRadians(-node.robotHeading +180));
             tx.scale (scale, scale);
 
 
@@ -235,6 +259,17 @@ public class DrawPanel extends JPanel {
                 case displacementMarker:
                     g2.setColor(color3);
                     break;
+                case splineToSplineHeading:
+                    g2.setColor(color2.brighter());
+                    break;
+                case splineToLinearHeading:
+                    g2.setColor(Color.magenta);
+                    break;
+                case splineToConstantHeading:
+                    g2.setColor(color3.brighter());
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + node.getType());
             }
             g2.fill(poly);
         }
@@ -290,6 +325,7 @@ public class DrawPanel extends JPanel {
                     closest = distance;
                     index = i;
                     mouse.splineHeading = close.splineHeading;
+                    mouse.robotHeading = close.robotHeading;
                     mid = false;
                 }
             }
@@ -352,7 +388,10 @@ public class DrawPanel extends JPanel {
             int index = getCurrentManager().editIndex;
             Node mark = getCurrentManager().get(index);
 //            if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
-            if(e.isAltDown()) mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            if(e.isAltDown()) {
+                if(e.isShiftDown()) mark.robotHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+                else mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            }
             else mark.setLocation(snap(mouse, e));
             main.currentN = index;
             main.infoPanel.editPanel.update();
@@ -360,6 +399,7 @@ public class DrawPanel extends JPanel {
             Node mark = getCurrentManager().last();
             mark.index = getCurrentManager().size()-1;
             mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            mark.robotHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             main.currentN = getCurrentManager().size()-1;
             getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
             main.infoPanel.editPanel.update();

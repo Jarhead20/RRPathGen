@@ -66,6 +66,7 @@ public class Node {
         node.code = this.code;
         node.state = this.state;
         node.type = this.type;
+        node.robotHeading = this.robotHeading;
         return node;
     }
 
