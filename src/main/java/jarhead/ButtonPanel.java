@@ -4,11 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
@@ -60,17 +58,17 @@ public class ButtonPanel extends JPanel {
                     Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
-                    System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.heading+90));
+                    System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
                     for (int i = 1; i < getCurrentManager().size(); i++) {
                         node = getCurrentManager().get(i);
                         x = main.toInches(node.x);
                         y = main.toInches(node.y);
                         switch (node.getType()){
                             case splineTo:
-                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
+                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 break;
                             case displacementMarker:
-                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.heading+90));
+                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
                                 break;
                             default:
@@ -90,7 +88,7 @@ public class ButtonPanel extends JPanel {
                 for (int i = 0; i < getCurrentManager().size(); i++) {
                     Node node = getCurrentManager().get(i);
                     node.y = 144*scale-node.y;
-                    node.heading = 180-node.heading;
+                    node.splineHeading = 180-node.splineHeading;
                     getCurrentManager().set(i, node);
                 }
                 main.drawPanel.repaint();
@@ -164,14 +162,14 @@ public class ButtonPanel extends JPanel {
                                 try{
                                     node.x = (Double.parseDouble(data[1])+72)* scale;
                                     node.y = (-Double.parseDouble(data[2])+72)* scale;
-                                    node.heading = Double.parseDouble(data[3])-90;
+                                    node.splineHeading = Double.parseDouble(data[3])-90;
                                 } catch (Exception error){
 //                                    error.printStackTrace();
                                     node.x = 72* scale;
                                     node.y = 72* scale;
-                                    node.heading = 270;
+                                    node.splineHeading = 270;
                                 }
-                                if(manager.reversed && manager.size() == 0) node.heading += 180;
+                                if(manager.reversed && manager.size() == 0) node.splineHeading += 180;
                                 manager.add(node);
                             } else if(line.contains(".addDisplacementMarker(")){
                                 (manager.get(manager.size()-1)).setType(Node.Type.displacementMarker);

@@ -3,7 +3,8 @@ package jarhead;
 public class Node {
     public double x;
     public double y;
-    public double heading;
+    public double splineHeading;
+    public double robotHeading;
     public int index = -1;
     public int state = 1;
     public String code = "";
@@ -12,14 +13,16 @@ public class Node {
 
     public enum Type {
         splineTo,
-        displacementMarker
-
+        displacementMarker,
+        splineToSplineHeading,
+        splineToLinearHeading,
+        splineToConstantHeading
     }
     Node(){
 
     }
 
-    Node(java.awt.Point p, double scale){
+    Node(java.awt.Point p){
         this.x = p.x;
         this.y = p.y;
 
@@ -33,10 +36,10 @@ public class Node {
         this.index = index;
     }
 
-    Node(double x, double y,double heading, int index){
+    Node(double x, double y, double splineHeading, int index){
         this.x = x;
         this.y = y;
-        this.heading = heading;
+        this.splineHeading = splineHeading;
         this.index = index;
     }
 
@@ -59,7 +62,7 @@ public class Node {
     }
 
     public Node copy(){
-        Node node = new Node(this.x, this.y, this.heading, this.index);
+        Node node = new Node(this.x, this.y, this.splineHeading, this.index);
         node.code = this.code;
         node.state = this.state;
         node.type = this.type;

@@ -2,11 +2,9 @@ package jarhead;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.LinkedList;
 
 public class EditPanel extends JPanel {
 
@@ -18,8 +16,8 @@ public class EditPanel extends JPanel {
     public JFormattedTextField y = new JFormattedTextField(formatter);
     public JFormattedTextField heading = new JFormattedTextField(formatter);
     public JTextField name = new JTextField(10);
-    public JTextField type = new JTextField(10);
     public JTextField code = new JTextField(10);
+    public JComboBox type;
 
     EditPanel(Main main){
         this.main = main;
@@ -31,6 +29,8 @@ public class EditPanel extends JPanel {
         JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
         JLabel lCode = new JLabel("Code: ", JLabel.TRAILING);
+
+        type = new JComboBox(Node.Type.values());
 
         this.add(lName);
         lName.setLabelFor(name);
@@ -88,7 +88,7 @@ public class EditPanel extends JPanel {
         heading.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().heading = Double.parseDouble(heading.getText());
+                if(main.currentN != -1) getCurrentNode().splineHeading = Double.parseDouble(heading.getText());
                 main.drawPanel.repaint();
             }
         });
@@ -96,7 +96,7 @@ public class EditPanel extends JPanel {
         type.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().setType(Node.Type.valueOf(type.getText()));
+                if(main.currentN != -1) getCurrentNode().setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
                 main.drawPanel.repaint();
             }
         });
@@ -119,8 +119,8 @@ public class EditPanel extends JPanel {
             main.getCurrentManager().name = name.getText();
             node.x = (Double.parseDouble(x.getText())+72)*main.scale;
             node.y = (Double.parseDouble(y.getText())+72)*main.scale;
-            node.heading = Double.parseDouble(heading.getText());
-            node.setType(Node.Type.valueOf(type.getText()));
+            node.splineHeading = Double.parseDouble(heading.getText());
+            node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
             node.code = code.getText();
             main.drawPanel.repaint();
         }
@@ -134,14 +134,14 @@ public class EditPanel extends JPanel {
             heading.setText("");
             x.setText("");
             y.setText("");
-            type.setText("");
+            type.setSelectedIndex(-1);
             name.setText(main.getCurrentManager().name);
             code.setText("");
         } else {
-            heading.setText(Math.round((getCurrentNode().heading)*100)/100.0 + "");
+            heading.setText(Math.round((getCurrentNode().splineHeading)*100)/100.0 + "");
             x.setText(Math.round(main.toInches(getCurrentNode().x)*100)/100.0 + "");
             y.setText(Math.round(main.toInches(getCurrentNode().y)*100)/100.0 + "");
-            type.setText(getCurrentNode().getType().name());
+            type.setSelectedItem(getCurrentNode().getType());
             name.setText(main.getCurrentManager().name);
             code.setText(getCurrentNode().code);
         }

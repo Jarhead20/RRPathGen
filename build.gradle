@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'jarhead'
-version '1.0.0'
+version '1.1.0'
 
 
 repositories {
@@ -24,9 +24,7 @@ tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
 jar {
 
     sourceSets {
-
         main {
-
             resources {
                 srcDirs "src/main/resources"
             }

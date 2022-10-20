@@ -155,8 +155,8 @@ public class DrawPanel extends JPanel {
                 double prevX = prevNode.x;
                 double prevY = prevNode.y;
                 final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
-                final double prevHeading = Math.toRadians(-prevNode.heading - 90);
-                final double heading = Math.toRadians(-node.heading - 90);
+                final double prevHeading = Math.toRadians(-prevNode.splineHeading - 90);
+                final double heading = Math.toRadians(-node.splineHeading - 90);
                 segments.add(new PathSegment(new QuinticSpline(
                         new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
                         new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
@@ -190,8 +190,8 @@ public class DrawPanel extends JPanel {
                         double prevX = prevNode.x;
                         double prevY = prevNode.y;
                         final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
-                        final double prevHeading = Math.toRadians(-prevNode.heading - 90);
-                        final double heading = Math.toRadians(-node.heading - 90);
+                        final double prevHeading = Math.toRadians(-prevNode.splineHeading - 90);
+                        final double heading = Math.toRadians(-node.splineHeading - 90);
                         segments.add(new PathSegment(new QuinticSpline(
                                 new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
                                 new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
@@ -218,9 +218,9 @@ public class DrawPanel extends JPanel {
             tx.setToIdentity();
             tx.translate(node.x, node.y);
             if(nodeM.reversed)
-                tx.rotate(Math.toRadians(-node.heading));
+                tx.rotate(Math.toRadians(-node.splineHeading));
             else
-                tx.rotate(Math.toRadians(-node.heading+180));
+                tx.rotate(Math.toRadians(-node.splineHeading +180));
             tx.scale (scale, scale);
 
 
@@ -259,7 +259,7 @@ public class DrawPanel extends JPanel {
         //TODO: clean up this
         this.grabFocus();
         if(!edit){
-            Node mouse = new Node(e.getPoint(), scale);
+            Node mouse = new Node(e.getPoint());
 
             double closest = 99999;
             boolean mid = false;
@@ -289,21 +289,16 @@ public class DrawPanel extends JPanel {
                 if(distance < (clickSize* scale) && distance < closest){
                     closest = distance;
                     index = i;
-                    mouse.heading = close.heading;
+                    mouse.splineHeading = close.splineHeading;
                     mid = false;
                 }
             }
 
             mouse = snap(mouse, e);
             if(index != -1){
-                if(index >0){
-                    Node n1 = getCurrentManager().get(index-1);
-                    Node n2 = getCurrentManager().get(index);
-//                    mouse.heading = n1.headingTo(n2);
-                    mouse.setType(n2.getType());
-                    mouse.code = n2.code;
-                }
-
+                Node n2 = getCurrentManager().get(index);
+                mouse.setType(n2.getType());
+                mouse.code = n2.code;
                 if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
                     getCurrentManager().editIndex = index;
                     edit = true;
@@ -329,7 +324,7 @@ public class DrawPanel extends JPanel {
                 int size = getCurrentManager().size();
                 if(size > 0){
                     Node n1 = getCurrentManager().last();
-                    mouse.heading = n1.headingTo(mouse);
+                    mouse.splineHeading = n1.headingTo(mouse);
                 }
                 preEdit = mouse.copy();
                 preEdit.index = getCurrentManager().size();
@@ -351,20 +346,20 @@ public class DrawPanel extends JPanel {
     }
 
     private void mDragged(MouseEvent e) {
-        Node mouse = new Node(e.getPoint(), scale);
+        Node mouse = new Node(e.getPoint());
         if (SwingUtilities.isRightMouseButton(e)) return;
         if(edit){
             int index = getCurrentManager().editIndex;
             Node mark = getCurrentManager().get(index);
 //            if(index > 0) mark.heading = getCurrentManager().get(index-1).headingTo(mouse);
-            if(e.isAltDown()) mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            if(e.isAltDown()) mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             else mark.setLocation(snap(mouse, e));
             main.currentN = index;
             main.infoPanel.editPanel.update();
         } else {
             Node mark = getCurrentManager().last();
             mark.index = getCurrentManager().size()-1;
-            mark.heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             main.currentN = getCurrentManager().size()-1;
             getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
             main.infoPanel.editPanel.update();
@@ -395,7 +390,7 @@ public class DrawPanel extends JPanel {
         }
         if(e.getKeyCode() == KeyEvent.VK_R) {
             getCurrentManager().reversed = !getCurrentManager().reversed;
-            getCurrentManager().get(0).heading += 180;
+            getCurrentManager().get(0).splineHeading += 180;
         }
         if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z){
             main.undo();
