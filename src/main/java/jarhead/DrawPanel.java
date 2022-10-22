@@ -168,7 +168,7 @@ public class DrawPanel extends JPanel {
                         new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
                         0.25, 1, 4
                 );
-                switch (prevNode.getType()){
+                switch (node.getType()){
                     case splineTo:
                     case displacementMarker:
                         segment = new PathSegment(curve);
@@ -177,7 +177,7 @@ public class DrawPanel extends JPanel {
                         segment = new PathSegment(curve,new SplineInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading - 90)));
                         break;
                     case splineToLinearHeading:
-                        segment = new PathSegment(curve, new LinearInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading - 90)));
+                        segment = new PathSegment(curve, new LinearInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading)));
                         break;
                     case splineToConstantHeading:
                         segment = new PathSegment(curve,new ConstantInterpolator(Math.toRadians(-prevNode.robotHeading - 90)));

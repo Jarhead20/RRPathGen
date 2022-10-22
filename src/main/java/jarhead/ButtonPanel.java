@@ -71,6 +71,15 @@ public class ButtonPanel extends JPanel {
                                 System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
                                 break;
+                            case splineToSplineHeading:
+                                System.out.printf(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90));
+                                break;
+                            case splineToLinearHeading:
+                                System.out.printf(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90));
+                                break;
+                            case splineToConstantHeading:
+                                System.out.printf(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
+                                break;
                             default:
                                 System.out.println("what");
                                 break;
@@ -157,20 +166,43 @@ public class ButtonPanel extends JPanel {
                             if(line.contains("new Vector2d(") || line.contains("new Pose2d(")){
                                 Matcher m = numberPattern.matcher(line);
                                 Node node = new Node();
-                                String[] data = new String[4];
-                                for (int i = 0; m.find(); i++) {
+                                String[] data = new String[10];
+                                int i;
+                                for (i = 0; m.find(); i++) {
                                     data[i]=m.group(0);
                                 }
+                                String substring = line.trim().substring(1, line.trim().indexOf("("));
+                                System.out.println(substring);
                                 try{
-                                    node.x = (Double.parseDouble(data[1])+72)* scale;
-                                    node.y = (-Double.parseDouble(data[2])+72)* scale;
-                                    node.splineHeading = Double.parseDouble(data[3])-90;
+                                    int j = 0;
+                                    System.out.println(substring.matches(".*\\d.*"));
+                                    if(substring.matches(".*\\d.*"))
+                                        j++;
+                                    node.x = (Double.parseDouble(data[1+j])+72)* scale;
+                                    node.y = (-Double.parseDouble(data[2+j])+72)* scale;
+                                    System.out.println(i);
+                                    if(i > 4 && j==0){
+                                        node.robotHeading = Double.parseDouble(data[3+j])-90;
+                                        node.splineHeading = Double.parseDouble(data[4+j])-90;
+                                    } else {
+                                        node.splineHeading = Double.parseDouble(data[3+j])-90;
+                                        node.robotHeading = node.splineHeading;
+                                    }
                                 } catch (Exception error){
-//                                    error.printStackTrace();
+                                    error.printStackTrace();
                                     node.x = 72* scale;
                                     node.y = 72* scale;
                                     node.splineHeading = 270;
+                                    node.robotHeading = 270;
                                 }
+
+                                try {
+                                    node.setType(Node.Type.valueOf(substring));
+                                } catch (IllegalArgumentException error){
+                                    error.printStackTrace();
+                                    node.setType(Node.Type.splineTo);
+                                }
+
                                 if(manager.reversed && manager.size() == 0) node.splineHeading += 180;
                                 manager.add(node);
                             } else if(line.contains(".addDisplacementMarker(")){

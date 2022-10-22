@@ -117,21 +117,17 @@ public class TestAuto extends LinearOpMode {
 
         telemetry.addData("Realtime analysis", TSEPos);
 
-        Trajectory idk = drive.trajectoryBuilder(new Pose2d(), Math.toRadians(90), true)
-                .splineTo(new Vector2d(36, 36), Math.toRadians(0))
-                .build();
 
-        Trajectory amogus = drive.trajectoryBuilder(new Pose2d(-16.50, -61.13, Math.toRadians(23.36)))
+
+        Trajectory amogus = drive.trajectoryBuilder(new Pose2d(-12.74, -59.85, Math.toRadians(23.36)))
                 .splineTo(new Vector2d(0.00, -41.88), Math.toRadians(36.92))
                 .splineTo(new Vector2d(6.50, -41.00), Math.toRadians(7.71))
                 .splineTo(new Vector2d(18.88, -57.75), Math.toRadians(-86.34))
                 .splineTo(new Vector2d(39.88, -57.75), Math.toRadians(73.44))
-                .splineTo(new Vector2d(42.50, 3.50), Math.toRadians(92.11))
                 .addDisplacementMarker(() -> {})
                 .splineTo(new Vector2d(46.38, 37.38), Math.toRadians(-8.43))
                 .splineTo(new Vector2d(64.50, 26.25), Math.toRadians(-85.67))
                 .splineTo(new Vector2d(58.38, 2.63), Math.toRadians(213.69))
-                .splineTo(new Vector2d(39.75, 6.13), Math.toRadians(93.69))
                 .addDisplacementMarker(() -> {})
                 .splineTo(new Vector2d(38.38, 47.25), Math.toRadians(118.30))
                 .splineTo(new Vector2d(-0.75, 64.88), Math.toRadians(174.88))
@@ -156,7 +152,11 @@ public class TestAuto extends LinearOpMode {
                 .splineTo(new Vector2d(-21.75, -62.63), Math.toRadians(10.12))
                 .build();
 
-
+        Trajectory untitled0 = drive.trajectoryBuilder(new Pose2d(-47.85, -48.00, Math.toRadians(88.46)))
+                .splineToSplineHeading(new Pose2d(-48.15, 48.44, Math.toRadians(90.00)), Math.toRadians(90.00))
+                .splineToLinearHeading(new Pose2d(47.85, 48.15, Math.toRadians(-87.34)), Math.toRadians(0.00))
+                .splineToConstantHeading(new Vector2d(48.30, -47.41), Math.toRadians(0))
+                .build();
 
         if(isStopRequested()) return;
 
