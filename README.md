@@ -17,6 +17,8 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 
 ## Usage
 
+Generate your paths using the key binds below and once you are done export the path with the export button and copy paste it into your autonomous program.
+
 | Key Bind            | Action                  |
 |---------------------|-------------------------|
 | Left Click          | Add New Point           |
