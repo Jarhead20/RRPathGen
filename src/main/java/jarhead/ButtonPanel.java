@@ -172,15 +172,12 @@ public class ButtonPanel extends JPanel {
                                     data[i]=m.group(0);
                                 }
                                 String substring = line.trim().substring(1, line.trim().indexOf("("));
-                                System.out.println(substring);
                                 try{
                                     int j = 0;
-                                    System.out.println(substring.matches(".*\\d.*"));
                                     if(substring.matches(".*\\d.*"))
                                         j++;
                                     node.x = (Double.parseDouble(data[1+j])+72)* scale;
                                     node.y = (-Double.parseDouble(data[2+j])+72)* scale;
-                                    System.out.println(i);
                                     if(i > 4 && j==0){
                                         node.robotHeading = Double.parseDouble(data[3+j])-90;
                                         node.splineHeading = Double.parseDouble(data[4+j])-90;
