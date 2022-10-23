@@ -6,14 +6,14 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 
 1. Download the jar from the releases page.
 2. Check that you have at least java 8 installed `java --version`
-3. Run the jar from the command line `java -jar .\RRPathGen-1.1.0.jar`
+3. Run the jar from the command line `java -jar .\RRPathGen-1.1.0.jar` if you do not run from the command line you c
 
 
 ## Installation (Intellij)
 
 1. Clone the repo `git clone https://github.com/Jarhead20/RRPathGen.git`
-2. Run the Main file
-3. Copy your previous autonomous java files to resources and rename the file to import to import the previous splines (might not work unless it only has splineTo's and displacement markers.
+2. Setup a run configuration
+3. Copy your previous autonomous java files to resources and rename the file to import.java to import the previous splines (might not work unless it only has splineTo's and displacement markers.
 
 ## Usage
 
