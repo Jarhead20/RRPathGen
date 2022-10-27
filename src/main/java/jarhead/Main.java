@@ -98,7 +98,7 @@ class Main extends JFrame {
         this.getContentPane().setBackground(Color.darkGray.darker());
         this.getContentPane().setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.VERTICAL;
         c.gridx = 3;
         c.gridy = 0;
         c.gridheight=4;
@@ -108,11 +108,14 @@ class Main extends JFrame {
         c.gridy = 3;
         c.gridwidth = 2;
         this.getContentPane().add(buttonPanel, c);
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 2;
         c.gridheight = 2;
+        c.weightx = 1;
+        c.weighty = 1;
+        c.anchor = GridBagConstraints.CENTER;
         this.getContentPane().add(drawPanel, c);
 
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -128,7 +131,6 @@ class Main extends JFrame {
         this.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent e) {
                 reloadConfig();
-                System.out.println(e.getComponent().getHeight());
             }
         });
     }

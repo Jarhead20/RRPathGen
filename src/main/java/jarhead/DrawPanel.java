@@ -39,8 +39,11 @@ public class DrawPanel extends JPanel {
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
     public void update(){
-//        this.setPreferredSize(new Dimension((int)main.scale*144, (int)main.scale*144));
-
+        int size = Math.min(this.getWidth(), this.getHeight());
+        this.setSize(new Dimension(size,size));
+        int x = ((main.getWidth()-(main.infoPanel.getWidth() + main.getInsets().left + main.getInsets().right))/2) - (size/2);
+        int y = ((main.getHeight()-(main.buttonPanel.getHeight() + main.getInsets().top + main.getInsets().bottom))/2) - (size/2);
+        this.setLocation(x,y);
         renderBackgroundSplines();
         repaint();
     }

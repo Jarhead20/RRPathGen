@@ -157,8 +157,8 @@ public class EditPanel extends JPanel {
         } else {
             splineHeading.setText(Math.round((getCurrentNode().splineHeading)*100)/100.0 + "");
             robotHeading.setText(Math.round((getCurrentNode().robotHeading)*100)/100.0 + "");
-            x.setText(Math.round(main.toInches(getCurrentNode().x)*100)/100.0 + "");
-            y.setText(Math.round(main.toInches(getCurrentNode().y)*100)/100.0 + "");
+            x.setText(Math.round(main.toInches(getCurrentNode().x)*100.0)/100.0 + "");
+            y.setText(Math.round(main.toInches(getCurrentNode().y)*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());
             name.setText(main.getCurrentManager().name);
             code.setText(getCurrentNode().code);
