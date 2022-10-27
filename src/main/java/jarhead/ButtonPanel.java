@@ -1,6 +1,7 @@
 package jarhead;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -53,15 +54,15 @@ public class ButtonPanel extends JPanel {
                     Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
-                    File outputFile = new File(main.importPath);
-                    try {
-                        outputFile.createNewFile();
-                        FileWriter writer = new FileWriter(outputFile);
-                        writer.write(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
-                        writer.close();
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
+//                    File outputFile = new File(main.importPath);
+//                    try {
+//                        outputFile.createNewFile();
+//                        FileWriter writer = new FileWriter(outputFile);
+//                        writer.write(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
+//                        writer.close();
+//                    } catch (IOException ioException) {
+//                        ioException.printStackTrace();
+//                    }
 
 
                     System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
@@ -148,11 +149,22 @@ public class ButtonPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 NodeManager manager = null;
                 try {
-                    JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
-                    int r = chooser.showOpenDialog(null);
-                    if(r != JFileChooser.APPROVE_OPTION) return;
-                    main.importPath = chooser.getSelectedFile().getPath();
-                    Scanner reader = new Scanner(chooser.getSelectedFile());
+                    File file;
+                    if(main.prop.getProperty("IMPORT/EXPORT").matches("")){
+                        JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
+                        FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Files", "java");
+                        chooser.setFileFilter(filter);
+                        int r = chooser.showOpenDialog(null);
+                        if(r != JFileChooser.APPROVE_OPTION) return;
+                        main.importPath = chooser.getSelectedFile().getPath();
+                        main.prop.setProperty("IMPORT/EXPORT", main.importPath);
+                        main.saveConfig();
+                        main.infoPanel.settingsPanel.update();
+                        file = chooser.getSelectedFile();
+                    } else {
+                        file = new File(main.prop.getProperty("IMPORT/EXPORT"));
+                    }
+                    Scanner reader = new Scanner(file);
                     boolean discard = true;
                     while (reader.hasNextLine()) {
                         String line = reader.nextLine();

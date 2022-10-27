@@ -20,6 +20,7 @@ class Main extends JFrame {
     public InfoPanel infoPanel;
     public ButtonPanel buttonPanel;
     public String importPath;
+    private String configPath;
 
     public int currentM = 0;
     public int currentN = -1;
@@ -44,6 +45,7 @@ class Main extends JFrame {
 
     public void reloadConfig() {
         try{
+            double oldScale = scale;
             if(prop.getProperty("SCALE").matches("0")) {
                     scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
             }
@@ -52,10 +54,14 @@ class Main extends JFrame {
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
             resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
             importPath = prop.getProperty("IMPORT/EXPORT");
+            getManagers().forEach(nodeManager -> {
+                scale(nodeManager, scale, oldScale);
+                scale(nodeManager.undo, scale, oldScale);
+                scale(nodeManager.redo, scale, oldScale);
 
+            });
             infoPanel.settingsPanel.update();
             drawPanel.update();
-            drawPanel.repaint();
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -69,6 +75,7 @@ class Main extends JFrame {
                 path = System.getenv("AppData") + "/RRPathGen/config.properties";
             else
                 path = System.getProperty("user.home") + "/Library/Application Support/RRPathGen/config.properties"; //just assume its mac
+            configPath = path;
             File file = new File(path);
             if(!file.exists()) {
                 file.getParentFile().mkdir();
@@ -222,7 +229,16 @@ class Main extends JFrame {
         getCurrentManager().redo.removeLast();
     }
 
+    public void saveConfig() {
+        try {
+            FileOutputStream stream = new FileOutputStream(configPath);
+            prop.store(stream, "SAVE");
+            stream.close();
+        }  catch (IOException e) {
+            e.printStackTrace();
+        }
 
+    }
 
     public double toInches(double in){
         return (1.0/scale * in)-72;
