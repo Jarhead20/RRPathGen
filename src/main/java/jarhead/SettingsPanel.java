@@ -15,18 +15,18 @@ public class SettingsPanel extends JPanel {
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
     private LinkedList<JTextField> fields = new LinkedList<>();
+    private String[] labels = {"Scale", "Robot Width", "Robot Length", "Resolution", "Import/Export"};
 
     SettingsPanel(Main main){
         this.main = main;
         this.setOpaque(true);
 //        this.setPreferredSize(new Dimension((int) Math.floor(30 * main.scale), (int) Math.floor(40 * main.scale)));
         this.setLayout(new SpringLayout());
-        String[] labels = {"Scale", "Robot Width", "Robot Length", "Resolution"};
+
         for (String label : labels) {
             JTextField input = new JFormattedTextField(formatter);
             input.setCursor(new Cursor(2));
             input.setColumns(10);
-            input.setText(main.prop.getProperty(label.replaceAll(" ","_").toUpperCase()));
 //            input.setMaximumSize(new Dimension((int)main.scale*5,10));
             JLabel l = new JLabel(label + ": ", JLabel.TRAILING);
             this.add(l);
@@ -46,30 +46,30 @@ public class SettingsPanel extends JPanel {
                 public void actionPerformed(ActionEvent e) {
                     main.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
                     double oldScale = main.scale;
-                    main.loadConfig();
+                    main.reloadConfig();
                     double newScale = main.scale;
                     if(finalI == 0){
                         main.getManagers().forEach(nodeManager -> {
-                            scale(nodeManager, newScale, oldScale);
-                            scale(nodeManager.undo, newScale, oldScale);
-                            scale(nodeManager.redo, newScale, oldScale);
+                            main.scale(nodeManager, newScale, oldScale);
+                            main.scale(nodeManager.undo, newScale, oldScale);
+                            main.scale(nodeManager.redo, newScale, oldScale);
+
                         });
                     }
-                    main.refresh();
+                    main.reloadConfig();
+                    main.setState(JFrame.MAXIMIZED_BOTH);
                 }
             });
         }
-
-
-
     }
-    private void scale(NodeManager manager, double ns, double os){
-        for (int j = 0; j < manager.size(); j++) {
-            Node n = manager.get(j);
-            n.x /= os;
-            n.x *= ns;
-            n.y /= os;
-            n.y *= ns;
+
+    public void update(){
+        for (int i = 0; i < fields.size(); i++) {
+            JTextField field = fields.get(i);
+            field.setText(main.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
+
         }
     }
+
+
 }

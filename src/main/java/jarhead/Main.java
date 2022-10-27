@@ -1,23 +1,25 @@
 package jarhead;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
-import com.formdev.flatlaf.FlatDarkLaf;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.InputStream;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.io.*;
 import java.util.*;
 
 class Main extends JFrame {
 
 
-    public double scale;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
+    public double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
     private NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
     private LinkedList<NodeManager> managers = new LinkedList<>();
 
     public DrawPanel drawPanel;
     public InfoPanel infoPanel;
     public ButtonPanel buttonPanel;
+    public String importPath;
 
     public int currentM = 0;
     public int currentN = -1;
@@ -26,11 +28,13 @@ class Main extends JFrame {
     public double resolution;
     public Properties prop;
     public Main() {
-        loadConfig();
+        FlatDarculaLaf.setup();
         initComponents();
+        loadConfig();
+        reloadConfig();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Main().setVisible(true);
@@ -38,32 +42,56 @@ class Main extends JFrame {
         });
     }
 
-    public void loadConfig() {
+    public void reloadConfig() {
         try{
-            if(prop == null){
-                prop = new Properties();
-                InputStream stream = Main.class.getClassLoader().getResourceAsStream("config.properties");
-                prop.load(stream);
-                stream.close();
-            }
-
             if(prop.getProperty("SCALE").matches("0")) {
-                scale = ((double)Toolkit.getDefaultToolkit().getScreenSize().height)/160.0; //set scale to 6 for 1080p and 8 for 1440p
+                    scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
             }
             else scale = Double.parseDouble(prop.getProperty("SCALE"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
             resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
+            importPath = prop.getProperty("IMPORT/EXPORT");
+
+            infoPanel.settingsPanel.update();
+            drawPanel.update();
+            drawPanel.repaint();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void loadConfig() {
+        try{
+            String os = System.getProperty("os.name").toLowerCase();
+            String path;
+            if(os.contains("win"))
+                path = System.getenv("AppData") + "/RRPathGen/config.properties";
+            else
+                path = System.getProperty("user.home") + "/Library/Application Support/RRPathGen/config.properties"; //just assume its mac
+            File file = new File(path);
+            if(!file.exists()) {
+                file.getParentFile().mkdir();
+                file.createNewFile();
+                FileWriter writer = new FileWriter(file);
+                writer.write(
+                        "SCALE=0\n" +
+                        "ROBOT_WIDTH=18\n" +
+                        "ROBOT_LENGTH=18\n" +
+                        "RESOLUTION=1\n" +
+                        "IMPORT/EXPORT=");
+                writer.close();
+            }
+            prop = new Properties();
+            prop.load(new FileInputStream(file));
+
         } catch (Exception e){
             e.printStackTrace();
         }
     }
 
     public void initComponents() {
-        FlatDarculaLaf.setup();
 
-        if(managers.size() == 0)
-            managers.add(currentManager);
         drawPanel = new DrawPanel(managers,this);
         buttonPanel = new ButtonPanel(managers,this);
         infoPanel = new InfoPanel(this);
@@ -85,19 +113,24 @@ class Main extends JFrame {
         c.gridy = 0;
         c.gridwidth = 2;
         c.gridheight = 2;
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.getContentPane().add(drawPanel, c);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        managers.add(currentManager);
+        this.setState(JFrame.MAXIMIZED_BOTH);
         this.pack();
-        this.setVisible(true);
-    }
 
-    public void refresh(){
-        this.getContentPane().remove(drawPanel);
-        this.getContentPane().remove(infoPanel);
-        this.getContentPane().remove(buttonPanel);
-        initComponents();
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
+        this.setBackground(Color.pink.darker());
+        this.update(this.getGraphics());
+
+        this.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent e) {
+                reloadConfig();
+                System.out.println(e.getComponent().getHeight());
+            }
+        });
     }
 
     public void undo(){
@@ -193,7 +226,15 @@ class Main extends JFrame {
         return (1.0/scale * in)-72;
     }
 
-
+    public void scale(NodeManager manager, double ns, double os){
+        for (int j = 0; j < manager.size(); j++) {
+            Node n = manager.get(j);
+            n.x /= os;
+            n.x *= ns;
+            n.y /= os;
+            n.y *= ns;
+        }
+    }
 
     public NodeManager getCurrentManager() {
         currentManager = managers.get(currentM);

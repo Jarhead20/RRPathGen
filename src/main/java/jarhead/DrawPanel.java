@@ -22,8 +22,6 @@ import java.util.List;
 
 public class DrawPanel extends JPanel {
 
-
-
     private LinkedList<NodeManager> managers;
 
     private Path path;
@@ -31,10 +29,6 @@ public class DrawPanel extends JPanel {
     private Node preEdit;
     private boolean edit = false;
     final double clickSize = 2;
-    private double scale;
-
-
-
 
 
     private BufferedImage preRenderedSplines;
@@ -44,12 +38,18 @@ public class DrawPanel extends JPanel {
     int[] yPoly = {0, -4, -3, -4};
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
+    public void update(){
+//        this.setPreferredSize(new Dimension((int)main.scale*144, (int)main.scale*144));
+
+        renderBackgroundSplines();
+        repaint();
+    }
+
     DrawPanel(LinkedList<NodeManager> managers, Main main) {
         this.managers = managers;
         this.main = main;
-        this.scale = main.scale;
-        preRenderedSplines = new BufferedImage((int) Math.floor(144*scale), (int) Math.floor(144*scale), BufferedImage.TYPE_4BYTE_ABGR);
-        this.setPreferredSize(new Dimension((int) Math.floor(144 * scale), (int) Math.floor(144 * scale)));
+
+        this.setPreferredSize(new Dimension((int) (main.getHeight()*144.0/160.0), (int) (main.getHeight()*144.0/160.0)));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -92,14 +92,14 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
-        BufferedImage image = new BufferedImage((int) Math.floor(144 * scale), (int) Math.floor(144 * scale), BufferedImage.TYPE_4BYTE_ABGR);
+        BufferedImage image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         for (double i = 0; i < path.length(); i+=main.resolution) {
             Pose2d pose1 = path.get(i-1);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
-            double rX = main.robotLength*scale;
-            double rY = main.robotWidth*scale;
+            double rX = main.robotLength*main.scale;
+            double rY = main.robotWidth*main.scale;
 
             outLine.setToIdentity();
             outLine.translate(x1, y1);
@@ -127,11 +127,11 @@ public class DrawPanel extends JPanel {
         g2.dispose();
     }
 
-    private void renderPoints(Graphics g, Path path, Color c1, int ovalScale){
+    private void renderPoints(Graphics g, Path path, Color c1, int ovalscale){
         path.getSegments().forEach(pathSegment -> {
             Pose2d mid = pathSegment.get(pathSegment.length()/2);
             g.setColor(c1);
-            g.fillOval((int) Math.floor(mid.getX() - (ovalScale*scale)), (int) Math.floor(mid.getY() - (ovalScale*scale)), (int) Math.floor(2*ovalScale*scale), (int) Math.floor(2*ovalScale*scale));
+            g.fillOval((int) Math.floor(mid.getX() - (ovalscale*main.scale)), (int) Math.floor(mid.getY() - (ovalscale*main.scale)), (int) Math.floor(2*ovalscale*main.scale), (int) Math.floor(2*ovalscale*main.scale));
         });
     }
 
@@ -146,7 +146,8 @@ public class DrawPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, (int) Math.floor(144 * scale), (int) Math.floor(144 * scale), null);
+        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0,this.getWidth(), this.getHeight(), null);
+        if(preRenderedSplines == null) renderBackgroundSplines();
         g.drawImage(preRenderedSplines, 0,0,null);
         if(getCurrentManager().size() > 0) {
             java.util.List<PathSegment> segments = new ArrayList<>();
@@ -197,7 +198,9 @@ public class DrawPanel extends JPanel {
     }
 
     public void renderBackgroundSplines(){
-        preRenderedSplines = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        if(this.getWidth() > 0)
+            preRenderedSplines = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        else preRenderedSplines = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics g = preRenderedSplines.getGraphics();
         for (NodeManager manager : managers){
             if(!manager.equals(getCurrentManager())){
@@ -233,7 +236,7 @@ public class DrawPanel extends JPanel {
         }
     }
 
-    private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale, Color color1, Color color2, Color color3) {
+    private void renderArrows(Graphics g, NodeManager nodeM, int ovalscale, Color color1, Color color2, Color color3) {
         Graphics2D g2d = (Graphics2D) g.create();
         BufferedImage bufferedImage = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = bufferedImage.createGraphics();
@@ -245,13 +248,13 @@ public class DrawPanel extends JPanel {
                 tx.rotate(Math.toRadians(-node.robotHeading));
             else
                 tx.rotate(Math.toRadians(-node.robotHeading +180));
-            tx.scale (scale, scale);
+            tx.scale(main.scale, main.scale);
 
 
             g2.setTransform(tx);
 
             g2.setColor(color1);
-            g2.fillOval(-ovalScale,-ovalScale, 2*ovalScale, 2*ovalScale);
+            g2.fillOval(-ovalscale,-ovalscale, 2*ovalscale, 2*ovalscale);
             switch (node.getType()){
                 case splineTo:
                     g2.setColor(color2);
@@ -309,7 +312,7 @@ public class DrawPanel extends JPanel {
                     double py = pose.getY() - mouse.y;
 
                     double midDist = Math.sqrt(px * px + py * py);
-                    if (midDist < (clickSize * scale) && midDist < closest) {
+                    if (midDist < (clickSize * main.scale) && midDist < closest) {
                         closest = midDist;
                         index = i+1;
                         mid = true;
@@ -321,7 +324,7 @@ public class DrawPanel extends JPanel {
                 Node close = getCurrentManager().get(i);
                 double distance = mouse.distance(close);
                 //find closest that isn't a mid
-                if(distance < (clickSize* scale) && distance < closest){
+                if(distance < (clickSize* main.scale) && distance < closest){
                     closest = distance;
                     index = i;
                     mouse.splineHeading = close.splineHeading;
@@ -361,15 +364,18 @@ public class DrawPanel extends JPanel {
                 if(size > 0){
                     Node n1 = getCurrentManager().last();
                     mouse.splineHeading = n1.headingTo(mouse);
+                    mouse.robotHeading = mouse.splineHeading;
                 }
                 preEdit = mouse.copy();
                 preEdit.index = getCurrentManager().size();
                 preEdit.state = 2;
                 getCurrentManager().redo.clear();
                 main.currentN = getCurrentManager().size();
+
                 getCurrentManager().add(mouse);
             }
         }
+        main.infoPanel.editPanel.update();
         repaint();
     }
 
@@ -379,6 +385,7 @@ public class DrawPanel extends JPanel {
             edit = false;
             getCurrentManager().editIndex = -1;
         }
+        main.infoPanel.editPanel.update();
     }
 
     private void mDragged(MouseEvent e) {
@@ -404,6 +411,7 @@ public class DrawPanel extends JPanel {
             getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
             main.infoPanel.editPanel.update();
         }
+        main.infoPanel.editPanel.update();
         repaint();
     }
 
@@ -443,12 +451,9 @@ public class DrawPanel extends JPanel {
                 n.state = 1;
                 getCurrentManager().undo.add(n);
                 getCurrentManager().remove(main.currentN);
-                System.out.println(main.currentN);
                 main.currentN--;
             }
         }
-
-
         main.infoPanel.editPanel.update();
         renderBackgroundSplines();
         repaint();
@@ -456,8 +461,8 @@ public class DrawPanel extends JPanel {
 
     private Node snap(Node node, MouseEvent e){
         if(e.isControlDown()) {
-            node.x = scale*(Math.round(node.x/scale));
-            node.y = scale*(Math.round(node.y/scale));
+            node.x = main.scale*(Math.round(node.x/main.scale));
+            node.y = main.scale*(Math.round(node.y/main.scale));
         }
         return node;
     }

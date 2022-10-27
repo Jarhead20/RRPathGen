@@ -1,12 +1,11 @@
 package jarhead;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
@@ -24,17 +23,13 @@ public class ButtonPanel extends JPanel {
     private final JButton undoButton = new JButton("Undo");
     private final JButton redoButton = new JButton("Redo");
     private LinkedList<NodeManager> managers;
-    private double scale;
     private Main main;
 
     ButtonPanel(LinkedList<NodeManager> managers, Main main){
         this.main = main;
         this.managers = managers;
-        this.scale = main.scale;
         this.setMinimumSize(new Dimension(0,20));
         this.setLayout(new GridLayout(1, 4, 1, 1));
-
-
 
         exportButton.setFocusable(false);
         importButton.setFocusable(false);
@@ -48,7 +43,7 @@ public class ButtonPanel extends JPanel {
         this.add(clearButton);
         this.add(undoButton);
         this.add(redoButton);
-        this.setMaximumSize(new Dimension((int) Math.floor(144 * scale),(int)scale*4));
+
         this.setVisible(true);
 
         exportButton.addActionListener(new ActionListener() {
@@ -58,6 +53,17 @@ public class ButtonPanel extends JPanel {
                     Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
+                    File outputFile = new File(main.importPath);
+                    try {
+                        outputFile.createNewFile();
+                        FileWriter writer = new FileWriter(outputFile);
+                        writer.write(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
+                        writer.close();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+
+
                     System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
                     for (int i = 1; i < getCurrentManager().size(); i++) {
                         node = getCurrentManager().get(i);
@@ -96,7 +102,7 @@ public class ButtonPanel extends JPanel {
                 un.state = 3;
                 for (int i = 0; i < getCurrentManager().size(); i++) {
                     Node node = getCurrentManager().get(i);
-                    node.y = 144*scale-node.y;
+                    node.y = 144*main.scale-node.y;
                     node.splineHeading = 180-node.splineHeading;
                     getCurrentManager().set(i, node);
                 }
@@ -142,12 +148,14 @@ public class ButtonPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 NodeManager manager = null;
                 try {
-                    InputStream stream = getClass().getClassLoader().getResourceAsStream("import.java");
-                    Scanner reader = new Scanner(stream);
+                    JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
+                    int r = chooser.showOpenDialog(null);
+                    if(r != JFileChooser.APPROVE_OPTION) return;
+                    main.importPath = chooser.getSelectedFile().getPath();
+                    Scanner reader = new Scanner(chooser.getSelectedFile());
                     boolean discard = true;
                     while (reader.hasNextLine()) {
                         String line = reader.nextLine();
-
                         if (line.contains("trajectoryBuilder")){
                             discard = false;
                             Matcher matcher = pathName.matcher(line);
@@ -176,8 +184,8 @@ public class ButtonPanel extends JPanel {
                                     int j = 0;
                                     if(substring.matches(".*\\d.*"))
                                         j++;
-                                    node.x = (Double.parseDouble(data[1+j])+72)* scale;
-                                    node.y = (-Double.parseDouble(data[2+j])+72)* scale;
+                                    node.x = (Double.parseDouble(data[1+j])+72)* main.scale;
+                                    node.y = (-Double.parseDouble(data[2+j])+72)* main.scale;
                                     if(i > 4 && j==0){
                                         node.robotHeading = Double.parseDouble(data[3+j])-90;
                                         node.splineHeading = Double.parseDouble(data[4+j])-90;
@@ -187,8 +195,8 @@ public class ButtonPanel extends JPanel {
                                     }
                                 } catch (Exception error){
                                     error.printStackTrace();
-                                    node.x = 72* scale;
-                                    node.y = 72* scale;
+                                    node.x = 72* main.scale;
+                                    node.y = 72* main.scale;
                                     node.splineHeading = 270;
                                     node.robotHeading = 270;
                                 }
@@ -209,11 +217,8 @@ public class ButtonPanel extends JPanel {
                             }
                         }
                     }
-                    stream.close();
                 } catch (FileNotFoundException uriSyntaxException) {
                     uriSyntaxException.printStackTrace();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
                 }
 
                 main.currentM = managers.size()-1;

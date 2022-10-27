@@ -22,20 +22,8 @@ public class InfoPanel extends JPanel {
         this.setBackground(Color.darkGray.darker());
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.add(editPanel, BorderLayout.NORTH);
-        this.add(Box.createVerticalStrut((int)main.scale*100));
+//        this.add(Box.createVerticalStrut((int)main.scale*100));
         this.add(settingsPanel, BorderLayout.SOUTH);
         this.setVisible(true);
-//        GridBagConstraints c = new GridBagConstraints();
-//        c.fill = GridBagConstraints.PAGE_START;
-//        c.gridx = 0;
-//        c.gridy = 0;
-//        c.gridheight=1;
-//        c.weightx = 0.5;
-//        this.add(editPanel, c);
-//        c.fill = GridBagConstraints.PAGE_END;
-//        c.gridx = 0;
-//        c.gridy = 4;
-//        c.gridheight=1;
-//        this.add(settingsPanel, c);
     }
 }
