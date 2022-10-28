@@ -67,7 +67,7 @@ public class SettingsPanel extends JPanel {
         for (int i = 0; i < fields.size(); i++) {
             JTextField field = fields.get(i);
             field.setText(main.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
-
+            main.saveConfig();
         }
     }
 

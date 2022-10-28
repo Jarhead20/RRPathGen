@@ -339,6 +339,8 @@ public class DrawPanel extends JPanel {
             mouse = snap(mouse, e);
             if(index != -1){
                 Node n2 = getCurrentManager().get(index);
+                mouse.x = n2.x;
+                mouse.y = n2.y;
                 mouse.setType(n2.getType());
                 mouse.code = n2.code;
                 if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
