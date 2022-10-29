@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,15 +55,19 @@ public class ButtonPanel extends JPanel {
                     Node node = getCurrentManager().get(0);
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
-//                    File outputFile = new File(main.importPath);
-//                    try {
-//                        outputFile.createNewFile();
-//                        FileWriter writer = new FileWriter(outputFile);
-//                        writer.write(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
-//                        writer.close();
-//                    } catch (IOException ioException) {
-//                        ioException.printStackTrace();
-//                    }
+
+                    String path = main.importPath;
+                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
+                    System.out.println(outputFile.getPath());
+                    try {
+                        outputFile.createNewFile();
+                        FileWriter writer = new FileWriter(outputFile);
+                        Scanner reader = new Scanner(new File(main.importPath));
+                        
+                        writer.close();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
 
 
                     System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
@@ -164,10 +169,10 @@ public class ButtonPanel extends JPanel {
                     } else {
                         file = new File(main.prop.getProperty("IMPORT/EXPORT"));
                     }
-                    Scanner reader = new Scanner(file);
                     boolean discard = true;
-                    while (reader.hasNextLine()) {
-                        String line = reader.nextLine();
+                    Import importer = new Import();
+                    Set<String[]> in = importer.read(file);
+                    for (String[] data : in) {
                         if (line.contains("trajectoryBuilder")){
                             discard = false;
                             Matcher matcher = pathName.matcher(line);
@@ -186,7 +191,7 @@ public class ButtonPanel extends JPanel {
                             if(line.contains("new Vector2d(") || line.contains("new Pose2d(")){
                                 Matcher m = numberPattern.matcher(line);
                                 Node node = new Node();
-                                String[] data = new String[10];
+
                                 int i;
                                 for (i = 0; m.find(); i++) {
                                     data[i]=m.group(0);
