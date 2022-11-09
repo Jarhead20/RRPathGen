@@ -15,7 +15,7 @@ public class SettingsPanel extends JPanel {
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
     private LinkedList<JTextField> fields = new LinkedList<>();
-    private String[] labels = {"Scale", "Robot Width", "Robot Length", "Resolution", "Import/Export"};
+    private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export"};
 
     SettingsPanel(Main main){
         this.main = main;
@@ -45,17 +45,6 @@ public class SettingsPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     main.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
-                    double oldScale = main.scale;
-                    main.reloadConfig();
-                    double newScale = main.scale;
-                    if(finalI == 0){
-                        main.getManagers().forEach(nodeManager -> {
-                            main.scale(nodeManager, newScale, oldScale);
-                            main.scale(nodeManager.undo, newScale, oldScale);
-                            main.scale(nodeManager.redo, newScale, oldScale);
-
-                        });
-                    }
                     main.reloadConfig();
                     main.setState(JFrame.MAXIMIZED_BOTH);
                 }

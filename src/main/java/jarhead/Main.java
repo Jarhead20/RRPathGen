@@ -46,10 +46,7 @@ class Main extends JFrame {
     public void reloadConfig() {
         try{
             double oldScale = scale;
-            if(prop.getProperty("SCALE").matches("0")) {
-                    scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
-            }
-            else scale = Double.parseDouble(prop.getProperty("SCALE"));
+            scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
             resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
@@ -58,7 +55,6 @@ class Main extends JFrame {
                 scale(nodeManager, scale, oldScale);
                 scale(nodeManager.undo, scale, oldScale);
                 scale(nodeManager.redo, scale, oldScale);
-
             });
             infoPanel.settingsPanel.update();
             drawPanel.update();
@@ -82,7 +78,6 @@ class Main extends JFrame {
                 file.createNewFile();
                 FileWriter writer = new FileWriter(file);
                 writer.write(
-                        "SCALE=0\n" +
                         "ROBOT_WIDTH=18\n" +
                         "ROBOT_LENGTH=18\n" +
                         "RESOLUTION=1\n" +
@@ -103,23 +98,20 @@ class Main extends JFrame {
         buttonPanel = new ButtonPanel(managers,this);
         infoPanel = new InfoPanel(this);
         this.getContentPane().setBackground(Color.darkGray.darker());
-        this.getContentPane().setLayout(new GridBagLayout());
+        GridBagLayout layout = new GridBagLayout();
+        this.getContentPane().setLayout(layout);
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.VERTICAL;
         c.gridx = 3;
         c.gridy = 0;
-        c.gridheight=4;
         this.getContentPane().add(infoPanel, c);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 3;
-        c.gridwidth = 2;
         this.getContentPane().add(buttonPanel, c);
-        c.fill = GridBagConstraints.BOTH;
+        c.fill = GridBagConstraints.NONE;
         c.gridx = 0;
         c.gridy = 0;
-        c.gridwidth = 2;
-        c.gridheight = 2;
         c.weightx = 1;
         c.weighty = 1;
         c.anchor = GridBagConstraints.CENTER;
@@ -232,7 +224,7 @@ class Main extends JFrame {
     public void saveConfig() {
         try {
             FileOutputStream stream = new FileOutputStream(configPath);
-            prop.store(stream, "SAVE");
+            prop.store(stream, "V1.2");
             stream.close();
         }  catch (IOException e) {
             e.printStackTrace();

@@ -82,7 +82,6 @@ public class EditPanel extends JPanel {
             }
         });
 
-
         y.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -91,11 +90,10 @@ public class EditPanel extends JPanel {
             }
         });
 
-
         splineHeading.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().splineHeading = Double.parseDouble(splineHeading.getText());
+                if(main.currentN != -1) getCurrentNode().splineHeading = Double.parseDouble(splineHeading.getText())-90;
                 main.drawPanel.repaint();
             }
         });
@@ -103,7 +101,7 @@ public class EditPanel extends JPanel {
         robotHeading.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().robotHeading = Double.parseDouble(robotHeading.getText());
+                if(main.currentN != -1) getCurrentNode().robotHeading = Double.parseDouble(robotHeading.getText())-90;
                 main.drawPanel.repaint();
             }
         });
@@ -134,8 +132,8 @@ public class EditPanel extends JPanel {
             main.getCurrentManager().name = name.getText();
             node.x = (Double.parseDouble(x.getText())+72)*main.scale;
             node.y = (72-Double.parseDouble(y.getText()))*main.scale;
-            node.splineHeading = Double.parseDouble(splineHeading.getText());
-            node.robotHeading = Double.parseDouble(robotHeading.getText());
+            node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
+            node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
             node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
             node.code = code.getText();
             main.drawPanel.repaint();
@@ -155,8 +153,8 @@ public class EditPanel extends JPanel {
             name.setText(main.getCurrentManager().name);
             code.setText("");
         } else {
-            splineHeading.setText(Math.round((getCurrentNode().splineHeading)*100)/100.0 + "");
-            robotHeading.setText(Math.round((getCurrentNode().robotHeading)*100)/100.0 + "");
+            splineHeading.setText(Math.round((getCurrentNode().splineHeading+90)*100)/100.0 + "");
+            robotHeading.setText(Math.round((getCurrentNode().robotHeading+90)*100)/100.0 + "");
             x.setText(Math.round(main.toInches(getCurrentNode().x)*100.0)/100.0 + "");
             y.setText(Math.round((-main.toInches(getCurrentNode().y))*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());

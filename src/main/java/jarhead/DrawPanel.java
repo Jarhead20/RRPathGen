@@ -39,21 +39,42 @@ public class DrawPanel extends JPanel {
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
     public void update(){
-        int size = Math.min(this.getWidth(), this.getHeight());
-        this.setSize(new Dimension(size,size));
-        int x = ((main.getWidth()-(main.infoPanel.getWidth() + main.getInsets().left + main.getInsets().right))/2) - (size/2);
-        int y = ((main.getHeight()-(main.buttonPanel.getHeight() + main.getInsets().top + main.getInsets().bottom))/2) - (size/2);
-        this.setLocation(x,y);
+//        int size = Math.min(this.getWidth(), this.getHeight());
+//        this.setSize(new Dimension(size,size));
+//        int x = ((main.getWidth()-(main.infoPanel.getWidth() + main.getInsets().left + main.getInsets().right))/2) - (size/2);
+//        int y = ((main.getHeight()-(main.buttonPanel.getHeight() + main.getInsets().top + main.getInsets().bottom))/2) - (size/2);
+//        this.setLocation(x,y);
         renderBackgroundSplines();
         repaint();
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        Insets in = main.getInsets();
+        int width = main.getWidth()-(main.infoPanel.getWidth() + in.left + in.right);
+        int height = (main.getHeight()-(main.buttonPanel.getHeight()+in.top + in.bottom));
+        int min = Math.min(width, height);
+        main.scale = width/144;
+        return new Dimension(min, min);
+    }
+
+    @Override
+    public Dimension getMinimumSize(){
+        Dimension d = getPreferredSize();
+        return new Dimension(d.height, d.height);
+    }
+
+    @Override
+    public Dimension getMaximumSize(){
+        Dimension d = getPreferredSize();
+        return new Dimension(d.height, d.height);
+    }
+
+
     DrawPanel(LinkedList<NodeManager> managers, Main main) {
+        super();
         this.managers = managers;
         this.main = main;
-
-        this.setPreferredSize(new Dimension((int) (main.getHeight()*144.0/160.0), (int) (main.getHeight()*144.0/160.0)));
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
@@ -80,6 +101,8 @@ public class DrawPanel extends JPanel {
         this.setFocusable(true);
     }
 
+
+
     private void renderSplines(Graphics g, Path path, Color color) {
         for (double i = 0; i < path.length(); i+=main.resolution) {
             Pose2d pose1 = path.get(i-main.resolution);
@@ -95,8 +118,10 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
+        //TODO: make this faster :(
         BufferedImage image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
+        g2.setColor(color);
         for (double i = 0; i < path.length(); i+=main.resolution) {
             Pose2d pose1 = path.get(i-1);
             int x1 = (int) pose1.getX();
@@ -108,20 +133,10 @@ public class DrawPanel extends JPanel {
             outLine.translate(x1, y1);
             outLine.rotate(pose1.getHeading());
 
-            g2.setColor(color);
-            g2.setTransform(outLine);
-//            if(i == 0 || i >= path.length()-1)
-            g2.fillRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
-//            else
-//                g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2), (int) Math.floor(rX),(int) Math.floor(rY));
 
-//            g.setColor(new Color(0,255,0));
-//            double theta1 = pose1.getHeading() - Math.toRadians(90);
-//            double theta2 = pose2.getHeading() - Math.toRadians(90);
-//            System.out.println(Math.cos(0.78));
-//            g.fillRect((int) (x1+(Math.cos(theta1)*rX/2)), (int) (y1+(Math.sin(theta1)*rY/2)),(int)(Math.cos(theta2)*rX*2),(int)(Math.sin(theta2)*rY*2));
-//            g.drawLine((int) (x1+(Math.cos(theta1)*rX)), (int) (y1+(Math.sin(theta1)*rY)), (int) (x2+(Math.cos(theta2)*rX)), (int) (y2+(Math.sin(theta2)*rY)));
-//            g.drawLine((int) (x1-(Math.cos(theta1)*rX)), (int) (y1-(Math.sin(theta1)*rY)), (int) (x2-(Math.cos(theta2)*rX)), (int) (y2-(Math.sin(theta2)*rY)));
+            g2.setTransform(outLine);
+            g2.fillRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
+
         }
         Composite comp = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));

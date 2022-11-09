@@ -15,8 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ButtonPanel extends JPanel {
-    private static final Pattern numberPattern = Pattern.compile("[+-]?(\\d*\\.)?\\d+");
-    private static final Pattern pathName = Pattern.compile("(?:^\\s*Trajectory\\s+(\\w*))");
 
     private final JButton exportButton = new JButton("Export");
     private final JButton importButton = new JButton("Import");
@@ -57,17 +55,17 @@ public class ButtonPanel extends JPanel {
                     double y = main.toInches(node.y);
 
                     String path = main.importPath;
-                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
-                    System.out.println(outputFile.getPath());
-                    try {
-                        outputFile.createNewFile();
-                        FileWriter writer = new FileWriter(outputFile);
-                        Scanner reader = new Scanner(new File(main.importPath));
-                        
-                        writer.close();
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
+//                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
+//                    System.out.println(outputFile.getPath());
+//                    try {
+//                        outputFile.createNewFile();
+//                        FileWriter writer = new FileWriter(outputFile);
+//                        Scanner reader = new Scanner(new File(main.importPath));
+//
+//                        writer.close();
+//                    } catch (IOException ioException) {
+//                        ioException.printStackTrace();
+//                    }
 
 
                     System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
@@ -161,91 +159,27 @@ public class ButtonPanel extends JPanel {
                     int r = chooser.showOpenDialog(null);
                     if(r != JFileChooser.APPROVE_OPTION) return;
                     main.importPath = chooser.getSelectedFile().getPath();
+                    System.out.println(main.importPath);
                     main.prop.setProperty("IMPORT/EXPORT", main.importPath);
                     main.saveConfig();
                     main.infoPanel.settingsPanel.update();
                     file = chooser.getSelectedFile();
                 } else {
                     main.saveConfig();
-                    file = new File("C:\\Users\\Jared\\StudioProjects\\OpenRC-Turbo\\TeamCode\\src\\main\\java\\org\\firstinspires\\ftc\\teamcode\\AutoRedLeft.java");
+                    System.out.println(main.importPath);
+                    file = new File(main.importPath);
                 }
-                boolean discard = true;
                 Import importer = new Import(main);
                 LinkedList<NodeManager> in = importer.read(file);
                 in.forEach((m) -> {
                     managers.add(m);
                 });
+
+
+                main.currentM = managers.size()-1;
+                main.infoPanel.editPanel.name.setText(getCurrentManager().name);
                 main.drawPanel.renderBackgroundSplines();
                 main.drawPanel.repaint();
-
-//                String line = "";
-//                for (String[] data : in) {
-//                    if (line.contains("trajectoryBuilder")){
-//                        discard = false;
-//                        Matcher matcher = pathName.matcher(line);
-//                        matcher.find();
-//                        String name = matcher.group(1).trim();
-//                        if(getCurrentManager().size() > 0)
-//                            manager = new NodeManager(new ArrayList<>(), managers.size(), name);
-//                        else {
-//                            manager = getCurrentManager();
-//                            manager.name = name;
-//                        }
-//                        if(line.contains("true")) manager.reversed = true;
-//                        managers.add(manager);
-//                    }
-//                    if(!discard){
-//                        if(line.contains("new Vector2d(") || line.contains("new Pose2d(")){
-//                            Matcher m = numberPattern.matcher(line);
-//                            Node node = new Node();
-//
-//                            int i;
-//                            for (i = 0; m.find(); i++) {
-//                                data[i]=m.group(0);
-//                            }
-//                            String substring = line.trim().substring(1, line.trim().indexOf("("));
-//                            try{
-//                                int j = 0;
-//                                if(substring.matches(".*\\d.*"))
-//                                    j++;
-//                                node.x = (Double.parseDouble(data[1+j])+72)* main.scale;
-//                                node.y = (-Double.parseDouble(data[2+j])+72)* main.scale;
-//                                if(i > 4 && j==0){
-//                                    node.robotHeading = Double.parseDouble(data[3+j])-90;
-//                                    node.splineHeading = Double.parseDouble(data[4+j])-90;
-//                                } else {
-//                                    node.splineHeading = Double.parseDouble(data[3+j])-90;
-//                                    node.robotHeading = node.splineHeading;
-//                                }
-//                            } catch (Exception error){
-//                                error.printStackTrace();
-//                                node.x = 72* main.scale;
-//                                node.y = 72* main.scale;
-//                                node.splineHeading = 270;
-//                                node.robotHeading = 270;
-//                            }
-//
-//                            try {
-//                                node.setType(Node.Type.valueOf(substring));
-//                            } catch (IllegalArgumentException error){
-//                                error.printStackTrace();
-//                                node.setType(Node.Type.splineTo);
-//                            }
-//
-//                            if(manager.reversed && manager.size() == 0) node.splineHeading += 180;
-//                            manager.add(node);
-//                        } else if(line.contains(".addDisplacementMarker(")){
-//                            (manager.get(manager.size()-1)).setType(Node.Type.displacementMarker);
-//                        } else {
-//                            discard = true;
-//                        }
-//                    }
-//                }
-//
-//                main.currentM = managers.size()-1;
-//                main.infoPanel.editPanel.name.setText(getCurrentManager().name);
-//                main.drawPanel.renderBackgroundSplines();
-//                main.drawPanel.repaint();
             }
         });
     }
