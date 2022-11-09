@@ -86,7 +86,7 @@ public class EditPanel extends JPanel {
         y.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().y = (Double.parseDouble(y.getText())+72)*main.scale;
+                if(main.currentN != -1) getCurrentNode().y = (72-Double.parseDouble(y.getText()))*main.scale;
                 main.drawPanel.repaint();
             }
         });
@@ -133,7 +133,7 @@ public class EditPanel extends JPanel {
             Node node = getCurrentNode();
             main.getCurrentManager().name = name.getText();
             node.x = (Double.parseDouble(x.getText())+72)*main.scale;
-            node.y = (Double.parseDouble(y.getText())+72)*main.scale;
+            node.y = (72-Double.parseDouble(y.getText()))*main.scale;
             node.splineHeading = Double.parseDouble(splineHeading.getText());
             node.robotHeading = Double.parseDouble(robotHeading.getText());
             node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
@@ -158,7 +158,7 @@ public class EditPanel extends JPanel {
             splineHeading.setText(Math.round((getCurrentNode().splineHeading)*100)/100.0 + "");
             robotHeading.setText(Math.round((getCurrentNode().robotHeading)*100)/100.0 + "");
             x.setText(Math.round(main.toInches(getCurrentNode().x)*100.0)/100.0 + "");
-            y.setText(Math.round(main.toInches(getCurrentNode().y)*100.0)/100.0 + "");
+            y.setText(Math.round((-main.toInches(getCurrentNode().y))*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());
             name.setText(main.getCurrentManager().name);
             code.setText(getCurrentNode().code);
