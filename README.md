@@ -6,7 +6,7 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 
 1. Download the jar from the releases page.
 2. Check that you have at least java 8 installed `java --version`
-3. Run the jar from the command line `java -jar .\RRPathGen-1.1.0.jar` if you do not run from the command line you c
+3. Run the jar from the command line `java -jar .\RRPathGen-1.2.0.jar` if you do not run from the command line you c
 
 
 ## Installation (Intellij)
@@ -31,6 +31,8 @@ Generate your paths using the key binds below and once you are done export the p
 | Esc                 | Escape                  |
 | Delete              | Delete Selected Node    |
 | Ctrl + Z            | Undo Previous Action    |
+
+If you accidentally do something wrong with the config, just delete it at %appdata%/RRPathGen for Windows
 
 ## Acknowledgements 
 The inspiration from this project came from Technic Bots' [Blitz](https://technicbots.com/Blitz) app.<br />
