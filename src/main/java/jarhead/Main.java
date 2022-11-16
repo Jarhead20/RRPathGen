@@ -78,7 +78,7 @@ class Main extends JFrame {
                 writer.write(
                         "ROBOT_WIDTH=18\n" +
                         "ROBOT_LENGTH=18\n" +
-                        "RESOLUTION=20\n" +
+                        "RESOLUTION=5\n" +
                         "IMPORT/EXPORT=");
                 writer.close();
             }
