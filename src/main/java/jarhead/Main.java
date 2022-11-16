@@ -65,8 +65,10 @@ class Main extends JFrame {
             String path;
             if(os.contains("win"))
                 path = System.getenv("AppData") + "/RRPathGen/config.properties";
+            else if(os.contains("mac") || os.contains("darwin"))
+                path = System.getProperty("user.home") + "/Library/Application Support/RRPathGen/config.properties";
             else
-                path = System.getProperty("user.home") + "/Library/Application Support/RRPathGen/config.properties"; //just assume its mac
+                path = System.getProperty("user.home") + "/.RRPathGen/config.properties";
             configPath = path;
             File file = new File(path);
             if(!file.exists()) {
