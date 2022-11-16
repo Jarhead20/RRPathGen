@@ -133,6 +133,10 @@ class Main extends JFrame {
     }
 
     public void undo(){
+        undo(false);
+    }
+
+    public void undo(boolean record){
         if(getCurrentManager().undo.size()<1) return;
         Node node = getCurrentManager().undo.last();
         Node r;
@@ -142,14 +146,16 @@ class Main extends JFrame {
                 getCurrentManager().add(node.index, node);
                 r = node;
                 currentN = node.index;
-                getCurrentManager().redo.add(r);
+                if(record)
+                    getCurrentManager().redo.add(r);
                 break;
             case 2: //undo add new node
                 temp = getCurrentManager().get(node.index);
                 r = temp.copy();
                 r.state = 2;
                 currentN = node.index-1;
-                getCurrentManager().redo.add(r);
+                if(record)
+                    getCurrentManager().redo.add(r);
                 getCurrentManager().remove(node.index);
                 break;
             case 3: //undo flip
@@ -160,7 +166,8 @@ class Main extends JFrame {
                 }
                 currentN = -1;
                 r = node;
-                getCurrentManager().redo.add(r);
+                if(record)
+                    getCurrentManager().redo.add(r);
                 break;
             case 4:  //undo drag
                 if(node.index == -1){
@@ -170,11 +177,10 @@ class Main extends JFrame {
                 r = temp.copy();
                 r.state = 4;
                 getCurrentManager().set(node.index, node);
-                getCurrentManager().redo.add(r);
+                if(record)
+                    getCurrentManager().redo.add(r);
                 break;
         }
-
-
         getCurrentManager().undo.removeLast();
     }
     public void redo(){

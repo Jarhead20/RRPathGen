@@ -1,22 +1,13 @@
 package jarhead;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.path.ParametricCurve;
-import com.acmerobotics.roadrunner.path.Path;
-import com.acmerobotics.roadrunner.path.PathSegment;
-import com.acmerobotics.roadrunner.path.QuinticSpline;
-import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
-import com.acmerobotics.roadrunner.path.heading.HeadingInterpolator;
-import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
-import com.acmerobotics.roadrunner.path.heading.SplineInterpolator;
-import org.w3c.dom.css.Rect;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.path.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -42,11 +33,6 @@ public class DrawPanel extends JPanel {
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
     public void update(){
-//        int size = Math.min(this.getWidth(), this.getHeight());
-//        this.setSize(new Dimension(size,size));
-//        int x = ((main.getWidth()-(main.infoPanel.getWidth() + main.getInsets().left + main.getInsets().right))/2) - (size/2);
-//        int y = ((main.getHeight()-(main.buttonPanel.getHeight() + main.getInsets().top + main.getInsets().bottom))/2) - (size/2);
-//        this.setLocation(x,y);
         renderBackgroundSplines();
         repaint();
     }
@@ -138,7 +124,7 @@ public class DrawPanel extends JPanel {
 
             g2.setColor(color);
             g2.setTransform(outLine);
-            g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
+            g2.fillRoundRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY),(int) main.scale*2, (int)main.scale*2);
         }
         if(path.length() > 0){
             Pose2d end = path.end();
@@ -146,7 +132,7 @@ public class DrawPanel extends JPanel {
             outLine.translate(end.getX(), end.getY());
             outLine.rotate(end.getHeading());
             g2.setTransform(outLine);
-            g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
+            g2.fillRoundRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY), (int) main.scale*2, (int)main.scale*2);
         }
 
         Composite comp = g.getComposite();
@@ -191,45 +177,36 @@ public class DrawPanel extends JPanel {
 
         oldScale = main.scale;
         if(getCurrentManager().size() > 0) {
-            java.util.List<PathSegment> segments = new ArrayList<>();
 
             Node node = getCurrentManager().get(0);
+            PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
             for (int i = 1; i < getCurrentManager().size(); i++) {
-                final Node prevNode = node;
                 node = getCurrentManager().get(i);
-                double currentX = node.x;
-                double currentY = node.y;
-                double prevX = prevNode.x;
-                double prevY = prevNode.y;
-                final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
-                final double prevHeading = Math.toRadians(-prevNode.splineHeading - 90);
-                final double heading = Math.toRadians(-node.splineHeading - 90);
-                PathSegment segment;
-                ParametricCurve curve = new QuinticSpline(
-                        new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
-                        new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
-                        0.25, 1, 4
-                );
-                switch (node.getType()){
-                    case splineTo:
-                    case displacementMarker:
-                        segment = new PathSegment(curve);
-                        break;
-                    case splineToSplineHeading:
-                        segment = new PathSegment(curve,new SplineInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading - 90)));
-                        break;
-                    case splineToLinearHeading:
-                        segment = new PathSegment(curve, new LinearInterpolator(Math.toRadians(-prevNode.robotHeading - 90),Math.toRadians(-node.robotHeading)));
-                        break;
-                    case splineToConstantHeading:
-                        segment = new PathSegment(curve,new ConstantInterpolator(Math.toRadians(-prevNode.robotHeading - 90)));
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + node.getType());
+                try{
+                    switch (node.getType()){
+                        case splineTo:
+                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                            break;
+                        case displacementMarker:
+                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                            break;
+                        case splineToSplineHeading:
+                            pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+                            break;
+                        case splineToLinearHeading:
+                            pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+                            break;
+                        case splineToConstantHeading:
+                            pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                            break;
+                    }
+                } catch (Exception e) {
+                    main.undo(false);
+                    i--;
+                    e.printStackTrace();
                 }
-                segments.add(segment);
             }
-            path = new Path(segments);
+            path = pb.build();
 
             renderRobotPath((Graphics2D) g, path, lightPurple, 0.5f);
             renderSplines(g, path, cyan);
@@ -239,10 +216,9 @@ public class DrawPanel extends JPanel {
     }
 
     public void renderBackgroundSplines(){
-        if(this.getWidth() > 0){
-            Insets in = this.getInsets();
+        if(this.getWidth() > 0)
             preRenderedSplines = new BufferedImage((this.getWidth()), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-        }
+
         else preRenderedSplines = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics g = preRenderedSplines.getGraphics();
         for (NodeManager manager : managers){
@@ -292,7 +268,6 @@ public class DrawPanel extends JPanel {
             else
                 tx.rotate(Math.toRadians(-node.robotHeading +180));
             tx.scale(main.scale, main.scale);
-
 
             g2.setTransform(tx);
 
