@@ -9,11 +9,14 @@ import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.path.heading.HeadingInterpolator;
 import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
 import com.acmerobotics.roadrunner.path.heading.SplineInterpolator;
+import org.w3c.dom.css.Rect;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -122,22 +125,30 @@ public class DrawPanel extends JPanel {
         BufferedImage image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         g2.setColor(color);
+        double rX = main.robotLength*main.scale;
+        double rY = main.robotWidth*main.scale;
         for (double i = 0; i < path.length(); i+=main.resolution) {
-            Pose2d pose1 = path.get(i-1);
+            Pose2d pose1 = path.get(i-main.resolution);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
-            double rX = main.robotLength*main.scale;
-            double rY = main.robotWidth*main.scale;
 
             outLine.setToIdentity();
             outLine.translate(x1, y1);
             outLine.rotate(pose1.getHeading());
 
-
+            g2.setColor(color);
             g2.setTransform(outLine);
-            g2.fillRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
-
+            g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
         }
+        if(path.length() > 0){
+            Pose2d end = path.end();
+            outLine.setToIdentity();
+            outLine.translate(end.getX(), end.getY());
+            outLine.rotate(end.getHeading());
+            g2.setTransform(outLine);
+            g2.fillOval((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY));
+        }
+
         Composite comp = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
         g.drawImage(image, 0,0,null);
@@ -161,12 +172,24 @@ public class DrawPanel extends JPanel {
     Color dCyan = cyan.darker();
     Color dDarkPurple = darkPurple.darker();
 
+    double oldScale = 0;
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0,this.getWidth(), this.getHeight(), null);
         if(preRenderedSplines == null) renderBackgroundSplines();
         g.drawImage(preRenderedSplines, 0,0,null);
+
+        main.scale = ((double)this.getWidth()-this.getInsets().left - this.getInsets().right)/144.0;
+        if(oldScale != main.scale)
+            main.getManagers().forEach(nodeManager -> {
+                main.scale(nodeManager, main.scale, oldScale);
+                main.scale(nodeManager.undo, main.scale, oldScale);
+                main.scale(nodeManager.redo, main.scale, oldScale);
+            });
+
+        oldScale = main.scale;
         if(getCurrentManager().size() > 0) {
             java.util.List<PathSegment> segments = new ArrayList<>();
 
@@ -216,8 +239,10 @@ public class DrawPanel extends JPanel {
     }
 
     public void renderBackgroundSplines(){
-        if(this.getWidth() > 0)
-            preRenderedSplines = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        if(this.getWidth() > 0){
+            Insets in = this.getInsets();
+            preRenderedSplines = new BufferedImage((this.getWidth()), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        }
         else preRenderedSplines = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics g = preRenderedSplines.getGraphics();
         for (NodeManager manager : managers){

@@ -51,11 +51,7 @@ class Main extends JFrame {
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
             resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
             importPath = prop.getProperty("IMPORT/EXPORT");
-            getManagers().forEach(nodeManager -> {
-                scale(nodeManager, scale, oldScale);
-                scale(nodeManager.undo, scale, oldScale);
-                scale(nodeManager.redo, scale, oldScale);
-            });
+
             infoPanel.settingsPanel.update();
             drawPanel.update();
         } catch (Exception e){
@@ -80,7 +76,7 @@ class Main extends JFrame {
                 writer.write(
                         "ROBOT_WIDTH=18\n" +
                         "ROBOT_LENGTH=18\n" +
-                        "RESOLUTION=1\n" +
+                        "RESOLUTION=20\n" +
                         "IMPORT/EXPORT=");
                 writer.close();
             }
@@ -239,10 +235,10 @@ class Main extends JFrame {
     public void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
-            n.x /= os;
-            n.x *= ns;
-            n.y /= os;
-            n.y *= ns;
+            System.out.println(n.x + " 1: " + ns + " " + os);
+            n.x = (n.x/os)*ns;
+            n.y = (n.y/os)*ns;
+            System.out.println(n.x);
         }
     }
 
