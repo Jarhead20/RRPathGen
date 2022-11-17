@@ -1,6 +1,8 @@
 package jarhead;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import javax.swing.*;
 import java.awt.*;
@@ -91,8 +93,9 @@ class Main extends JFrame {
     }
 
     public void initComponents() {
-
-        drawPanel = new DrawPanel(managers,this);
+        GLProfile glprofile = GLProfile.getDefault();
+        GLCapabilities glcapabilities = new GLCapabilities( glprofile );
+        drawPanel = new DrawPanel(managers,this, glcapabilities);
         buttonPanel = new ButtonPanel(managers,this);
         infoPanel = new InfoPanel(this);
         this.getContentPane().setBackground(Color.darkGray.darker());

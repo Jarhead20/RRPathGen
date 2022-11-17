@@ -3,6 +3,11 @@ package jarhead;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.*;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLJPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class DrawPanel extends JPanel {
+public class DrawPanel extends GLJPanel {
 
     private LinkedList<NodeManager> managers;
 
@@ -23,7 +28,6 @@ public class DrawPanel extends JPanel {
     private Node preEdit;
     private boolean edit = false;
     final double clickSize = 2;
-
 
     private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
@@ -60,10 +64,33 @@ public class DrawPanel extends JPanel {
     }
 
 
-    DrawPanel(LinkedList<NodeManager> managers, Main main) {
-        super();
-        this.managers = managers;
-        this.main = main;
+    DrawPanel(LinkedList<NodeManager> managers, Main main, GLCapabilities glCapabilities) {
+        super(glCapabilities);
+//        this.setSize(this.getWidth(),this.getHeight());
+
+        this.addGLEventListener( new GLEventListener() {
+
+            @Override
+            public void reshape(GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
+                System.out.println(width);
+                Render.setup ( glautodrawable.getGL().getGL2(), width, height );
+            }
+
+            @Override
+            public void init( GLAutoDrawable glautodrawable ) {
+            }
+
+            @Override
+            public void dispose( GLAutoDrawable glautodrawable ) {
+            }
+
+            @Override
+            public void display( GLAutoDrawable glautodrawable ) {
+                System.out.println(glautodrawable.getSurfaceHeight());
+                Render.render( glautodrawable.getGL().getGL2(), glautodrawable.getSurfaceWidth(), glautodrawable.getSurfaceHeight() );
+            }
+        });
+
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
@@ -72,13 +99,13 @@ public class DrawPanel extends JPanel {
                 mReleased(e);
             }
         });
-        this.setVisible(true);
 
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 mDragged(e);
             }
         });
+
         this.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {}
@@ -87,6 +114,11 @@ public class DrawPanel extends JPanel {
             @Override
             public void keyPressed(KeyEvent e) { }
         });
+
+        this.managers = managers;
+        this.main = main;
+
+        this.setVisible(true);
         this.setFocusable(true);
     }
 
@@ -163,56 +195,56 @@ public class DrawPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0,this.getWidth(), this.getHeight(), null);
-        if(preRenderedSplines == null) renderBackgroundSplines();
-        g.drawImage(preRenderedSplines, 0,0,null);
-
-        main.scale = ((double)this.getWidth()-this.getInsets().left - this.getInsets().right)/144.0;
-        if(oldScale != main.scale)
-            main.getManagers().forEach(nodeManager -> {
-                main.scale(nodeManager, main.scale, oldScale);
-                main.scale(nodeManager.undo, main.scale, oldScale);
-                main.scale(nodeManager.redo, main.scale, oldScale);
-            });
-
-        oldScale = main.scale;
-        if(getCurrentManager().size() > 0) {
-
-            Node node = getCurrentManager().get(0);
-            PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-            for (int i = 1; i < getCurrentManager().size(); i++) {
-                node = getCurrentManager().get(i);
-                try{
-                    switch (node.getType()){
-                        case splineTo:
-                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case displacementMarker:
-                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case splineToSplineHeading:
-                            pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case splineToLinearHeading:
-                            pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case splineToConstantHeading:
-                            pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                            break;
-                    }
-                } catch (Exception e) {
-                    main.undo(false);
-                    i--;
-                    e.printStackTrace();
-                }
-            }
-            path = pb.build();
-
-            renderRobotPath((Graphics2D) g, path, lightPurple, 0.5f);
-            renderSplines(g, path, cyan);
-            renderPoints(g, path, cyan, 1);
-            renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
-        }
+//        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0,this.getWidth(), this.getHeight(), null);
+//        if(preRenderedSplines == null) renderBackgroundSplines();
+//        g.drawImage(preRenderedSplines, 0,0,null);
+//
+//        main.scale = ((double)this.getWidth()-this.getInsets().left - this.getInsets().right)/144.0;
+//        if(oldScale != main.scale)
+//            main.getManagers().forEach(nodeManager -> {
+//                main.scale(nodeManager, main.scale, oldScale);
+//                main.scale(nodeManager.undo, main.scale, oldScale);
+//                main.scale(nodeManager.redo, main.scale, oldScale);
+//            });
+//
+//        oldScale = main.scale;
+//        if(getCurrentManager().size() > 0) {
+//
+//            Node node = getCurrentManager().get(0);
+//            PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+//            for (int i = 1; i < getCurrentManager().size(); i++) {
+//                node = getCurrentManager().get(i);
+//                try{
+//                    switch (node.getType()){
+//                        case splineTo:
+//                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+//                            break;
+//                        case displacementMarker:
+//                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+//                            break;
+//                        case splineToSplineHeading:
+//                            pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+//                            break;
+//                        case splineToLinearHeading:
+//                            pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+//                            break;
+//                        case splineToConstantHeading:
+//                            pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+//                            break;
+//                    }
+//                } catch (Exception e) {
+//                    main.undo(false);
+//                    i--;
+//                    e.printStackTrace();
+//                }
+//            }
+//            path = pb.build();
+//
+//            renderRobotPath((Graphics2D) g, path, lightPurple, 0.5f);
+//            renderSplines(g, path, cyan);
+//            renderPoints(g, path, cyan, 1);
+//            renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
+//        }
     }
 
     public void renderBackgroundSplines(){
