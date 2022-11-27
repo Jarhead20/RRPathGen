@@ -16,7 +16,8 @@ public class Node {
         displacementMarker,
         splineToSplineHeading,
         splineToLinearHeading,
-        splineToConstantHeading
+        splineToConstantHeading,
+        forward
     }
     Node(){
 

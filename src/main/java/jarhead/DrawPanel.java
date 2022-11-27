@@ -265,6 +265,15 @@ public class DrawPanel extends JPanel {
                     case splineToConstantHeading:
                         builder.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
                         break;
+                    case forward:
+                        Node prev = manager.get(i-1);
+                        if(prev.getType().equals(Node.Type.splineToConstantHeading) || prev.getType().equals(Node.Type.splineToSplineHeading) || prev.getType().equals(Node.Type.splineToLinearHeading))
+                            builder.turn(Math.toRadians(-(prev.robotHeading + prev.headingTo(node))-90));
+                        else
+                            builder.turn(Math.toRadians((-prev.headingTo(node) + prev.splineHeading)));
+                        builder.forward(prev.distance(node));
+                        System.out.println(prev.splineHeading + " " + prev.headingTo(node));
+                        break;
                 }
             } catch (Exception e) {
                 main.undo(false);
@@ -331,6 +340,9 @@ public class DrawPanel extends JPanel {
                     g2.setColor(Color.magenta);
                     break;
                 case splineToConstantHeading:
+                    g2.setColor(color3.brighter());
+                    break;
+                case forward:
                     g2.setColor(color3.brighter());
                     break;
                 default:
