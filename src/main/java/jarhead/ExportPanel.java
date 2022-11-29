@@ -11,16 +11,14 @@ public class ExportPanel extends JPanel {
     private final int MULTIPLIER = 3;
 
     ExportPanel(Main main) {
-        field.setText("Export text area");
+        field.setText("Export");
 
         this.main = main;
         this.setOpaque(true);
         this.setBackground(Color.darkGray.darker());
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-//        field.setAutoscrolls(true);
-//        field.setLineWrap(true);
-
+        this.setMinimumSize(new Dimension(200,0));
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         this.add(scroll);
@@ -29,8 +27,6 @@ public class ExportPanel extends JPanel {
 
     @Override
     public Dimension getPreferredSize() {
-//        field.setColumns((int) main.scale*MULTIPLIER);
-//        field.setRows((int) (main.scale*MULTIPLIER));
         return super.getPreferredSize();
     }
 

@@ -69,9 +69,6 @@ public class ButtonPanel extends JPanel {
 
                     StringBuilder sb = new StringBuilder();
                     sb.append(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
-
-
-                    System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
                     for (int i = 1; i < getCurrentManager().size(); i++) {
                         node = getCurrentManager().get(i);
                         x = main.toInches(node.x);
@@ -79,35 +76,27 @@ public class ButtonPanel extends JPanel {
                         switch (node.getType()){
                             case splineTo:
                                 sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 break;
                             case displacementMarker:
                                 sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
                                 sb.append(String.format(".addDisplacementMarker(() -> {%s})%n", node.code));
-                                System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
-                                System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
                                 break;
                             case splineToSplineHeading:
                                 sb.append(String.format(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
-                                System.out.printf(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90));
                                 break;
                             case splineToLinearHeading:
                                 sb.append(String.format(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
-                                System.out.printf(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90));
                                 break;
                             case splineToConstantHeading:
                                 sb.append(String.format(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                                System.out.printf(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 break;
                             default:
                                 sb.append("couldn't find type");
-                                System.out.println("couldn't find type");
                                 break;
                         }
                     }
                     sb.append(".build()");
                     main.exportPanel.field.setText(sb.toString());
-//                    System.out.println(".build();");
                 }
             }
         });
@@ -162,7 +151,6 @@ public class ButtonPanel extends JPanel {
         });
         importButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                NodeManager manager = null;
                 File file;
                 if(main.prop.getProperty("IMPORT/EXPORT").matches("")){
                     JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
@@ -171,14 +159,12 @@ public class ButtonPanel extends JPanel {
                     int r = chooser.showOpenDialog(null);
                     if(r != JFileChooser.APPROVE_OPTION) return;
                     main.importPath = chooser.getSelectedFile().getPath();
-                    System.out.println(main.importPath);
                     main.prop.setProperty("IMPORT/EXPORT", main.importPath);
                     main.saveConfig();
                     main.infoPanel.settingsPanel.update();
                     file = chooser.getSelectedFile();
                 } else {
                     main.saveConfig();
-                    System.out.println(main.importPath);
                     file = new File(main.importPath);
                 }
                 Import importer = new Import(main);

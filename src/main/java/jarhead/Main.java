@@ -94,6 +94,7 @@ class Main extends JFrame {
 
     public void initComponents() {
         this.setTitle("RRPathGen");
+        this.setSize(800,800);
         exportPanel = new ExportPanel(this);
         drawPanel = new DrawPanel(managers,this);
         buttonPanel = new ButtonPanel(managers,this);
@@ -108,25 +109,25 @@ class Main extends JFrame {
         c.weightx = 1;
         c.weighty = 1;
         c.gridwidth = 1;
-        c.gridheight = 3;
+        c.gridheight = 4;
         this.getContentPane().add(exportPanel, c);
         c.fill = GridBagConstraints.VERTICAL;
         c.gridx = 3;
         c.gridy = 0;
         c.gridwidth = 1;
-        c.gridheight = 3;
+        c.gridheight = 4;
         c.weightx = 0.1;
         c.weighty = 0.1;
         this.getContentPane().add(infoPanel, c);
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
+        c.gridx = 1;
         c.gridy = 3;
-        c.gridwidth = 3;
+        c.gridwidth = 2;
         c.gridheight = 1;
         this.getContentPane().add(buttonPanel, c);
         c.fill = GridBagConstraints.NONE;
         c.gridx = 1;
-        c.gridy = 1;
+        c.gridy = 0;
         c.weightx = 1;
         c.weighty = 1;
         c.gridwidth = 2;
@@ -262,10 +263,8 @@ class Main extends JFrame {
     public void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
-            System.out.println(n.x + " 1: " + ns + " " + os);
             n.x = (n.x/os)*ns;
             n.y = (n.y/os)*ns;
-            System.out.println(n.x);
         }
     }
 
