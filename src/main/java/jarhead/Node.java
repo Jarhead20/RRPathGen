@@ -74,6 +74,9 @@ public class Node {
         return (Math.toDegrees(Math.atan2(this.x - n.x, this.y - n.y)));
     }
 
+    @Override
+    public String toString(){
 
-
+        return "{x: " + x + " y: " + y + " robotHeading: " + robotHeading + " spline heading: " + splineHeading + " type: " + type + "}";
+    }
 }

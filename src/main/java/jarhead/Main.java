@@ -91,7 +91,7 @@ class Main extends JFrame {
     }
 
     public void initComponents() {
-
+        this.setTitle("RRPathGen");
         drawPanel = new DrawPanel(managers,this);
         buttonPanel = new ButtonPanel(managers,this);
         infoPanel = new InfoPanel(this);

@@ -13,7 +13,7 @@ public class SettingsPanel extends JPanel {
     private Main main;
 
     NumberFormat format = NumberFormat.getInstance();
-    NumberFormatter formatter = new NumberFormatter(format);
+//    NumberFormatter formatter = new NumberFormatter(format);
     private LinkedList<JTextField> fields = new LinkedList<>();
     private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export"};
 
@@ -24,7 +24,7 @@ public class SettingsPanel extends JPanel {
         this.setLayout(new SpringLayout());
 
         for (String label : labels) {
-            JTextField input = new JFormattedTextField(formatter);
+            JTextField input = new JTextField();
             input.setCursor(new Cursor(2));
             input.setColumns(10);
 //            input.setMaximumSize(new Dimension((int)main.scale*5,10));

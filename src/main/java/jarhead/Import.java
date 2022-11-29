@@ -1,5 +1,6 @@
 package jarhead;
 
+import javax.lang.model.type.UnknownTypeException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -72,9 +73,6 @@ public class Import {
                             node.robotHeading = node.splineHeading;
                             break;
                         case splineToSplineHeading:
-                            node.splineHeading = Double.parseDouble(data.group(5))-90;
-                            node.robotHeading = Double.parseDouble(data.group(4))-90;
-                            break;
                         case splineToLinearHeading:
                             node.splineHeading = Double.parseDouble(data.group(5))-90;
                             node.robotHeading = Double.parseDouble(data.group(4))-90;
@@ -86,6 +84,8 @@ public class Import {
                         case displacementMarker:
                             discard = true;
                             break;
+                        default:
+                            throw new Exception("Unknown spline type");
                     }
                 } catch (Exception e) {
 //                    e.printStackTrace();

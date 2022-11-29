@@ -353,11 +353,7 @@ public class DrawPanel extends JPanel {
 
             mouse = snap(mouse, e);
             if(index != -1){
-                Node n2 = getCurrentManager().get(index);
-                mouse.x = n2.x;
-                mouse.y = n2.y;
-                mouse.setType(n2.getType());
-                mouse.code = n2.code;
+
                 if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
                     getCurrentManager().editIndex = index;
                     edit = true;
@@ -370,6 +366,11 @@ public class DrawPanel extends JPanel {
                         getCurrentManager().add(index,mouse);
                     }
                     else { //editing existing node
+                        Node n2 = getCurrentManager().get(index);
+                        mouse.x = n2.x;
+                        mouse.y = n2.y;
+                        mouse.setType(n2.getType());
+                        mouse.code = n2.code;
                         Node prev = getCurrentManager().get(index);
                         preEdit = prev.copy(); //storing the existing data for undo
                         preEdit.state = 4;
