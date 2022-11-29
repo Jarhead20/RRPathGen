@@ -95,7 +95,7 @@ public class ButtonPanel extends JPanel {
                                 break;
                         }
                     }
-                    sb.append(".build()");
+                    sb.append(".build();");
                     main.exportPanel.field.setText(sb.toString());
                 }
             }
