@@ -54,7 +54,7 @@ public class ButtonPanel extends JPanel {
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
 
-                    String path = main.importPath;
+//                    String path = main.importPath;
 //                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
 //                    System.out.println(outputFile.getPath());
 //                    try {
@@ -67,6 +67,9 @@ public class ButtonPanel extends JPanel {
 //                        ioException.printStackTrace();
 //                    }
 
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
+
 
                     System.out.printf("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90));
                     for (int i = 1; i < getCurrentManager().size(); i++) {
@@ -75,27 +78,36 @@ public class ButtonPanel extends JPanel {
                         y = main.toInches(node.y);
                         switch (node.getType()){
                             case splineTo:
+                                sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
                                 System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 break;
                             case displacementMarker:
+                                sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
+                                sb.append(String.format(".addDisplacementMarker(() -> {%s})%n", node.code));
                                 System.out.printf(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 System.out.printf(".addDisplacementMarker(() -> {%s})%n", node.code);
                                 break;
                             case splineToSplineHeading:
+                                sb.append(String.format(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
                                 System.out.printf(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90));
                                 break;
                             case splineToLinearHeading:
+                                sb.append(String.format(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
                                 System.out.printf(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90));
                                 break;
                             case splineToConstantHeading:
+                                sb.append(String.format(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
                                 System.out.printf(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90));
                                 break;
                             default:
-                                System.out.println("what");
+                                sb.append("couldn't find type");
+                                System.out.println("couldn't find type");
                                 break;
                         }
                     }
-                    System.out.println(".build();");
+                    sb.append(".build()");
+                    main.exportPanel.field.setText(sb.toString());
+//                    System.out.println(".build();");
                 }
             }
         });
@@ -177,6 +189,7 @@ public class ButtonPanel extends JPanel {
 
 
                 main.currentM = managers.size()-1;
+                main.currentN = -1;
                 main.infoPanel.editPanel.name.setText(getCurrentManager().name);
                 main.drawPanel.renderBackgroundSplines();
                 main.drawPanel.repaint();

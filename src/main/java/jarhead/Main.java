@@ -19,6 +19,8 @@ class Main extends JFrame {
     public DrawPanel drawPanel;
     public InfoPanel infoPanel;
     public ButtonPanel buttonPanel;
+    public ExportPanel exportPanel;
+
     public String importPath;
     private String configPath;
 
@@ -45,7 +47,7 @@ class Main extends JFrame {
 
     public void reloadConfig() {
         try{
-            double oldScale = scale;
+            drawPanel.getPreferredSize();
             scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
@@ -92,6 +94,7 @@ class Main extends JFrame {
 
     public void initComponents() {
         this.setTitle("RRPathGen");
+        exportPanel = new ExportPanel(this);
         drawPanel = new DrawPanel(managers,this);
         buttonPanel = new ButtonPanel(managers,this);
         infoPanel = new InfoPanel(this);
@@ -99,19 +102,35 @@ class Main extends JFrame {
         GridBagLayout layout = new GridBagLayout();
         this.getContentPane().setLayout(layout);
         GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.VERTICAL;
-        c.gridx = 3;
-        c.gridy = 0;
-        this.getContentPane().add(infoPanel, c);
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy = 3;
-        this.getContentPane().add(buttonPanel, c);
-        c.fill = GridBagConstraints.NONE;
+        c.fill = GridBagConstraints.BOTH;
         c.gridx = 0;
         c.gridy = 0;
         c.weightx = 1;
         c.weighty = 1;
+        c.gridwidth = 1;
+        c.gridheight = 3;
+        this.getContentPane().add(exportPanel, c);
+        c.fill = GridBagConstraints.VERTICAL;
+        c.gridx = 3;
+        c.gridy = 0;
+        c.gridwidth = 1;
+        c.gridheight = 3;
+        c.weightx = 0.1;
+        c.weighty = 0.1;
+        this.getContentPane().add(infoPanel, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 3;
+        c.gridheight = 1;
+        this.getContentPane().add(buttonPanel, c);
+        c.fill = GridBagConstraints.NONE;
+        c.gridx = 1;
+        c.gridy = 1;
+        c.weightx = 1;
+        c.weighty = 1;
+        c.gridwidth = 2;
+        c.gridheight = 2;
         c.anchor = GridBagConstraints.CENTER;
         this.getContentPane().add(drawPanel, c);
 
