@@ -27,7 +27,7 @@ Generate your paths using the key binds below and once you are done export the p
 | Left Arrow          | Next Path               |
 | Right Arrow         | Previous Path           |
 | R                   | Reverse Robot Direction |
-| Delete              | Delete Selected Node    |
+| Delete / Backspace  | Delete Selected Node    |
 | Ctrl + Z            | Undo Previous Action    |
 
 If you accidentally do something wrong with the config, just delete it at `%appdata%/RRPathGen` for Windows, `~/Library/Application Support/RRPathGen/config.properties` for MacOS and `~/.RRPathGen/config.properties` for Linux.
