@@ -6,7 +6,7 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 
 1. Download the jar from the [releases page](https://github.com/Jarhead20/RRPathGen/releases).
 2. Check that you have at least java 8 installed `java --version`
-3. Run the jar from the command line `java -jar .\RRPathGen-1.2.2.jar` if you do not run from the command line you will not be able to export properly
+3. Run the jar either by double clicking it or through the command line with `java -jar RRPathGen-X.X.X.jar`
 
 
 ## Installation (Intellij)
@@ -27,7 +27,7 @@ Generate your paths using the key binds below and once you are done export the p
 | Left Arrow          | Next Path               |
 | Right Arrow         | Previous Path           |
 | R                   | Reverse Robot Direction |
-| Delete              | Delete Selected Node    |
+| Delete / Backspace  | Delete Selected Node    |
 | Ctrl + Z            | Undo Previous Action    |
 
 If you accidentally do something wrong with the config, just delete it at `%appdata%/RRPathGen` for Windows, `~/Library/Application Support/RRPathGen/config.properties` for MacOS and `~/.RRPathGen/config.properties` for Linux.
