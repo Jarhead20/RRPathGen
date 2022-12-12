@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+
 public class DrawPanel extends JPanel {
 
     private LinkedList<NodeManager> managers;
@@ -40,10 +41,10 @@ public class DrawPanel extends JPanel {
     @Override
     public Dimension getPreferredSize() {
         Insets in = main.getInsets();
-        int width = main.getWidth()-(main.infoPanel.getWidth() + in.left + in.right);
+        int width = main.getWidth()-(main.infoPanel.getWidth() + in.left + in.right + main.exportPanel.getWidth());
         int height = (main.getHeight()-(main.buttonPanel.getHeight()+in.top + in.bottom));
         int min = Math.min(width, height);
-        main.scale = width/144;
+        main.scale = min/144;
         return new Dimension(min, min);
     }
 
@@ -108,6 +109,7 @@ public class DrawPanel extends JPanel {
 
     private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
         //TODO: make this faster :(
+        if(this.getWidth() != this.getHeight()) System.out.println("w != h");
         BufferedImage image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         g2.setColor(color);
