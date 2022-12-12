@@ -54,18 +54,18 @@ public class ButtonPanel extends JPanel {
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
 
-//                    String path = main.importPath;
-//                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
-//                    System.out.println(outputFile.getPath());
-//                    try {
-//                        outputFile.createNewFile();
-//                        FileWriter writer = new FileWriter(outputFile);
-//                        Scanner reader = new Scanner(new File(main.importPath));
-//
-//                        writer.close();
-//                    } catch (IOException ioException) {
-//                        ioException.printStackTrace();
-//                    }
+                    String path = main.importPath;
+                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
+                    System.out.println(outputFile.getPath());
+                    try {
+                        outputFile.createNewFile();
+                        FileWriter writer = new FileWriter(outputFile);
+                        Scanner reader = new Scanner(new File(main.importPath));
+
+                        writer.close();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
 
                     StringBuilder sb = new StringBuilder();
                     sb.append(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));

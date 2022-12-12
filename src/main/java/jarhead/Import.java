@@ -12,7 +12,7 @@ public class Import {
     //(?:\.((?:\w|\s)+)\((?:\w|\s)+)(?:(?:\(|\,|\s)+((?:[+-]?(?:\d*\.)?\d+)+))(?:(?:\(|\,|\s)+((?:[+-]?(?:\d*\.)?\d+)+))(?:\(|\,|\s|\))+(?:\w+\.\w+\()?((?:[+-]?(?:\d*\.)?\d+)+)(?:(?:\(|\,|\s|\))+(?:\w+\.\w+\()((?:[+-]?(?:\d*\.)?\d+)+))?
 
     private final Pattern dataPattern = Pattern.compile("(?:\\.((?:\\w|\\s)+)\\((?:new Pose2d|new Vector2d))(?:(?:\\(|\\,|\\s)+((?:[+-]?(?:\\d*\\.)?\\d+)+))?(?:(?:\\(|\\,|\\s)+((?:[+-]?(?:\\d*\\.)?\\d+)+))?(?:\\(|\\,|\\s|\\))+(?:\\w+\\.\\w+\\()?((?:[+-]?(?:\\d*\\.)?\\d+)+)?(?:(?:\\(|\\,|\\s|\\))+(?:\\w+\\.\\w+\\()((?:[+-]?(?:\\d*\\.)?\\d+)+))?", Pattern.MULTILINE);
-    private final Pattern pathName = Pattern.compile("(\\w+)\\s*\\=\\s*(?:\\s*\\w+(.trajectory(?:Sequence)?Builder))\\s*\\(\\s*");
+    private final Pattern pathName = Pattern.compile("(\\w+)\\s*\\=\\s*(?:\\s*\\w+(.trajectory(?:Sequence)?Builder))(?:\\s*\\(\\s*)(.*?)(?=\\.build\\(\\)\\;)");
     private final Pattern displacement = Pattern.compile("(?:\\.(addDisplacementMarker)\\s*\\(\\s*\\(\\)\\s*\\-\\>\\s*)(?:\\{)(.*?)(?=\\}\\s*\\)\\s*\\.)");
     private Main main;
     public Import(Main main){
@@ -81,11 +81,16 @@ public class Import {
                             node.splineHeading = Double.parseDouble(data.group(4))-90;
                             node.robotHeading = node.splineHeading;
                             break;
-                        case displacementMarker:
-                            discard = true;
-                            break;
                         default:
-                            throw new Exception("Unknown spline type");
+                            //TODO: fix importing
+                            Matcher displace = displacement.matcher(allText.substring(data.start(), data.end()));
+                            while(displace.find()){
+                                System.out.println(displace.group(0));
+                                System.out.println(displace.group(2));
+                                manager.get(manager.size()-1).code = displace.group(2);
+                                discard = true;
+                            }
+
                     }
                 } catch (Exception e) {
 //                    e.printStackTrace();
@@ -96,6 +101,7 @@ public class Import {
                 }
                 if(!discard)
                     manager.add(node);
+
             }
         }
         return managers;
