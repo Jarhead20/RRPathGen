@@ -212,6 +212,7 @@ class Main extends JFrame {
         Node node = getCurrentManager().redo.last();
         Node u;
         Node temp;
+        //TODO: fix undo and redo
         switch (node.state){
             case 1: //redo delete
                 temp = getCurrentManager().get(node.index);

@@ -34,7 +34,9 @@ public class DrawPanel extends JPanel {
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
     public void update(){
-        renderBackgroundSplines();
+        resetPath();
+        preRenderedSplines = null;
+//        renderBackgroundSplines();
         repaint();
     }
 
@@ -44,7 +46,7 @@ public class DrawPanel extends JPanel {
         int width = main.getWidth()-(main.infoPanel.getWidth() + in.left + in.right + main.exportPanel.getWidth());
         int height = (main.getHeight()-(main.buttonPanel.getHeight()+in.top + in.bottom));
         int min = Math.min(width, height);
-        main.scale = min/144;
+        main.scale = min/144.0;
         return new Dimension(min, min);
     }
 
@@ -110,7 +112,11 @@ public class DrawPanel extends JPanel {
     private void renderRobotPath(Graphics2D g, Path path, Color color, float transparency) {
         //TODO: make this faster :(
         if(this.getWidth() != this.getHeight()) System.out.println("w != h");
-        BufferedImage image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        BufferedImage image;
+        if(this.getWidth() > 0)
+             image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        else
+            image = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         g2.setColor(color);
         double rX = main.robotLength*main.scale;
@@ -165,10 +171,6 @@ public class DrawPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0,this.getWidth(), this.getHeight(), null);
-        if(preRenderedSplines == null) renderBackgroundSplines();
-        g.drawImage(preRenderedSplines, 0,0,null);
-
         main.scale = ((double)this.getWidth()-this.getInsets().left - this.getInsets().right)/144.0;
         if(oldScale != main.scale)
             main.getManagers().forEach(nodeManager -> {
@@ -178,6 +180,11 @@ public class DrawPanel extends JPanel {
             });
 
         oldScale = main.scale;
+        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0,this.getWidth(), this.getHeight(), null);
+        if(preRenderedSplines == null || preRenderedSplines.getWidth() != this.getWidth()) renderBackgroundSplines();
+        g.drawImage(preRenderedSplines, 0,0,null);
+
+
         if(getCurrentManager().size() > 0) {
 
             Node node = getCurrentManager().get(0);
@@ -220,8 +227,8 @@ public class DrawPanel extends JPanel {
     public void renderBackgroundSplines(){
         if(this.getWidth() > 0)
             preRenderedSplines = new BufferedImage((this.getWidth()), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-
         else preRenderedSplines = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+
         Graphics g = preRenderedSplines.getGraphics();
         for (NodeManager manager : managers){
             if(!manager.equals(getCurrentManager())){
@@ -263,6 +270,7 @@ public class DrawPanel extends JPanel {
                 }
             }
         }
+        g.dispose();
     }
 
     private void renderArrows(Graphics g, NodeManager nodeM, int ovalscale, Color color1, Color color2, Color color3) {
@@ -474,6 +482,8 @@ public class DrawPanel extends JPanel {
         if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z){
             main.undo();
         }
+
+//        if(e.getKeyCode() == KeyEvent.VK_J) preRenderedSplines = null;
 
         if(e.getKeyCode() == KeyEvent.VK_DELETE || e.getKeyCode() == KeyEvent.VK_BACK_SPACE){
             if(main.currentN >= 0){
