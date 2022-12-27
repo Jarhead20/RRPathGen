@@ -251,7 +251,7 @@ class Main extends JFrame {
     public void saveConfig() {
         try {
             FileOutputStream stream = new FileOutputStream(configPath);
-            prop.store(stream, "V1.2");
+            prop.store(stream, "V1.3");
             stream.close();
         }  catch (IOException e) {
             e.printStackTrace();

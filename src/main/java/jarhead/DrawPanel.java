@@ -226,27 +226,35 @@ public class DrawPanel extends JPanel {
         for (NodeManager manager : managers){
             if(!manager.equals(getCurrentManager())){
                 if(manager.size() > 0) {
-
-                    java.util.List<PathSegment> segments = new ArrayList<>();
-
                     Node node = manager.get(0);
+                    PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
                     for (int i = 1; i < manager.size(); i++) {
-                        final Node prevNode = node;
                         node = manager.get(i);
-                        double currentX = node.x;
-                        double currentY = node.y;
-                        double prevX = prevNode.x;
-                        double prevY = prevNode.y;
-                        final double derivMag = Math.hypot(currentX - prevX, currentY - prevY);
-                        final double prevHeading = Math.toRadians(-prevNode.splineHeading - 90);
-                        final double heading = Math.toRadians(-node.splineHeading - 90);
-                        segments.add(new PathSegment(new QuinticSpline(
-                                new QuinticSpline.Knot(prevX, prevY, derivMag * Math.cos(prevHeading), derivMag * Math.sin(prevHeading)),
-                                new QuinticSpline.Knot(currentX, currentY, derivMag * Math.cos(heading), derivMag * Math.sin(heading)),
-                                0.25, 1, 4
-                        )));
+                        try{
+                            switch (node.getType()){
+                                case splineTo:
+                                    pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                                    break;
+                                case displacementMarker:
+                                    pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                                    break;
+                                case splineToSplineHeading:
+                                    pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+                                    break;
+                                case splineToLinearHeading:
+                                    pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+                                    break;
+                                case splineToConstantHeading:
+                                    pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                                    break;
+                            }
+                        } catch (Exception e) {
+                            main.undo(false);
+                            i--;
+                            e.printStackTrace();
+                        }
                     }
-                    Path path = new Path(segments);
+                    path = pb.build();
 
                     renderRobotPath((Graphics2D) g, path, dLightPurple, 0.5f);
                     renderSplines(g, path, dCyan);
