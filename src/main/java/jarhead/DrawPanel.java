@@ -121,19 +121,32 @@ public class DrawPanel extends JPanel {
         g2.setColor(color);
         double rX = main.robotLength*main.scale;
         double rY = main.robotWidth*main.scale;
-        for (double i = 0; i < path.length(); i+=main.resolution) {
-            Pose2d pose1 = path.get(i-main.resolution);
+        double prevHeading = 0;
+        if(path.length() > 0)
+            prevHeading = path.start().getHeading();
+        double res;
+        for (double i = 0; i < path.length();) {
+            Pose2d pose1 = path.get(i);
             int x1 = (int) pose1.getX();
             int y1 = (int) pose1.getY();
+            double temp = Math.min((2 * Math.PI) - Math.abs(pose1.getHeading() - prevHeading), Math.abs(pose1.getHeading() - prevHeading));
 
+            res = main.resolution/((main.resolution/10) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
+            i+=res;
+            prevHeading = pose1.getHeading();
             outLine.setToIdentity();
             outLine.translate(x1, y1);
             outLine.rotate(pose1.getHeading());
-
+//            float value = (float) res; //this is your value between 0 and 1
+//            float minHue = 120f/255; //corresponds to green
+//            float maxHue = 0; //corresponds to red
+//            float hue = (float) (value*maxHue + (main.resolution-value)*minHue);
+//            g2.setColor(new Color(Color.HSBtoRGB(hue, 1, 0.5f)));
             g2.setColor(color);
             g2.setTransform(outLine);
             g2.fillRoundRect((int) Math.floor(-rX/2),(int) Math.floor(-rY/2),(int) Math.floor(rX),(int) Math.floor(rY),(int) main.scale*2, (int)main.scale*2);
         }
+
         if(path.length() > 0){
             Pose2d end = path.end();
             outLine.setToIdentity();
@@ -171,6 +184,7 @@ public class DrawPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        long time = System.currentTimeMillis();
         main.scale = ((double)this.getWidth()-this.getInsets().left - this.getInsets().right)/144.0;
         if(oldScale != main.scale)
             main.getManagers().forEach(nodeManager -> {
@@ -184,13 +198,22 @@ public class DrawPanel extends JPanel {
         if(preRenderedSplines == null || preRenderedSplines.getWidth() != this.getWidth()) renderBackgroundSplines();
         g.drawImage(preRenderedSplines, 0,0,null);
 
-
         if(getCurrentManager().size() > 0) {
+            path = generatePath(getCurrentManager());
+            renderRobotPath((Graphics2D) g, path, lightPurple, 0.5f);
+            renderSplines(g, path, cyan);
+            renderPoints(g, path, cyan, 1);
+            renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
+        }
+        System.out.println(System.currentTimeMillis() - time);
+    }
 
-            Node node = getCurrentManager().get(0);
+    private Path generatePath(NodeManager manager){
+
+            Node node = manager.get(0);
             PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-            for (int i = 1; i < getCurrentManager().size(); i++) {
-                node = getCurrentManager().get(i);
+            for (int i = 1; i < manager.size(); i++) {
+                node = manager.get(i);
                 try{
                     switch (node.getType()){
                         case splineTo:
@@ -215,13 +238,8 @@ public class DrawPanel extends JPanel {
                     e.printStackTrace();
                 }
             }
-            path = pb.build();
 
-            renderRobotPath((Graphics2D) g, path, lightPurple, 0.5f);
-            renderSplines(g, path, cyan);
-            renderPoints(g, path, cyan, 1);
-            renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
-        }
+            return pb.build();
     }
 
     public void renderBackgroundSplines(){
@@ -233,41 +251,13 @@ public class DrawPanel extends JPanel {
         for (NodeManager manager : managers){
             if(!manager.equals(getCurrentManager())){
                 if(manager.size() > 0) {
-                    Node node = manager.get(0);
-                    PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                    for (int i = 1; i < manager.size(); i++) {
-                        node = manager.get(i);
-                        try{
-                            switch (node.getType()){
-                                case splineTo:
-                                    pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                                    break;
-                                case displacementMarker:
-                                    pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                                    break;
-                                case splineToSplineHeading:
-                                    pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                                    break;
-                                case splineToLinearHeading:
-                                    pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                                    break;
-                                case splineToConstantHeading:
-                                    pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                                    break;
-                            }
-                        } catch (Exception e) {
-                            main.undo(false);
-                            i--;
-                            e.printStackTrace();
-                        }
-                    }
-                    path = pb.build();
-
+                    Path path = generatePath(manager);
                     renderRobotPath((Graphics2D) g, path, dLightPurple, 0.5f);
                     renderSplines(g, path, dCyan);
                     renderPoints(g, path, dCyan, 1);
                     renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
                 }
+
             }
         }
         g.dispose();
