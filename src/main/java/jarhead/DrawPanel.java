@@ -3,6 +3,9 @@ package jarhead;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.*;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstraint;
+import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +27,6 @@ public class DrawPanel extends JPanel {
     private Node preEdit;
     private boolean edit = false;
     final double clickSize = 2;
-
 
     private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
@@ -210,36 +212,36 @@ public class DrawPanel extends JPanel {
 
     private Path generatePath(NodeManager manager){
 
-            Node node = manager.get(0);
-            PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-            for (int i = 1; i < manager.size(); i++) {
-                node = manager.get(i);
-                try{
-                    switch (node.getType()){
-                        case splineTo:
-                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case displacementMarker:
-                            pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case splineToSplineHeading:
-                            pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case splineToLinearHeading:
-                            pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                            break;
-                        case splineToConstantHeading:
-                            pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                            break;
-                    }
-                } catch (Exception e) {
-                    main.undo(false);
-                    i--;
-                    e.printStackTrace();
+        Node node = manager.get(0);
+//        TrajectoryBuilder builder = new TrajectoryBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)),new AngularVelocityConstraint(60),new ProfileAccelerationConstraint(10));
+        PathBuilder pb = new PathBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+        for (int i = 1; i < manager.size(); i++) {
+            node = manager.get(i);
+            try{
+                switch (node.getType()){
+                    case splineTo:
+                        pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                        break;
+                    case displacementMarker:
+                        pb.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                        break;
+                    case splineToSplineHeading:
+                        pb.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+                        break;
+                    case splineToLinearHeading:
+                        pb.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
+                        break;
+                    case splineToConstantHeading:
+                        pb.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
+                        break;
                 }
+            } catch (Exception e) {
+                main.undo(false);
+                i--;
+                e.printStackTrace();
             }
-
-            return pb.build();
+        }
+        return pb.build();
     }
 
     public void renderBackgroundSplines(){
