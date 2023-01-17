@@ -24,8 +24,10 @@ public class ButtonPanel extends JPanel {
     private final JButton redoButton = new JButton("Redo");
     private LinkedList<NodeManager> managers;
     private Main main;
+    private ProgramProperties robot;
 
-    ButtonPanel(LinkedList<NodeManager> managers, Main main){
+    ButtonPanel(LinkedList<NodeManager> managers, Main main, ProgramProperties props){
+        this.robot = props;
         this.main = main;
         this.managers = managers;
         this.setMinimumSize(new Dimension(0,20));
@@ -54,13 +56,12 @@ public class ButtonPanel extends JPanel {
                     double x = main.toInches(node.x);
                     double y = main.toInches(node.y);
 
-                    String path = main.importPath;
-                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
+                    File outputFile = new File(robot.importPath.substring(0,robot.importPath.length()-4) + "backup.java");
                     System.out.println(outputFile.getPath());
                     try {
                         outputFile.createNewFile();
                         FileWriter writer = new FileWriter(outputFile);
-                        Scanner reader = new Scanner(new File(main.importPath));
+                        Scanner reader = new Scanner(new File(robot.importPath));
 
                         writer.close();
                     } catch (IOException ioException) {
@@ -116,7 +117,7 @@ public class ButtonPanel extends JPanel {
         });
         undoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                main.undo();
+                main.undo(true);
                 main.drawPanel.repaint();
             }
         });
@@ -152,20 +153,20 @@ public class ButtonPanel extends JPanel {
         importButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 File file;
-                if(main.prop.getProperty("IMPORT/EXPORT").matches("")){
+                if(robot.importPath.matches("")){
                     JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
                     FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Files", "java");
                     chooser.setFileFilter(filter);
                     int r = chooser.showOpenDialog(null);
                     if(r != JFileChooser.APPROVE_OPTION) return;
-                    main.importPath = chooser.getSelectedFile().getPath();
-                    main.prop.setProperty("IMPORT/EXPORT", main.importPath);
+                    robot.importPath = chooser.getSelectedFile().getPath();
+                    robot.prop.setProperty("IMPORT/EXPORT", robot.importPath);
                     main.saveConfig();
                     main.infoPanel.settingsPanel.update();
                     file = chooser.getSelectedFile();
                 } else {
                     main.saveConfig();
-                    file = new File(main.importPath);
+                    file = new File(robot.importPath);
                 }
                 Import importer = new Import(main);
                 LinkedList<NodeManager> in = importer.read(file);

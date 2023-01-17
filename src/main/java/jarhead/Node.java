@@ -13,10 +13,14 @@ public class Node {
 
     public enum Type {
         splineTo,
-        displacementMarker,
         splineToSplineHeading,
         splineToLinearHeading,
-        splineToConstantHeading
+        splineToConstantHeading,
+        lineTo,
+        lineToSplineHeading,
+        lineToLinearHeading,
+        lineToConstantHeading,
+        displacementMarker,
     }
     Node(){
 
@@ -67,6 +71,13 @@ public class Node {
         node.state = this.state;
         node.type = this.type;
         node.robotHeading = this.robotHeading;
+        return node;
+    }
+
+    public Node shrink(double scale){
+        Node node = copy();
+        node.x /= scale;
+        node.y /= scale;
         return node;
     }
 

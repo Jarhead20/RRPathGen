@@ -13,18 +13,23 @@ public class SettingsPanel extends JPanel {
     private Main main;
 
     NumberFormat format = NumberFormat.getInstance();
-//    NumberFormatter formatter = new NumberFormatter(format);
+    NumberFormatter formatter = new NumberFormatter(format);
     private LinkedList<JTextField> fields = new LinkedList<>();
-    private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export"};
-
-    SettingsPanel(Main main){
+    private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Ang Velo", "Max Ang Accel"};
+    private ProgramProperties robot;
+    SettingsPanel(Main main, ProgramProperties properties){
+        this.robot = properties;
         this.main = main;
         this.setOpaque(true);
 //        this.setPreferredSize(new Dimension((int) Math.floor(30 * main.scale), (int) Math.floor(40 * main.scale)));
         this.setLayout(new SpringLayout());
 
         for (String label : labels) {
-            JTextField input = new JTextField();
+            JTextField input;
+            if(label == labels[3])
+                input = new JTextField();
+            else
+                input = new JFormattedTextField(formatter);
             input.setCursor(new Cursor(2));
             input.setColumns(10);
 //            input.setMaximumSize(new Dimension((int)main.scale*5,10));
@@ -44,7 +49,7 @@ public class SettingsPanel extends JPanel {
             field.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    main.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
+                    robot.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
                     main.reloadConfig();
                     main.setState(JFrame.MAXIMIZED_BOTH);
                 }
@@ -55,9 +60,10 @@ public class SettingsPanel extends JPanel {
     public void update(){
         for (int i = 0; i < fields.size(); i++) {
             JTextField field = fields.get(i);
-            field.setText(main.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
-            main.saveConfig();
+            field.setText(robot.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
+            System.out.println(robot.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
         }
+        main.saveConfig();
     }
 
 

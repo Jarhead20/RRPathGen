@@ -14,10 +14,10 @@ public class InfoPanel extends JPanel {
     public SettingsPanel settingsPanel;
     public EditPanel editPanel;
 
-    InfoPanel(Main main) {
+    InfoPanel(Main main, ProgramProperties props) {
         this.main = main;
         this.setOpaque(true);
-        this.settingsPanel = new SettingsPanel(main);
+        this.settingsPanel = new SettingsPanel(main, props);
         this.editPanel = new EditPanel(main);
         this.setBackground(Color.darkGray.darker());
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
