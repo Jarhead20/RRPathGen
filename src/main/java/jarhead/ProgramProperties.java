@@ -88,7 +88,6 @@ public class ProgramProperties {
     }
 
     public void save(){
-        System.out.println("save");
         FileOutputStream out = null;
         try{
             out = new FileOutputStream(file);
