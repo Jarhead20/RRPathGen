@@ -481,25 +481,26 @@ public class DrawPanel extends JPanel {
             boolean mid = false;
             int index = -1;
             TrajectorySequence trajectory = getTrajectory();
+            double tangentialHeading = 0;
             //find closest mid
+            int counter = 0; //i don't like this but its the easiest way
             if(trajectory != null){
                 for (int i = 0; i < trajectory.size(); i++) {
                     SequenceSegment segment = trajectory.get(i);
                     if(segment != null){
                         if (segment instanceof TrajectorySegment) {
-
                             Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-
                             List<PathSegment> segments = path.getSegments();
-                            for(int j = 0; j < segments.size(); j++) {
-                                Pose2d pose = segments.get(j).get(segments.get(j).length() / 2);
+                            for (int j = 0; j < segments.size(); j++) {
+                                Pose2d pose = segments.get(j).get(segments.get(j).length() / 2.0);
                                 double px = (pose.getX()*main.scale) - mouse.x;
                                 double py = (pose.getY()*main.scale) - mouse.y;
-
+                                counter++;
                                 double midDist = Math.sqrt(px * px + py * py);
                                 if (midDist < (clickSize * main.scale) && midDist < closest) {
                                     closest = midDist;
-                                    index = j+1;
+                                    index = counter;
+                                    tangentialHeading = pose.getHeading();
                                     mid = true;
                                 }
                             }
@@ -533,6 +534,8 @@ public class DrawPanel extends JPanel {
                         preEdit.state = 2;
                         getCurrentManager().redo.clear();
                         main.currentN = getCurrentManager().size();
+                        System.out.println(Math.toDegrees(tangentialHeading) + " " + tangentialHeading);
+                        mouse.splineHeading = mouse.headingTo(getCurrentManager().get(index));
                         getCurrentManager().add(index,mouse);
                     }
                     else { //editing existing node

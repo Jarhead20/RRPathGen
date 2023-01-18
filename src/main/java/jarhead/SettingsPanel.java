@@ -61,7 +61,6 @@ public class SettingsPanel extends JPanel {
         for (int i = 0; i < fields.size(); i++) {
             JTextField field = fields.get(i);
             field.setText(robot.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
-            System.out.println(robot.prop.getProperty(labels[i].replaceAll(" ","_").toUpperCase()));
         }
         main.saveConfig();
     }
