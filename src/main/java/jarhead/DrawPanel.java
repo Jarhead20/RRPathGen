@@ -534,7 +534,7 @@ public class DrawPanel extends JPanel {
                         preEdit.state = 2;
                         getCurrentManager().redo.clear();
                         main.currentN = getCurrentManager().size();
-                        System.out.println(Math.toDegrees(tangentialHeading) + " " + tangentialHeading);
+                        //TODO: make it face towards the tangential heading
                         mouse.splineHeading = mouse.headingTo(getCurrentManager().get(index));
                         getCurrentManager().add(index,mouse);
                     }

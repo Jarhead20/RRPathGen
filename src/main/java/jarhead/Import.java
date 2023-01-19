@@ -14,6 +14,20 @@ public class Import {
     private final Pattern dataPattern = Pattern.compile("(?:\\.((?:\\w|\\s)+)\\((?:new Pose2d|new Vector2d))(?:(?:\\(|\\,|\\s)+((?:[+-]?(?:\\d*\\.)?\\d+)+))?(?:(?:\\(|\\,|\\s)+((?:[+-]?(?:\\d*\\.)?\\d+)+))?(?:\\(|\\,|\\s|\\))+(?:\\w+\\.\\w+\\()?((?:[+-]?(?:\\d*\\.)?\\d+)+)?(?:(?:\\(|\\,|\\s|\\))+(?:\\w+\\.\\w+\\()((?:[+-]?(?:\\d*\\.)?\\d+)+))?", Pattern.MULTILINE);
     private final Pattern pathName = Pattern.compile("(\\w+)\\s*\\=\\s*(?:\\s*\\w+(.trajectory(?:Sequence)?Builder))(?:\\s*\\(\\s*)(.*?)(?=\\.build\\(\\)\\;)");
     private final Pattern displacement = Pattern.compile("(?:\\.(addDisplacementMarker)\\s*\\(\\s*\\(\\)\\s*\\-\\>\\s*)(?:\\{)(.*?)(?=\\}\\s*\\)\\s*\\.)");
+    //latest regex to match pose/vector2d
+    //(?:\.((?:\w|\s)+)\((?:new Pose2d|new Vector2d))\s*(?:\()(.*)(?=\)\s*\))
+
+    //match any number
+    //((?:[+-]?(?:\d*\.)?\d+)+)
+
+    //ignore comments
+    //^(?!\s*\/\/).*
+
+    //new regex to match whole trajectory builder without dotall
+    //(\w+)\s*\=\s*(?:\s*\w+(.trajectory(?:Sequence)?Builder))(?:\s*\(\s*)((.|\r\n|\r|\n)*?)(?=\.build\(\)\;)
+
+    //new regex with commenting
+    //^(?!\s*\/\/).*(\w+)\s*\=\s*(?:\s*\w+(.trajectory(?:Sequence)?Builder))(?:\s*\(\s*)((?:.|\r\n|\r|\n)*?)(?=\.build\(\)\;)
     private Main main;
     public Import(Main main){
         this.main = main;
