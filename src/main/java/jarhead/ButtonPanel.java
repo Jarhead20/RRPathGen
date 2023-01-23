@@ -73,7 +73,7 @@ public class ButtonPanel extends JPanel {
                     }
 
                     StringBuilder sb = new StringBuilder();
-                    sb.append(String.format("Trajectory %s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
+                    sb.append(String.format("TrajectorySequence %s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
                     for (int i = 1; i < getCurrentManager().size(); i++) {
                         node = getCurrentManager().get(i);
                         x = main.toInches(node.x);
