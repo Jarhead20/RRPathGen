@@ -395,7 +395,7 @@ public class DrawPanel extends JPanel {
         for (NodeManager manager : managers){
             if(!manager.equals(getCurrentManager())){
                 if(manager.size() > 0) {
-                    Node node = getCurrentManager().get(0);
+                    Node node = manager.get(0).shrink(main.scale);
                     TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
                     TrajectorySequence trajectory = generatePath(manager, builder);
                     if(trajectory != null) {
@@ -584,6 +584,7 @@ public class DrawPanel extends JPanel {
 
     private void mDragged(MouseEvent e) {
         Node mouse = new Node(e.getPoint());
+        System.out.println(mouse.toString());
         if (SwingUtilities.isRightMouseButton(e)) return;
         if(edit){
             int index = getCurrentManager().editIndex;
@@ -616,18 +617,20 @@ public class DrawPanel extends JPanel {
                 main.currentN = -1;
                 resetPath();
             }
-
         if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+            System.out.println(main.currentM + " " + managers.size() + " " + getCurrentManager().size());
             if(main.currentM+1 < managers.size()){
                 main.currentM++;
                 main.currentN = -1;
                 resetPath();
             } else if(getCurrentManager().size() > 0){
+                System.out.println("yea");
                 NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                 managers.add(manager);
                 resetPath();
                 main.currentN = -1;
                 main.currentM++;
+                System.out.println(main.currentM + " " + managers.size() + " " + getCurrentManager().size());
             }
         }
         if(e.getKeyCode() == KeyEvent.VK_R) {

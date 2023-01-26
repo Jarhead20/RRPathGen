@@ -186,6 +186,8 @@ public class ButtonPanel extends JPanel {
                 }
                 Import importer = new Import(main);
                 LinkedList<NodeManager> in = importer.read(file);
+                if(getCurrentManager().size() < 1)
+                    managers.remove(getCurrentManager());
                 in.forEach((m) -> {
                     managers.add(m);
                 });
