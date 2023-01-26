@@ -18,7 +18,7 @@ public class ExportPanel extends JPanel {
         this.setBackground(Color.darkGray.darker());
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        this.setMinimumSize(new Dimension(200,0));
+        this.setMinimumSize(new Dimension(200,10));
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         this.add(scroll);

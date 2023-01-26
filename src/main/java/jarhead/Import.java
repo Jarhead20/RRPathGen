@@ -68,11 +68,9 @@ public class Import {
         for (int i = 0; i < managers.size(); i++) {
 
             NodeManager manager = managers.get(i);
-            System.out.println(allText.substring(starts.get(i), ends.get(i)));
+            //matches all the data within the trajectory builder
             Matcher data = dataPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
-
             while(data.find()){
-                boolean discard = false;
                 Node node = new Node();
                 String type = data.group(1);
                 try{
@@ -96,13 +94,12 @@ public class Import {
                         nlist.add(0.0);
                     }
                 }
-                System.out.println(nlist.toString());
                 try{
                     node.x = (nlist.get(0)+72.0)*main.scale;
                     node.y = (72.0 - nlist.get(1))*main.scale;
-                    System.out.println(node.toString());
                     switch (node.getType()){
                         case splineTo:
+                        case splineToConstantHeading:
                             node.splineHeading = nlist.get(2)-90.0;
                             node.robotHeading = node.splineHeading;
                             break;
@@ -111,31 +108,15 @@ public class Import {
                             node.splineHeading = nlist.get(3)-90.0;
                             node.robotHeading = nlist.get(2)-90.0;
                             break;
-                        case splineToConstantHeading:
-                            node.splineHeading = nlist.get(2)-90.0;
-                            node.robotHeading = node.splineHeading;
-                            break;
                         case lineTo:
+                        case lineToConstantHeading:
                             break;
                         case lineToSplineHeading:
-                            node.robotHeading = nlist.get(2)-90.0;
-                            break;
                         case lineToLinearHeading:
                             node.robotHeading = nlist.get(2)-90.0;
                             break;
-                        case lineToConstantHeading:
-                            break;
-                        case displacementMarker:
-                            break;
                         default:
-                            //TODO: fix importing
-                            Matcher displace = markerPattern.matcher(allText.substring(data.start(), data.end()));
-                            while(displace.find()){
-                                System.out.println(displace.group(0));
-                                System.out.println(displace.group(2));
-                                manager.get(manager.size()-1).code = displace.group(2);
-                                discard = true;
-                            }
+
 
                     }
                 } catch (Exception e) {
@@ -145,9 +126,26 @@ public class Import {
                     node.robotHeading = 90;
                     node.robotHeading = 90;
                 }
-                if(!discard)
-                    manager.add(node);
+                manager.add(node);
 
+//                case displacementMarker:
+//                    //TODO: fix importing
+//                    Matcher displace = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
+//                    while(displace.find()){
+//                        System.out.println(displace.group(0));
+//                        System.out.println(displace.group(2));
+//                        manager.get(manager.size()-1).code = displace.group(2);
+//                        discard = true;
+//                    }
+//                    break;
+            }
+            Matcher markers = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
+            while(markers.find()){
+//                System.out.println(markers.group(0));
+                System.out.println(markers.group(1));
+                System.out.println(markers.group(2));
+                manager.get(manager.size()-1).setType(Node.Type.displacementMarker);
+                manager.get(manager.size()-1).code = markers.group(2).trim();
             }
         }
         return managers;

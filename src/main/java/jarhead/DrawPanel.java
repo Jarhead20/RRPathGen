@@ -25,7 +25,7 @@ import java.util.List;
 
 public class DrawPanel extends JPanel {
 
-    boolean debug = false;
+    boolean debug = true;
 
     private LinkedList<NodeManager> managers;
     private ProgramProperties robot;
@@ -131,7 +131,6 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderRobotPath(Graphics2D g, TrajectorySequence trajectory, Color color, float transparency) {
-        //TODO: make this faster :(
         if (this.getWidth() != this.getHeight()) System.out.println("w != h");
         BufferedImage image;
         if (this.getWidth() > 0)
@@ -500,6 +499,7 @@ public class DrawPanel extends JPanel {
                                 if (midDist < (clickSize * main.scale) && midDist < closest) {
                                     closest = midDist;
                                     index = counter;
+
                                     tangentialHeading = pose.getHeading();
                                     mid = true;
                                 }
@@ -536,6 +536,7 @@ public class DrawPanel extends JPanel {
                         main.currentN = getCurrentManager().size();
                         //TODO: make it face towards the tangential heading
                         mouse.splineHeading = mouse.headingTo(getCurrentManager().get(index));
+                        mouse.robotHeading = mouse.splineHeading;
                         getCurrentManager().add(index,mouse);
                     }
                     else { //editing existing node
@@ -584,7 +585,6 @@ public class DrawPanel extends JPanel {
 
     private void mDragged(MouseEvent e) {
         Node mouse = new Node(e.getPoint());
-        System.out.println(mouse.toString());
         if (SwingUtilities.isRightMouseButton(e)) return;
         if(edit){
             int index = getCurrentManager().editIndex;
