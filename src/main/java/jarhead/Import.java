@@ -115,6 +115,18 @@ public class Import {
                             node.splineHeading = nlist.get(2)-90.0;
                             node.robotHeading = node.splineHeading;
                             break;
+                        case lineTo:
+                            break;
+                        case lineToSplineHeading:
+                            node.robotHeading = nlist.get(2)-90.0;
+                            break;
+                        case lineToLinearHeading:
+                            node.robotHeading = nlist.get(2)-90.0;
+                            break;
+                        case lineToConstantHeading:
+                            break;
+                        case displacementMarker:
+                            break;
                         default:
                             //TODO: fix importing
                             Matcher displace = markerPattern.matcher(allText.substring(data.start(), data.end()));
