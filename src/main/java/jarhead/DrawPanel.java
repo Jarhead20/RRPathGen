@@ -3,6 +3,7 @@ package jarhead;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.*;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import jarhead.trajectorysequence.TrajectorySequence;
@@ -20,12 +21,12 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public class DrawPanel extends JPanel {
 
-    boolean debug = true;
+    boolean debug = false;
 
     private LinkedList<NodeManager> managers;
     private ProgramProperties robot;
@@ -34,7 +35,7 @@ public class DrawPanel extends JPanel {
     private Node preEdit;
     private boolean edit = false;
     final double clickSize = 2;
-
+    private Point mouseP;
 
     private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
@@ -90,6 +91,7 @@ public class DrawPanel extends JPanel {
 
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
+                mouseP = e.getPoint();
                 mDragged(e);
             }
         });
@@ -109,9 +111,10 @@ public class DrawPanel extends JPanel {
             SequenceSegment segment = trajectory.get(i);
             if(segment != null){
                 if (segment instanceof TrajectorySegment) {
-                    Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
+                    Trajectory path = ((TrajectorySegment) segment).getTrajectory();
+
                     g.setColor(color);
-                    for (double j = 0; j < path.length(); j+= robot.resolution) {
+                    for (double j = 0; j < path.duration(); j+= robot.resolution) {
                         Pose2d pose1 = path.get(j-robot.resolution);
                         Pose2d pose2 = path.get(j);
                         int x1 = (int) (pose1.getX()*main.scale);
@@ -205,55 +208,6 @@ public class DrawPanel extends JPanel {
                 }
             }
         }
-
-
-//        for (double i = 0; i < this.trajectory.duration(); ) {
-//            Pose2d pose1 = this.trajectory.start();
-//            int x1 = (int) pose1.getX();
-//            int y1 = (int) pose1.getY();
-//            double temp = Math.min((2 * Math.PI) - Math.abs(pose1.getHeading() - prevHeading), Math.abs(pose1.getHeading() - prevHeading));
-//
-//
-//            for (int i = 0; i < trajectory.size(); i++) {
-//                SequenceSegment segment = trajectory.get(i);
-//                if (segment != null) {
-//                    if (segment instanceof TrajectorySegment) {
-//
-//                        Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-//
-//                        for (double j = 0; j < path.length(); j += robot.resolution) {
-//                            Pose2d pose1 = path.get(j - robot.resolution);
-//                            int x1 = (int) pose1.getX();
-//                            int y1 = (int) pose1.getY();
-//
-//                            res = robot.resolution / ((robot.resolution / 10) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
-//                            i += res;
-//                            prevHeading = pose1.getHeading();
-//
-//                            outLine.setToIdentity();
-//                            outLine.translate(x1, y1);
-//                            outLine.rotate(pose1.getHeading());
-//
-//                            g2.setColor(color);
-//                            g2.setTransform(outLine);
-//                            g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
-//                        }
-//                        if (path.length() > 0) {
-//                            Pose2d end = path.end();
-//                            outLine.setToIdentity();
-//                            outLine.translate(end.getX(), end.getY());
-//                            outLine.rotate(end.getHeading());
-//                            g2.setTransform(outLine);
-//                            g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
-//                        }
-//
-//                    } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
-//                        Pose2d startPose = segment.getStartPose();
-//                        Pose2d endPose = segment.getEndPose();
-//                        g.drawLine((int) startPose.getX(), (int) startPose.getY(), (int) endPose.getX(), (int) endPose.getY());
-//                    }
-//                }
-//            }
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
             g.drawImage(image, 0, 0, null);
@@ -262,22 +216,35 @@ public class DrawPanel extends JPanel {
 //        }
     }
 
-    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1,int ovalscale){
-
+    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalscale, Point mouse){
+        double min = 99999;
+        double mx = 0;
+        double my = 0;
         for (int i = 0; i < trajectory.size(); i++) {
             SequenceSegment segment = trajectory.get(i);
             if (segment != null) {
                 if (segment instanceof TrajectorySegment) {
                     Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-
-                    path.getSegments().forEach(pathSegment -> {
-
+                    for (PathSegment pathSegment : path.getSegments()) {
                         Pose2d mid = pathSegment.get(pathSegment.length() / 2);
                         double x = mid.getX()*main.scale;
                         double y = mid.getY()*main.scale;
                         g.setColor(c1);
                         g.fillOval((int) Math.floor(x - (ovalscale * main.scale)), (int) Math.floor(y - (ovalscale * main.scale)), (int) Math.floor(2 * ovalscale * main.scale), (int) Math.floor(2 * ovalscale * main.scale));
-                    });
+
+                        for (double j = 0; j < pathSegment.length(); j+= robot.resolution) {
+                            Pose2d pose = pathSegment.get(j);
+                            x = pose.getX()*main.scale;
+                            y = pose.getY()*main.scale;
+                            double dist = mouse.distance(x, y);
+
+                            if(dist < min) {
+                                mx = x;
+                                my = y;
+                                min = dist;
+                            }
+                        }
+                    }
 
                 } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
                     Pose2d startPose = segment.getStartPose();
@@ -286,6 +253,8 @@ public class DrawPanel extends JPanel {
                 }
             }
         }
+        g.setColor(Color.red);
+        g.fillOval((int) Math.floor(mx - (ovalscale * main.scale)), (int) Math.floor(my - (ovalscale * main.scale)), (int) Math.floor(2 * ovalscale * main.scale), (int) Math.floor(2 * ovalscale * main.scale));
     }
 
 
@@ -328,7 +297,7 @@ public class DrawPanel extends JPanel {
             if(trajectory != null) {
                 renderRobotPath((Graphics2D) g, trajectory, lightPurple, 0.5f);
                 renderSplines(g, trajectory, cyan);
-                renderPoints(g, trajectory, cyan, 1);
+                renderPoints(g, trajectory, cyan, 1, mouseP);
             }
             renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
         }
@@ -400,7 +369,7 @@ public class DrawPanel extends JPanel {
                     if(trajectory != null) {
                         renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
                         renderSplines(g, trajectory, cyan);
-                        renderPoints(g, trajectory, cyan, 1);
+                        renderPoints(g, trajectory, cyan, 1, mouseP);
                     }
                     renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
                 }
@@ -473,6 +442,7 @@ public class DrawPanel extends JPanel {
     private void mPressed(MouseEvent e) {
         //TODO: clean up this
         this.grabFocus();
+
         if(!edit){
             Node mouse = new Node(e.getPoint());
 
@@ -585,7 +555,10 @@ public class DrawPanel extends JPanel {
 
     private void mDragged(MouseEvent e) {
         Node mouse = new Node(e.getPoint());
-        if (SwingUtilities.isRightMouseButton(e)) return;
+        if (SwingUtilities.isRightMouseButton(e)) {
+            repaint();
+            return;
+        }
         if(edit){
             int index = getCurrentManager().editIndex;
             Node mark = getCurrentManager().get(index);
@@ -618,19 +591,16 @@ public class DrawPanel extends JPanel {
                 resetPath();
             }
         if(e.getKeyCode() == KeyEvent.VK_RIGHT){
-            System.out.println(main.currentM + " " + managers.size() + " " + getCurrentManager().size());
             if(main.currentM+1 < managers.size()){
                 main.currentM++;
                 main.currentN = -1;
                 resetPath();
             } else if(getCurrentManager().size() > 0){
-                System.out.println("yea");
                 NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                 managers.add(manager);
                 resetPath();
                 main.currentN = -1;
                 main.currentM++;
-                System.out.println(main.currentM + " " + managers.size() + " " + getCurrentManager().size());
             }
         }
         if(e.getKeyCode() == KeyEvent.VK_R) {
