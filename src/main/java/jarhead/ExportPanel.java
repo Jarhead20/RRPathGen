@@ -4,9 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentListener;
+import java.awt.event.*;
 
 public class ExportPanel extends JPanel {
 
@@ -14,6 +12,8 @@ public class ExportPanel extends JPanel {
     JScrollPane scroll = new JScrollPane(field);
     JCheckBox dataType = new JCheckBox("Datatype", true);
     JCheckBox poseEstimate = new JCheckBox("setPoseEstimate", false);
+    public boolean addDataType = true;
+    public boolean addPoseEstimate = false;
     JButton copy = new JButton("Copy to clipboard");
     Main main;
 
@@ -42,6 +42,22 @@ public class ExportPanel extends JPanel {
                 clipboard.setContents(selection, selection);
             }
         });
+
+        dataType.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                addDataType = e.getStateChange()==1;
+                main.buttonPanel.export();
+            }
+        });
+        poseEstimate.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                addPoseEstimate = e.getStateChange()==1;
+                main.buttonPanel.export();
+            }
+        });
+
     }
 
     @Override
