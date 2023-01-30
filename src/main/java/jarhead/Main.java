@@ -24,6 +24,7 @@ class Main extends JFrame {
 
     public int currentM = 0;
     public int currentN = -1;
+    public int currentMarker = -1;
     public Main() {
         FlatDarculaLaf.setup();
         loadConfig();

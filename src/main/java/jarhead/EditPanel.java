@@ -17,7 +17,6 @@ public class EditPanel extends JPanel {
     public JFormattedTextField splineHeading = new JFormattedTextField(formatter);
     public JFormattedTextField robotHeading = new JFormattedTextField(formatter);
     public JTextField name = new JTextField(10);
-    public JTextField code = new JTextField(10);
     public JComboBox type;
 
     EditPanel(Main main){
@@ -108,17 +107,6 @@ public class EditPanel extends JPanel {
                 main.drawPanel.repaint();
             }
         });
-
-        code.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) {
-                    System.out.println(code.getText());
-//                    getCurrentNode().code = code.getText();
-                }
-                main.drawPanel.repaint();
-            }
-        });
     }
 
     public void saveValues(){
@@ -145,7 +133,6 @@ public class EditPanel extends JPanel {
             y.setText("");
             type.setSelectedIndex(-1);
             name.setText(main.getCurrentManager().name);
-            code.setText("");
         } else {
             splineHeading.setText(Math.round((getCurrentNode().splineHeading+90)*100)/100.0 + "");
             robotHeading.setText(Math.round((getCurrentNode().robotHeading+90)*100)/100.0 + "");
