@@ -4,6 +4,10 @@ public class Marker extends Node {
     public double displacement;
     public String code;
 
+    public enum Type {
+        addTemporalMarker
+    }
+
     public Marker(double displacement){
         this(displacement, "");
     }

@@ -15,7 +15,7 @@ public class SettingsPanel extends JPanel {
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
     private LinkedList<JTextField> fields = new LinkedList<>();
-    private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Ang Velo", "Max Ang Accel"};
+    private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Angular Velo", "Max Angular Accel"};
     private ProgramProperties robot;
     SettingsPanel(Main main, ProgramProperties properties){
         this.robot = properties;

@@ -55,8 +55,8 @@ public class ProgramProperties {
             trackWidth = Double.parseDouble(prop.getProperty("TRACK_WIDTH"));
             maxVelo = Double.parseDouble(prop.getProperty("MAX_VELO"));
             maxAccel = Double.parseDouble(prop.getProperty("MAX_ACCEL"));
-            maxAngVelo = Double.parseDouble(prop.getProperty("MAX_ANG_VELO"));
-            maxAngAccel = Double.parseDouble(prop.getProperty("MAX_ANG_ACCEL"));
+            maxAngVelo = Double.parseDouble(prop.getProperty("MAX_ANGULAR_VELO"));
+            maxAngAccel = Double.parseDouble(prop.getProperty("MAX_ANGULAR_ACCEL"));
         } catch (NullPointerException e){
             prop = new Properties();
             generateFile(file);
@@ -72,13 +72,13 @@ public class ProgramProperties {
             writer.write(
                     "ROBOT_WIDTH=18\n" +
                             "ROBOT_LENGTH=18\n" +
-                            "RESOLUTION=1\n" +
+                            "RESOLUTION=0.1\n" +
                             "IMPORT/EXPORT=\n" +
                             "TRACK_WIDTH=15\n" +
                             "MAX_VELO=60\n" +
                             "MAX_ACCEL=60\n" +
-                            "MAX_ANG_VELO=60\n" +
-                            "MAX_ANG_ACCEL=60"
+                            "MAX_ANGULAR_VELO=60\n" +
+                            "MAX_ANGULAR_ACCEL=60"
             );
             writer.close();
             readFile(file);

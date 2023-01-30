@@ -125,7 +125,7 @@ public class EditPanel extends JPanel {
         return main.getCurrentManager().get(main.currentN);
     }
 
-    public void update() {
+    public void updateText() {
         if(main.currentN == -1){
             splineHeading.setText("");
             robotHeading.setText("");

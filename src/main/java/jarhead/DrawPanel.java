@@ -268,6 +268,9 @@ public class DrawPanel extends JPanel {
         super.paintComponent(g);
         long time = System.currentTimeMillis();
         long trajGen = 0;
+        main.infoPanel.changePanel((main.currentN == -1 && main.currentMarker != -1));
+        System.out.println((main.currentN + " " + main.currentMarker));
+
         if (preRenderedSplines == null) renderBackgroundSplines();
 //        g.drawImage(preRenderedSplines, 0,0,null);
 
@@ -476,14 +479,15 @@ public class DrawPanel extends JPanel {
                         }
                     }
                 }
-                System.out.println(displacement);
-                System.out.println(closestMarker);
                 if(closestMarker < (clickSize * main.scale)) {
                     getCurrentManager().markers.editIndex = index;
                 } else {
                     getCurrentManager().markers.add(count, new Marker(displacement));
                     getCurrentManager().markers.editIndex = count;
                 }
+                main.currentN = -1;
+                main.currentMarker = index;
+                main.infoPanel.markerPanel.updateText();
                 edit = true;
             } else { //regular node
                 double closest = 99999;
@@ -544,6 +548,7 @@ public class DrawPanel extends JPanel {
                             preEdit.state = 2;
                             getCurrentManager().redo.clear();
                             main.currentN = getCurrentManager().size();
+                            main.currentMarker = -1;
                             //TODO: make it face towards the tangential heading
                             mouse.splineHeading = mouse.headingTo(getCurrentManager().get(index));
                             mouse.robotHeading = mouse.splineHeading;
@@ -559,7 +564,8 @@ public class DrawPanel extends JPanel {
                             preEdit.state = 4;
                             getCurrentManager().redo.clear();
                             main.currentN = index;
-                            main.infoPanel.editPanel.update();
+                            main.currentMarker = -1;
+                            main.infoPanel.editPanel.updateText();
                             getCurrentManager().set(index, mouse);
                         }
                     }
@@ -575,12 +581,12 @@ public class DrawPanel extends JPanel {
                     preEdit.state = 2;
                     getCurrentManager().redo.clear();
                     main.currentN = getCurrentManager().size();
-
+                    main.currentMarker = -1;
                     getCurrentManager().add(mouse);
                 }
             }
         }
-        main.infoPanel.editPanel.update();
+        main.infoPanel.editPanel.updateText();
         repaint();
     }
 
@@ -592,7 +598,7 @@ public class DrawPanel extends JPanel {
         } else if(SwingUtilities.isRightMouseButton(e)){
             edit = false;
         }
-        main.infoPanel.editPanel.update();
+        main.infoPanel.editPanel.updateText();
 
     }
 
@@ -627,6 +633,9 @@ public class DrawPanel extends JPanel {
                     }
                 }
                 ((Marker) getCurrentManager().markers.get(index)).displacement = displacement;
+                main.currentN = -1;
+                main.currentMarker = index;
+                main.infoPanel.markerPanel.updateText();
             } else {
                 int index = getCurrentManager().editIndex;
                 Node mark = getCurrentManager().get(index);
@@ -637,6 +646,7 @@ public class DrawPanel extends JPanel {
                 }
                 else mark.setLocation(snap(mouse, e));
                 main.currentN = index;
+                main.currentMarker = -1;
             }
 
         } else {
@@ -645,10 +655,11 @@ public class DrawPanel extends JPanel {
             mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             mark.robotHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
             main.currentN = getCurrentManager().size()-1;
+            main.currentMarker = -1;
             getCurrentManager().set(getCurrentManager().size()-1, snap(mark,e));
-            main.infoPanel.editPanel.update();
+            main.infoPanel.editPanel.updateText();
         }
-        main.infoPanel.editPanel.update();
+        main.infoPanel.editPanel.updateText();
         repaint();
     }
 
@@ -692,7 +703,7 @@ public class DrawPanel extends JPanel {
                 main.currentN--;
             }
         }
-        main.infoPanel.editPanel.update();
+        main.infoPanel.editPanel.updateText();
         renderBackgroundSplines();
         repaint();
     }

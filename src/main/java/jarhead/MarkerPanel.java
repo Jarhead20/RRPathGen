@@ -14,13 +14,17 @@ public class MarkerPanel extends JPanel {
     NumberFormatter formatter = new NumberFormatter(format);
     public JFormattedTextField displacement = new JFormattedTextField(formatter);
     public JTextField code = new JTextField(10);
-
+    public JComboBox type;
+    //TODO: add the trajectory name
     MarkerPanel(Main main){
         this.main = main;
+        type = new JComboBox(Marker.Type.values());
+        type.setSelectedIndex(0);
         this.setOpaque(true);
         this.setLayout(new SpringLayout());
         JLabel lDisplacement = new JLabel("Displacement: ", JLabel.TRAILING);
         JLabel lCode = new JLabel("Code: ", JLabel.TRAILING);
+        JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
 
         this.add(lDisplacement);
         lDisplacement.setLabelFor(displacement);
@@ -29,10 +33,12 @@ public class MarkerPanel extends JPanel {
         this.add(lCode);
         lCode.setLabelFor(code);
         this.add(code);
+        this.add(lType);
+        lType.setLabelFor(type);
+        this.add(type);
 
+        SpringUtilities.makeCompactGrid(this,3,2,6,6,6,6);
 
-
-        SpringUtilities.makeCompactGrid(this,6,2,6,6,6,6);
         this.setVisible(true);
 
 
@@ -40,7 +46,6 @@ public class MarkerPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(main.currentMarker != -1) getCurrentMarker().displacement = Double.parseDouble(displacement.getText());
-
                 main.drawPanel.repaint();
             }
         });
@@ -50,9 +55,8 @@ public class MarkerPanel extends JPanel {
         code.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) {
-                    System.out.println(code.getText());
-//                    getCurrentNode().code = code.getText();
+                if(main.currentMarker != -1) {
+                    getCurrentMarker().code = code.getText();
                 }
                 main.drawPanel.repaint();
             }
@@ -60,7 +64,7 @@ public class MarkerPanel extends JPanel {
     }
 
     public void saveValues(){
-        if(main.currentN != -1){
+        if(main.currentMarker != -1){
             Marker marker = getCurrentMarker();
             marker.code = code.getText();
             marker.displacement = Double.parseDouble(displacement.getText());
@@ -71,13 +75,13 @@ public class MarkerPanel extends JPanel {
         return (Marker) main.getCurrentManager().markers.get(main.currentMarker);
     }
 
-    public void update() {
-        if(main.currentN == -1){
+    public void updateText() {
+        if(main.currentMarker == -1){
             code.setText("");
             displacement.setText("0");
         } else {
             code.setText(getCurrentMarker().code);
-            displacement.setText(getCurrentMarker().displacement + "");
+            displacement.setText(String.format("%.2f",getCurrentMarker().displacement));
         }
     }
 }

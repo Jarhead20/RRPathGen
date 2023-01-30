@@ -93,7 +93,7 @@ public class ButtonPanel extends JPanel {
                 if(main.currentM > 0)
                     main.currentM--;
                 main.currentN = -1;
-                main.infoPanel.editPanel.update();
+                main.infoPanel.editPanel.updateText();
                 main.drawPanel.resetPath();
 
                 main.drawPanel.renderBackgroundSplines();
@@ -139,6 +139,7 @@ public class ButtonPanel extends JPanel {
     public void export(){
         if(getCurrentManager().size() > 0){
             main.infoPanel.editPanel.saveValues();
+            main.infoPanel.markerPanel.saveValues();
             Node node = getCurrentManager().get(0);
             double x = main.toInches(node.x);
             double y = main.toInches(node.y);
