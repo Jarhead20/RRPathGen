@@ -119,7 +119,7 @@ public class EditPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 if(main.currentN != -1) {
                     System.out.println(code.getText());
-                    getCurrentNode().code = code.getText();
+//                    getCurrentNode().code = code.getText();
                 }
                 main.drawPanel.repaint();
             }
@@ -135,7 +135,6 @@ public class EditPanel extends JPanel {
             node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
             node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
             node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
-            node.code = code.getText();
             main.drawPanel.repaint();
         }
     }
@@ -159,7 +158,6 @@ public class EditPanel extends JPanel {
             y.setText(Math.round((-main.toInches(getCurrentNode().y))*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());
             name.setText(main.getCurrentManager().name);
-            code.setText(getCurrentNode().code);
         }
     }
 }

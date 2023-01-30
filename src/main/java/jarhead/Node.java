@@ -7,7 +7,6 @@ public class Node {
     public double robotHeading;
     public int index = -1;
     public int state = 1;
-    public String code = "";
 
     private Type type = Type.splineTo;
 
@@ -20,7 +19,6 @@ public class Node {
         lineToSplineHeading,
         lineToLinearHeading,
         lineToConstantHeading,
-        displacementMarker,
     }
     Node(){
 
@@ -67,7 +65,6 @@ public class Node {
 
     public Node copy(){
         Node node = new Node(this.x, this.y, this.splineHeading, this.index);
-        node.code = this.code;
         node.state = this.state;
         node.type = this.type;
         node.robotHeading = this.robotHeading;

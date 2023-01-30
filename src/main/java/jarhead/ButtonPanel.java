@@ -1,7 +1,5 @@
 package jarhead;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -9,12 +7,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ButtonPanel extends JPanel {
 
@@ -164,6 +160,17 @@ public class ButtonPanel extends JPanel {
             StringBuilder sb = new StringBuilder();
             if(main.exportPanel.addDataType) sb.append("TrajectorySequence ");
             sb.append(String.format("%s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
+            //sort the markers
+            HashMap<Double, String> markers = new HashMap<>();
+            for (int i = 0; i < getCurrentManager().markers.size(); i++) {
+                Marker marker = ((Marker)getCurrentManager().markers.get(i));
+                markers.put(marker.displacement, String.format(".addTemporalMarker((%.2f) -> {%s})%n", marker.displacement, marker.code));
+            }
+            markers.entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue()).forEach(entry -> {
+                        sb.append(entry.getValue());
+            });
+
             for (int i = 1; i < getCurrentManager().size(); i++) {
                 node = getCurrentManager().get(i);
                 x = main.toInches(node.x);
@@ -171,10 +178,6 @@ public class ButtonPanel extends JPanel {
                 switch (node.getType()){
                     case splineTo:
                         sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                        break;
-                    case displacementMarker:
-                        sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                        sb.append(String.format(".addDisplacementMarker(() -> {%s})%n", node.code));
                         break;
                     case splineToSplineHeading:
                         sb.append(String.format(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));

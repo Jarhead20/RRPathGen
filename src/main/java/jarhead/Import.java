@@ -127,25 +127,10 @@ public class Import {
                     node.robotHeading = 90;
                 }
                 manager.add(node);
-
-//                case displacementMarker:
-//                    //TODO: fix importing
-//                    Matcher displace = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
-//                    while(displace.find()){
-//                        System.out.println(displace.group(0));
-//                        System.out.println(displace.group(2));
-//                        manager.get(manager.size()-1).code = displace.group(2);
-//                        discard = true;
-//                    }
-//                    break;
             }
             Matcher markers = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
             while(markers.find()){
-//                System.out.println(markers.group(0));
-                System.out.println(markers.group(1));
-                System.out.println(markers.group(2));
-                manager.get(manager.size()-1).setType(Node.Type.displacementMarker);
-                manager.get(manager.size()-1).code = markers.group(2).trim();
+                ((Marker)manager.markers.get(manager.size()-1)).code = markers.group(2).trim();
             }
         }
         return managers;

@@ -6,6 +6,7 @@ public class NodeManager {
 
     public NodeManager undo;
     public NodeManager redo;
+    public NodeManager markers;
     public int editIndex = -1;
     private ArrayList nodes;
     public String name;
@@ -13,13 +14,7 @@ public class NodeManager {
     private int id;
 
     NodeManager(ArrayList<Node> nodes, int id){
-        this.nodes = nodes;
-        this.id = id;
-        this.name = "untitled" + id;
-        if(id != -1){
-            undo = new NodeManager(new ArrayList<>(), -1);
-            redo = new NodeManager(new ArrayList<>(), -1);
-        }
+        this(nodes, id, "untitled" + id);
     }
 
     NodeManager(ArrayList<Node> nodes, int id, String name){
@@ -29,6 +24,7 @@ public class NodeManager {
         if(id != -1){
             undo = new NodeManager(new ArrayList<>(), -1);
             redo = new NodeManager(new ArrayList<>(), -1);
+            markers = new NodeManager(new ArrayList<>(), -1);
         }
     }
 
@@ -64,6 +60,5 @@ public class NodeManager {
     public void removeLast(){
         remove(size()-1);
     }
-
 
 }
