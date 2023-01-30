@@ -164,7 +164,7 @@ public class ButtonPanel extends JPanel {
             HashMap<Double, String> markers = new HashMap<>();
             for (int i = 0; i < getCurrentManager().markers.size(); i++) {
                 Marker marker = ((Marker)getCurrentManager().markers.get(i));
-                markers.put(marker.displacement, String.format(".addTemporalMarker((%.2f) -> {%s})%n", marker.displacement, marker.code));
+                markers.put(marker.displacement, String.format(".UNSTABLE_addTemporalMarkerOffset((%.2f) -> {%s})%n", marker.displacement, marker.code));
             }
             markers.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue()).forEach(entry -> {

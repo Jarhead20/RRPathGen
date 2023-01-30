@@ -307,7 +307,7 @@ public class DrawPanel extends JPanel {
 
     private TrajectorySequence generateTrajectory(NodeManager manager, TrajectorySequenceBuilder builder){
         for (int i = 0; i < manager.markers.size(); i++) {
-            builder.addTemporalMarker(((Marker)manager.markers.get(i)).displacement, () -> {});
+            builder.UNSTABLE_addTemporalMarkerOffset(((Marker)manager.markers.get(i)).displacement, () -> {});
         }
         for (int i = 1; i < manager.size(); i++) {
             Node node = manager.get(i).shrink(main.scale);
@@ -445,6 +445,7 @@ public class DrawPanel extends JPanel {
                 double closestMarker = min;
                 int index = -1;
                 int count = 0;
+                double total = 0;
                 for (int i = 0; i < trajectory.size(); i++) {
                     SequenceSegment segment = trajectory.get(i);
                     if (segment != null) {
@@ -452,7 +453,7 @@ public class DrawPanel extends JPanel {
                             Trajectory traj = ((TrajectorySegment) segment).getTrajectory();
 
                             for (int j = 0; j < getCurrentManager().markers.size(); j++) {
-                                Pose2d pose = traj.get(((Marker) getCurrentManager().markers.get(j)).displacement);
+                                Pose2d pose = traj.get(((Marker) getCurrentManager().markers.get(j)).displacement-total);
                                 double dist = mouse.distance(new Node(pose.getX()*main.scale, pose.getY()*main.scale));
                                 if (dist < closestMarker) {
                                     closestMarker = dist;
@@ -467,13 +468,15 @@ public class DrawPanel extends JPanel {
 
                                 double dist = mouse.distance(new Node(x, y));
                                 if (dist < min) {
-                                    displacement = j;
+                                    displacement = j + total;
                                     min = dist;
                                 }
                             }
+                            total += traj.duration();
                         }
                     }
                 }
+                System.out.println(displacement);
                 System.out.println(closestMarker);
                 if(closestMarker < (clickSize * main.scale)) {
                     getCurrentManager().markers.editIndex = index;
@@ -601,6 +604,7 @@ public class DrawPanel extends JPanel {
                 int index = getCurrentManager().markers.editIndex;
                 double min = 99999;
                 double displacement = -1;
+                double total = 0;
                 for (int i = 0; i < trajectory.size(); i++) {
                     SequenceSegment segment = trajectory.get(i);
                     if (segment != null) {
@@ -614,10 +618,11 @@ public class DrawPanel extends JPanel {
 
                                 double dist = mouse.distance(new Node(x, y));
                                 if (dist < min) {
-                                    displacement = j;
+                                    displacement = j+total;
                                     min = dist;
                                 }
                             }
+                            total += path.duration();
                         }
                     }
                 }

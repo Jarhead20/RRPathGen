@@ -2,11 +2,17 @@ package jarhead;
 
 public class Marker extends Node {
     public double displacement;
-    public String code = "";
+    public String code;
 
     public Marker(double displacement){
-        super(100,100);
-        this.displacement = displacement;
+        this(displacement, "");
     }
+
+    public Marker(double displacement, String code){
+        super();
+        this.displacement = displacement;
+        this.code = code;
+    }
+
 
 }

@@ -12,7 +12,7 @@ public class Import {
 
     private final Pattern dataPattern = Pattern.compile("(?:\\.((?:\\w|\\s)+)\\((?:new Pose2d|new Vector2d))\\s*(?:\\()(.*)(?=\\)\\s*\\))");
     private final Pattern trajectoryPattern = Pattern.compile("(\\w+)\\s*\\=\\s*(?:\\s*\\w+(.trajectory(?:Sequence)?Builder))(?:\\s*\\(\\s*)((.|\\r\\n|\\r|\\n)*?)(?=\\.build\\(\\)\\;)");
-    private final Pattern markerPattern = Pattern.compile("(?:\\.(addDisplacementMarker)\\s*\\(\\s*\\(\\)\\s*\\-\\>\\s*)(?:\\{)((?:.|\\r\\n|\\r|\\n)*?)(?=\\}\\s*\\)\\s*)");
+    private final Pattern markerPattern = Pattern.compile("(?:\\.(UNSTABLE_addTemporalMarkerOffset)\\s*\\(((?:[+-]?(?:\\d*\\.)?\\d+)+),\\s*\\(\\)\\s*\\-\\>\\s*)(?:\\{)((?:.|\\r\\n|\\r|\\n)*?)(?=\\}\\s*\\)\\s*)");
     private final Pattern numberPattern = Pattern.compile("((?:[+-]?(?:\\d*\\.)?\\d+)+)");
     //latest regex to match pose/vector2d
     //(?:\.((?:\w|\s)+)\((?:new Pose2d|new Vector2d))\s*(?:\()(.*)(?=\)\s*\))
@@ -130,7 +130,8 @@ public class Import {
             }
             Matcher markers = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
             while(markers.find()){
-                ((Marker)manager.markers.get(manager.size()-1)).code = markers.group(2).trim();
+                Marker marker = new Marker(Double.parseDouble(markers.group(2)), markers.group(3).trim());
+                manager.markers.add(marker);
             }
         }
         return managers;
