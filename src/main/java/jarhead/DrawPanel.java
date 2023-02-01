@@ -306,12 +306,14 @@ public class DrawPanel extends JPanel {
     private TrajectorySequence generateTrajectory(NodeManager manager, Node exlude){
         Node node = exlude.shrink(main.scale);
         TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
+        builder.setReversed(exlude.reversed);
         for (int i = 0; i < manager.size(); i++) {
             if(exlude.equals(manager.get(i))) continue; //stops empty path segment error
 
             node = manager.get(i).shrink(main.scale);
 
             try{
+
                 switch (node.getType()){
                     case splineTo:
                         builder.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
@@ -341,6 +343,7 @@ public class DrawPanel extends JPanel {
                         Marker marker = (Marker) manager.get(i);
                         builder.UNSTABLE_addTemporalMarkerOffset(marker.displacement, () -> {});
                 }
+                builder.setReversed(node.reversed);
             } catch (Exception e) {
                 main.undo(false);
                 i--;
@@ -380,14 +383,15 @@ public class DrawPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g.create();
         BufferedImage bufferedImage = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = bufferedImage.createGraphics();
-        for (int i = 0; i < nodeM.size(); i++) {
-            Node node = nodeM.get(i);
+        List<Node> nodes = nodeM.getNodes();
+        for (int i = 0; i < nodes.size(); i++) {
+            Node node = nodes.get(i);
             tx.setToIdentity();
             tx.translate(node.x, node.y);
-            if(nodeM.reversed)
-                tx.rotate(Math.toRadians(-node.robotHeading));
-            else
+            if(!node.reversed)
                 tx.rotate(Math.toRadians(-node.robotHeading +180));
+            else
+                tx.rotate(Math.toRadians(-node.robotHeading));
             tx.scale(main.scale, main.scale);
 
             g2.setTransform(tx);
@@ -533,6 +537,7 @@ public class DrawPanel extends JPanel {
                         index = i;
                         mouse.splineHeading = close.splineHeading;
                         mouse.robotHeading = close.robotHeading;
+                        mouse.reversed = close.reversed;
                         mid = false;
                     }
                 }
@@ -685,8 +690,9 @@ public class DrawPanel extends JPanel {
             }
         }
         if(e.getKeyCode() == KeyEvent.VK_R) {
-            getCurrentManager().reversed = !getCurrentManager().reversed;
-            getCurrentManager().get(0).splineHeading += 180;
+            if(main.currentN != -1){
+                getCurrentManager().get(main.currentN).reversed = !getCurrentManager().get(main.currentN).reversed;
+            }
         }
         if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z){
             main.undo();

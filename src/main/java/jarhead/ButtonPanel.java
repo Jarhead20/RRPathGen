@@ -141,7 +141,7 @@ public class ButtonPanel extends JPanel {
         if(getCurrentManager().size() > 0){
             main.infoPanel.editPanel.saveValues();
             main.infoPanel.markerPanel.saveValues();
-            Node node = getCurrentManager().get(0);
+            Node node = getCurrentManager().getNodes().get(0);
             double x = main.toInches(node.x);
             double y = main.toInches(node.y);
             if(!robot.importPath.matches("")){
@@ -167,14 +167,22 @@ public class ButtonPanel extends JPanel {
             markers.sort((n1, n2) -> ((Double) n1.displacement).compareTo(n2.displacement));
             for (int i = 0; i < markers.size(); i++) {
                 Marker marker = markers.get(i);
-                System.out.println(marker.displacement);
-                sb.append(String.format(".UNSTABLE_addTemporalMarkerOffset((%.2f) -> {%s})%n", marker.displacement, marker.code));
+                sb.append(String.format(".UNSTABLE_addTemporalMarkerOffset(%.2f,() -> {%s})%n", marker.displacement, marker.code));
             }
-
-            for (int i = 1; i < getCurrentManager().size(); i++) {
+            boolean prev = false;
+            for (int i = 0; i < getCurrentManager().size(); i++) {
                 node = getCurrentManager().get(i);
+                if(node.equals(getCurrentManager().getNodes().get(0))) {
+                    if(node.reversed != prev){
+                        sb.append(String.format(".setReversed(%s)%n", node.reversed));
+                        prev = node.reversed;
+                    }
+                    continue;
+                }
                 x = main.toInches(node.x);
                 y = main.toInches(node.y);
+
+
                 switch (node.getType()){
                     case splineTo:
                         sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
@@ -200,9 +208,15 @@ public class ButtonPanel extends JPanel {
                     case lineToConstantHeading:
                         sb.append(String.format(".lineToConstantHeading(new Vector2d(%.2f, %.2f))%n", x, -y, (node.splineHeading +90)));
                         break;
+                    case addTemporalMarker:
+                        break;
                     default:
                         sb.append("couldn't find type");
                         break;
+                }
+                if(node.reversed != prev){
+                    sb.append(String.format(".setReversed(%s)%n", node.reversed));
+                    prev = node.reversed;
                 }
             }
             sb.append(String.format(".build();%n"));

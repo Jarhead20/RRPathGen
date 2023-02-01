@@ -7,6 +7,7 @@ public class Node {
     public double robotHeading;
     public int index = -1;
     public int state = 1;
+    public boolean reversed = false;
 
     private Type type = Type.splineTo;
 
@@ -20,7 +21,6 @@ public class Node {
         lineToLinearHeading,
         lineToConstantHeading,
         addTemporalMarker,
-        setReversed
     }
     Node(){
 
@@ -70,6 +70,7 @@ public class Node {
         node.state = this.state;
         node.type = this.type;
         node.robotHeading = this.robotHeading;
+        node.reversed = this.reversed;
         return node;
     }
 
