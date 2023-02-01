@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -162,15 +163,13 @@ public class ButtonPanel extends JPanel {
             if(main.exportPanel.addDataType) sb.append("TrajectorySequence ");
             sb.append(String.format("%s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
             //sort the markers
-            HashMap<Double, String> markers = new HashMap<>();
-            for (int i = 0; i < getCurrentManager().markers.size(); i++) {
-                Marker marker = ((Marker)getCurrentManager().markers.get(i));
-                markers.put(marker.displacement, String.format(".UNSTABLE_addTemporalMarkerOffset((%.2f) -> {%s})%n", marker.displacement, marker.code));
+            List<Marker> markers = getCurrentManager().getMarkers();
+            markers.sort((n1, n2) -> ((Double) n1.displacement).compareTo(n2.displacement));
+            for (int i = 0; i < markers.size(); i++) {
+                Marker marker = markers.get(i);
+                System.out.println(marker.displacement);
+                sb.append(String.format(".UNSTABLE_addTemporalMarkerOffset((%.2f) -> {%s})%n", marker.displacement, marker.code));
             }
-            markers.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue()).forEach(entry -> {
-                        sb.append(entry.getValue());
-            });
 
             for (int i = 1; i < getCurrentManager().size(); i++) {
                 node = getCurrentManager().get(i);

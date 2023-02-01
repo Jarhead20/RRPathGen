@@ -5,6 +5,8 @@ import javax.swing.text.NumberFormatter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class EditPanel extends JPanel {
 
@@ -31,6 +33,8 @@ public class EditPanel extends JPanel {
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
 
         type = new JComboBox(Node.Type.values());
+//        type = new JComboBox(Arrays.stream(Node.Type.values()).filter(i -> i.toString().contains("line")).toArray());
+
         type.setSelectedIndex(-1);
 
         this.add(lName);

@@ -216,8 +216,7 @@ public class DrawPanel extends JPanel {
 //        }
     }
 
-    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalscale, Point mouse){
-
+    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalscale){
         for (int i = 0; i < trajectory.size(); i++) {
             SequenceSegment segment = trajectory.get(i);
             if (segment != null) {
@@ -238,8 +237,6 @@ public class DrawPanel extends JPanel {
                         double y = mid.getY()*main.scale;
                         g.setColor(c1);
                         g.fillOval((int) Math.floor(x - (ovalscale * main.scale)), (int) Math.floor(y - (ovalscale * main.scale)), (int) Math.floor(2 * ovalscale * main.scale), (int) Math.floor(2 * ovalscale * main.scale));
-
-
                     }
 
                 } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
@@ -269,10 +266,9 @@ public class DrawPanel extends JPanel {
         long time = System.currentTimeMillis();
         long trajGen = 0;
         main.infoPanel.changePanel((main.currentN == -1 && main.currentMarker != -1));
-        System.out.println((main.currentN + " " + main.currentMarker));
+//        System.out.println((main.currentN + " " + main.currentMarker));
 
         if (preRenderedSplines == null) renderBackgroundSplines();
-//        g.drawImage(preRenderedSplines, 0,0,null);
 
         main.scale = ((double) this.getWidth() - this.getInsets().left - this.getInsets().right) / 144.0;
         if (oldScale != main.scale)
@@ -287,19 +283,18 @@ public class DrawPanel extends JPanel {
         g.drawImage(preRenderedSplines, 0, 0, null);
         oldScale = main.scale;
         if (getCurrentManager().size() > 0) {
-            Node node = getCurrentManager().get(0).shrink(main.scale);
+            Node node = getCurrentManager().getNodes().get(0);
             trajGen = System.currentTimeMillis();
-            TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
-            trajectory = generateTrajectory(getCurrentManager(), builder);
-            
+            trajectory = generateTrajectory(getCurrentManager(), node);
 
             if(trajectory != null) {
                 renderRobotPath((Graphics2D) g, trajectory, lightPurple, 0.5f);
                 renderSplines(g, trajectory, cyan);
-                renderPoints(g, trajectory, cyan, 1, mouseP);
+                renderPoints(g, trajectory, cyan, 1);
             }
             renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
         }
+
         double overal = (System.currentTimeMillis() - time);
         if(debug){
             g.drawString("trajGen (ms): " + (System.currentTimeMillis() - trajGen), 10, 30);
@@ -308,12 +303,14 @@ public class DrawPanel extends JPanel {
         }
     }
 
-    private TrajectorySequence generateTrajectory(NodeManager manager, TrajectorySequenceBuilder builder){
-        for (int i = 0; i < manager.markers.size(); i++) {
-            builder.UNSTABLE_addTemporalMarkerOffset(((Marker)manager.markers.get(i)).displacement, () -> {});
-        }
-        for (int i = 1; i < manager.size(); i++) {
-            Node node = manager.get(i).shrink(main.scale);
+    private TrajectorySequence generateTrajectory(NodeManager manager, Node exlude){
+        Node node = exlude.shrink(main.scale);
+        TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
+        for (int i = 0; i < manager.size(); i++) {
+            if(exlude.equals(manager.get(i))) continue; //stops empty path segment error
+
+            node = manager.get(i).shrink(main.scale);
+
             try{
                 switch (node.getType()){
                     case splineTo:
@@ -340,6 +337,9 @@ public class DrawPanel extends JPanel {
                     case lineToConstantHeading:
                         builder.lineToConstantHeading(new Vector2d(node.x, node.y));
                         break;
+                    case addTemporalMarker:
+                        Marker marker = (Marker) manager.get(i);
+                        builder.UNSTABLE_addTemporalMarkerOffset(marker.displacement, () -> {});
                 }
             } catch (Exception e) {
                 main.undo(false);
@@ -362,13 +362,12 @@ public class DrawPanel extends JPanel {
         for (NodeManager manager : managers){
             if(!manager.equals(getCurrentManager())){
                 if(manager.size() > 0) {
-                    Node node = manager.get(0).shrink(main.scale);
-                    TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
-                    TrajectorySequence trajectory = generateTrajectory(manager, builder);
+                    Node node = manager.getNodes().get(0);
+                    TrajectorySequence trajectory = generateTrajectory(manager, node);
                     if(trajectory != null) {
                         renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
                         renderSplines(g, trajectory, cyan);
-                        renderPoints(g, trajectory, cyan, 1, mouseP);
+                        renderPoints(g, trajectory, cyan, 1);
                     }
                     renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
                 }
@@ -449,14 +448,15 @@ public class DrawPanel extends JPanel {
                 int index = -1;
                 int count = 0;
                 double total = 0;
+                List<Marker> markers = getCurrentManager().getMarkers();
                 for (int i = 0; i < trajectory.size(); i++) {
                     SequenceSegment segment = trajectory.get(i);
                     if (segment != null) {
                         if (segment instanceof TrajectorySegment) {
                             Trajectory traj = ((TrajectorySegment) segment).getTrajectory();
 
-                            for (int j = 0; j < getCurrentManager().markers.size(); j++) {
-                                Pose2d pose = traj.get(((Marker) getCurrentManager().markers.get(j)).displacement-total);
+                            for (int j = 0; j < markers.size(); j++) {
+                                Pose2d pose = traj.get(markers.get(j).displacement-total);
                                 double dist = mouse.distance(new Node(pose.getX()*main.scale, pose.getY()*main.scale));
                                 if (dist < closestMarker) {
                                     closestMarker = dist;
@@ -480,10 +480,11 @@ public class DrawPanel extends JPanel {
                     }
                 }
                 if(closestMarker < (clickSize * main.scale)) {
-                    getCurrentManager().markers.editIndex = index;
+                    getCurrentManager().editIndex = index;
                 } else {
-                    getCurrentManager().markers.add(count, new Marker(displacement));
-                    getCurrentManager().markers.editIndex = count;
+                    Marker marker = new Marker(displacement);
+                    getCurrentManager().add(count, marker);
+                    getCurrentManager().editIndex = count;
                 }
                 main.currentN = -1;
                 main.currentMarker = index;
@@ -607,7 +608,7 @@ public class DrawPanel extends JPanel {
 
         if(edit){
             if (SwingUtilities.isRightMouseButton(e)) {
-                int index = getCurrentManager().markers.editIndex;
+                int index = getCurrentManager().editIndex;
                 double min = 99999;
                 double displacement = -1;
                 double total = 0;
@@ -632,7 +633,7 @@ public class DrawPanel extends JPanel {
                         }
                     }
                 }
-                ((Marker) getCurrentManager().markers.get(index)).displacement = displacement;
+                ((Marker) getCurrentManager().get(index)).displacement = displacement;
                 main.currentN = -1;
                 main.currentMarker = index;
                 main.infoPanel.markerPanel.updateText();
