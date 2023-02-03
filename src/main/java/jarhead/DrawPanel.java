@@ -1,18 +1,9 @@
 package jarhead;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.path.*;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryMarker;
-import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
-import jarhead.trajectorysequence.TrajectorySequence;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.Act;
 import jarhead.trajectorysequence.TrajectorySequenceBuilder;
-import jarhead.trajectorysequence.sequencesegment.SequenceSegment;
-import jarhead.trajectorysequence.sequencesegment.TrajectorySegment;
-import jarhead.trajectorysequence.sequencesegment.TurnSegment;
-import jarhead.trajectorysequence.sequencesegment.WaitSegment;
 
 import javax.swing.*;
 import java.awt.*;
@@ -305,6 +296,7 @@ public class DrawPanel extends JPanel {
 
     private TrajectorySequence generateTrajectory(NodeManager manager, Node exlude){
         Node node = exlude.shrink(main.scale);
+
         TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
         builder.setReversed(exlude.reversed);
         for (int i = 0; i < manager.size(); i++) {

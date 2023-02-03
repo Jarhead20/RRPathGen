@@ -94,37 +94,29 @@ public class Import {
                         nlist.add(0.0);
                     }
                 }
-                try{
-                    node.x = (nlist.get(0)+72.0)*main.scale;
-                    node.y = (72.0 - nlist.get(1))*main.scale;
-                    switch (node.getType()){
-                        case splineTo:
-                        case splineToConstantHeading:
-                            node.splineHeading = nlist.get(2)-90.0;
-                            node.robotHeading = node.splineHeading;
-                            break;
-                        case splineToSplineHeading:
-                        case splineToLinearHeading:
-                            node.splineHeading = nlist.get(3)-90.0;
-                            node.robotHeading = nlist.get(2)-90.0;
-                            break;
-                        case lineTo:
-                        case lineToConstantHeading:
-                            break;
-                        case lineToSplineHeading:
-                        case lineToLinearHeading:
-                            node.robotHeading = nlist.get(2)-90.0;
-                            break;
-                        default:
+                node.x = (nlist.get(0)+72.0)*main.scale;
+                node.y = (72.0 - nlist.get(1))*main.scale;
+                switch (node.getType()){
+                    case splineTo:
+                    case splineToConstantHeading:
+                        node.splineHeading = nlist.get(2)-90.0;
+                        node.robotHeading = node.splineHeading;
+                        break;
+                    case splineToSplineHeading:
+                    case splineToLinearHeading:
+                        node.splineHeading = nlist.get(3)-90.0;
+                        node.robotHeading = nlist.get(2)-90.0;
+                        break;
+                    case lineTo:
+                    case lineToConstantHeading:
+                        break;
+                    case lineToSplineHeading:
+                    case lineToLinearHeading:
+                        node.robotHeading = nlist.get(2)-90.0;
+                        break;
+                    default:
 
 
-                    }
-                } catch (Exception e) {
-//                    e.printStackTrace();
-                    node.x = main.scale*72;
-                    node.y = main.scale*72;
-                    node.robotHeading = 90;
-                    node.robotHeading = 90;
                 }
                 manager.add(node);
             }

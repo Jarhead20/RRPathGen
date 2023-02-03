@@ -1,6 +1,6 @@
 package jarhead.trajectorysequence;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.Pose2d;
 
 import jarhead.trajectorysequence.sequencesegment.SequenceSegment;
 
