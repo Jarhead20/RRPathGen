@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
 group 'jarhead'
@@ -19,7 +20,9 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     implementation 'com.acmerobotics.roadrunner:core:1.0.0-beta1'
     implementation 'com.acmerobotics.roadrunner:actions:1.0.0-beta1'
+    implementation 'com.acmerobotics.dashboard:core:0.4.7'
     implementation 'com.formdev:flatlaf:2.5'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 tasks.withType(Copy).all { duplicatesStrategy 'exclude' }

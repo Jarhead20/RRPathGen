@@ -16,11 +16,6 @@ public class Node {
         splineToSplineHeading,
         splineToLinearHeading,
         splineToConstantHeading,
-        lineTo,
-        lineToSplineHeading,
-        lineToLinearHeading,
-        lineToConstantHeading,
-        addTemporalMarker,
     }
     Node(){
 

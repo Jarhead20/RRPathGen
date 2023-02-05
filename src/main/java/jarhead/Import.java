@@ -107,13 +107,6 @@ public class Import {
                         node.splineHeading = nlist.get(3)-90.0;
                         node.robotHeading = nlist.get(2)-90.0;
                         break;
-                    case lineTo:
-                    case lineToConstantHeading:
-                        break;
-                    case lineToSplineHeading:
-                    case lineToLinearHeading:
-                        node.robotHeading = nlist.get(2)-90.0;
-                        break;
                     default:
 
 
@@ -122,8 +115,8 @@ public class Import {
             }
             Matcher markers = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
             while(markers.find()){
-                Marker marker = new Marker(Double.parseDouble(markers.group(2)), markers.group(3).trim(), Marker.Type.addTemporalMarker);
-                manager.add(marker);
+//                Marker marker = new Marker(Double.parseDouble(markers.group(2)), markers.group(3).trim(), Marker.Type.addTemporalMarker);
+//                manager.add(marker);
             }
         }
         return managers;

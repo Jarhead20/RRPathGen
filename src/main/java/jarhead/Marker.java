@@ -5,7 +5,7 @@ public class Marker extends Node {
     public String code;
 
     public Marker(double displacement){
-        this(displacement, "", Type.addTemporalMarker);
+//        this(displacement, "", Type.addTemporalMarker);
     }
 
     public Marker(double displacement, String code, Type type){
