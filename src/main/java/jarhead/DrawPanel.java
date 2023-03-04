@@ -35,7 +35,6 @@ public class DrawPanel extends JPanel {
     private Node preEdit;
     private boolean edit = false;
     final double clickSize = 2;
-    private Point mouseP;
 
     private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
@@ -91,7 +90,6 @@ public class DrawPanel extends JPanel {
 
         this.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
-                mouseP = e.getPoint();
                 mDragged(e);
             }
         });
