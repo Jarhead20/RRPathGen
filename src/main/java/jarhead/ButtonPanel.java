@@ -61,6 +61,7 @@ public class ButtonPanel extends JPanel {
                     Node node = getCurrentManager().get(i);
                     node.y = 144*main.scale-node.y;
                     node.splineHeading = 180-node.splineHeading;
+                    node.robotHeading = 180-node.robotHeading;
                     getCurrentManager().set(i, node);
                 }
                 main.drawPanel.repaint();
