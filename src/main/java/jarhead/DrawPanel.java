@@ -26,7 +26,7 @@ import java.util.List;
 
 public class DrawPanel extends JPanel {
 
-    boolean debug = true;
+    boolean debug = false;
 
     private LinkedList<NodeManager> managers;
     private ProgramProperties robot;
