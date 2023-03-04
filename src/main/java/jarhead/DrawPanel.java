@@ -305,7 +305,7 @@ public class DrawPanel extends JPanel {
 
     private TrajectorySequence generateTrajectory(NodeManager manager, Node exlude){
         Node node = exlude.shrink(main.scale);
-        TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(60.0, 10), new ProfileAccelerationConstraint(60), 60, 60);
+        TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(robot.maxVelo, robot.trackWidth), new ProfileAccelerationConstraint(robot.maxAccel), robot.maxAngVelo, robot.maxAngAccel);
         builder.setReversed(exlude.reversed);
         for (int i = 0; i < manager.size(); i++) {
             if(exlude.equals(manager.get(i))) continue; //stops empty path segment error
