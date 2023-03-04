@@ -7,16 +7,20 @@ public class Node {
     public double robotHeading;
     public int index = -1;
     public int state = 1;
-    public String code = "";
+    public boolean reversed = false;
 
     private Type type = Type.splineTo;
 
     public enum Type {
         splineTo,
-        displacementMarker,
         splineToSplineHeading,
         splineToLinearHeading,
-        splineToConstantHeading
+        splineToConstantHeading,
+        lineTo,
+        lineToSplineHeading,
+        lineToLinearHeading,
+        lineToConstantHeading,
+        addTemporalMarker,
     }
     Node(){
 
@@ -63,10 +67,17 @@ public class Node {
 
     public Node copy(){
         Node node = new Node(this.x, this.y, this.splineHeading, this.index);
-        node.code = this.code;
         node.state = this.state;
         node.type = this.type;
         node.robotHeading = this.robotHeading;
+        node.reversed = this.reversed;
+        return node;
+    }
+
+    public Node shrink(double scale){
+        Node node = copy();
+        node.x /= scale;
+        node.y /= scale;
         return node;
     }
 

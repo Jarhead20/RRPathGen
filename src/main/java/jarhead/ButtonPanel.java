@@ -7,12 +7,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ButtonPanel extends JPanel {
 
@@ -24,8 +23,10 @@ public class ButtonPanel extends JPanel {
     private final JButton redoButton = new JButton("Redo");
     private LinkedList<NodeManager> managers;
     private Main main;
+    private ProgramProperties robot;
 
-    ButtonPanel(LinkedList<NodeManager> managers, Main main){
+    ButtonPanel(LinkedList<NodeManager> managers, Main main, ProgramProperties props){
+        this.robot = props;
         this.main = main;
         this.managers = managers;
         this.setMinimumSize(new Dimension(0,20));
@@ -48,56 +49,7 @@ public class ButtonPanel extends JPanel {
 
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(getCurrentManager().size() > 0){
-                    main.infoPanel.editPanel.saveValues();
-                    Node node = getCurrentManager().get(0);
-                    double x = main.toInches(node.x);
-                    double y = main.toInches(node.y);
-
-//                    String path = main.importPath;
-//                    File outputFile = new File(path.substring(0,path.length()-4) + "backup.java");
-//                    System.out.println(outputFile.getPath());
-//                    try {
-//                        outputFile.createNewFile();
-//                        FileWriter writer = new FileWriter(outputFile);
-//                        Scanner reader = new Scanner(new File(main.importPath));
-//
-//                        writer.close();
-//                    } catch (IOException ioException) {
-//                        ioException.printStackTrace();
-//                    }
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(String.format("Trajectory %s = drive.trajectoryBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.splineHeading +90)));
-                    for (int i = 1; i < getCurrentManager().size(); i++) {
-                        node = getCurrentManager().get(i);
-                        x = main.toInches(node.x);
-                        y = main.toInches(node.y);
-                        switch (node.getType()){
-                            case splineTo:
-                                sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                                break;
-                            case displacementMarker:
-                                sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                                sb.append(String.format(".addDisplacementMarker(() -> {%s})%n", node.code));
-                                break;
-                            case splineToSplineHeading:
-                                sb.append(String.format(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
-                                break;
-                            case splineToLinearHeading:
-                                sb.append(String.format(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
-                                break;
-                            case splineToConstantHeading:
-                                sb.append(String.format(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
-                                break;
-                            default:
-                                sb.append("couldn't find type");
-                                break;
-                        }
-                    }
-                    sb.append(".build();");
-                    main.exportPanel.field.setText(sb.toString());
-                }
+                export();
             }
         });
 
@@ -116,7 +68,7 @@ public class ButtonPanel extends JPanel {
         });
         undoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                main.undo();
+                main.undo(true);
                 main.drawPanel.repaint();
             }
         });
@@ -142,7 +94,7 @@ public class ButtonPanel extends JPanel {
                 if(main.currentM > 0)
                     main.currentM--;
                 main.currentN = -1;
-                main.infoPanel.editPanel.update();
+                main.infoPanel.editPanel.updateText();
                 main.drawPanel.resetPath();
 
                 main.drawPanel.renderBackgroundSplines();
@@ -152,23 +104,25 @@ public class ButtonPanel extends JPanel {
         importButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 File file;
-                if(main.prop.getProperty("IMPORT/EXPORT").matches("")){
+                if(robot.importPath.matches("")){
                     JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
                     FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Files", "java");
                     chooser.setFileFilter(filter);
                     int r = chooser.showOpenDialog(null);
                     if(r != JFileChooser.APPROVE_OPTION) return;
-                    main.importPath = chooser.getSelectedFile().getPath();
-                    main.prop.setProperty("IMPORT/EXPORT", main.importPath);
+                    robot.importPath = chooser.getSelectedFile().getPath();
+                    robot.prop.setProperty("IMPORT/EXPORT", robot.importPath);
                     main.saveConfig();
                     main.infoPanel.settingsPanel.update();
                     file = chooser.getSelectedFile();
                 } else {
                     main.saveConfig();
-                    file = new File(main.importPath);
+                    file = new File(robot.importPath);
                 }
                 Import importer = new Import(main);
                 LinkedList<NodeManager> in = importer.read(file);
+                if(getCurrentManager().size() < 1)
+                    managers.remove(getCurrentManager());
                 in.forEach((m) -> {
                     managers.add(m);
                 });
@@ -181,6 +135,94 @@ public class ButtonPanel extends JPanel {
                 main.drawPanel.repaint();
             }
         });
+    }
+
+    public void export(){
+        if(getCurrentManager().size() > 0){
+            main.infoPanel.editPanel.saveValues();
+            main.infoPanel.markerPanel.saveValues();
+            Node node = getCurrentManager().getNodes().get(0);
+            double x = main.toInches(node.x);
+            double y = main.toInches(node.y);
+            if(!robot.importPath.matches("")){
+                File outputFile = new File(robot.importPath.substring(0,robot.importPath.length()-4) + "backup.java");
+                System.out.println(outputFile.getPath());
+                try {
+                    outputFile.createNewFile();
+                    FileWriter writer = new FileWriter(outputFile);
+                    Scanner reader = new Scanner(new File(robot.importPath));
+
+                    writer.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+
+            }
+
+            StringBuilder sb = new StringBuilder();
+            if(main.exportPanel.addDataType) sb.append("TrajectorySequence ");
+            sb.append(String.format("%s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
+            //sort the markers
+            List<Marker> markers = getCurrentManager().getMarkers();
+            markers.sort((n1, n2) -> ((Double) n1.displacement).compareTo(n2.displacement));
+            for (int i = 0; i < markers.size(); i++) {
+                Marker marker = markers.get(i);
+                sb.append(String.format(".UNSTABLE_addTemporalMarkerOffset(%.2f,() -> {%s})%n", marker.displacement, marker.code));
+            }
+            boolean prev = false;
+            for (int i = 0; i < getCurrentManager().size(); i++) {
+                node = getCurrentManager().get(i);
+                if(node.equals(getCurrentManager().getNodes().get(0))) {
+                    if(node.reversed != prev){
+                        sb.append(String.format(".setReversed(%s)%n", node.reversed));
+                        prev = node.reversed;
+                    }
+                    continue;
+                }
+                x = main.toInches(node.x);
+                y = main.toInches(node.y);
+
+
+                switch (node.getType()){
+                    case splineTo:
+                        sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
+                        break;
+                    case splineToSplineHeading:
+                        sb.append(String.format(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
+                        break;
+                    case splineToLinearHeading:
+                        sb.append(String.format(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
+                        break;
+                    case splineToConstantHeading:
+                        sb.append(String.format(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
+                        break;
+                    case lineTo:
+                        sb.append(String.format(".lineTo(new Vector2d(%.2f, %.2f))%n", x, -y));
+                        break;
+                    case lineToSplineHeading:
+                        sb.append(String.format(".lineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
+                        break;
+                    case lineToLinearHeading:
+                        sb.append(String.format(".lineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
+                        break;
+                    case lineToConstantHeading:
+                        sb.append(String.format(".lineToConstantHeading(new Vector2d(%.2f, %.2f))%n", x, -y, (node.splineHeading +90)));
+                        break;
+                    case addTemporalMarker:
+                        break;
+                    default:
+                        sb.append("couldn't find type");
+                        break;
+                }
+                if(node.reversed != prev){
+                    sb.append(String.format(".setReversed(%s)%n", node.reversed));
+                    prev = node.reversed;
+                }
+            }
+            sb.append(String.format(".build();%n"));
+            if(main.exportPanel.addPoseEstimate) sb.append(String.format("drive.setPoseEstimate(%s.start());", getCurrentManager().name));
+            main.exportPanel.field.setText(sb.toString());
+        }
     }
 
     private NodeManager getCurrentManager() {

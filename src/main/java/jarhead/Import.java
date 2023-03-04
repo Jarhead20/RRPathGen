@@ -1,6 +1,5 @@
 package jarhead;
 
-import javax.lang.model.type.UnknownTypeException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -11,28 +10,51 @@ public class Import {
     //(?:^\s*Trajectory\s+(?:(\w+)\s+\=\s+\w+\.(?:\w|\s)+\((?:\w|\s)+))(?:(?:\(|\,|\s)+((?:[+-]?(?:\d*\.)?\d+)+))(?:(?:\(|\,|\s)+((?:[+-]?(?:\d*\.)?\d+)+))(?:\(|\,|\s)+(?:\w+\.\w+\()((?:[+-]?(?:\d*\.)?\d+)+)/gm
     //(?:\.((?:\w|\s)+)\((?:\w|\s)+)(?:(?:\(|\,|\s)+((?:[+-]?(?:\d*\.)?\d+)+))(?:(?:\(|\,|\s)+((?:[+-]?(?:\d*\.)?\d+)+))(?:\(|\,|\s|\))+(?:\w+\.\w+\()?((?:[+-]?(?:\d*\.)?\d+)+)(?:(?:\(|\,|\s|\))+(?:\w+\.\w+\()((?:[+-]?(?:\d*\.)?\d+)+))?
 
-    private final Pattern dataPattern = Pattern.compile("(?:\\.((?:\\w|\\s)+)\\((?:new Pose2d|new Vector2d))(?:(?:\\(|\\,|\\s)+((?:[+-]?(?:\\d*\\.)?\\d+)+))?(?:(?:\\(|\\,|\\s)+((?:[+-]?(?:\\d*\\.)?\\d+)+))?(?:\\(|\\,|\\s|\\))+(?:\\w+\\.\\w+\\()?((?:[+-]?(?:\\d*\\.)?\\d+)+)?(?:(?:\\(|\\,|\\s|\\))+(?:\\w+\\.\\w+\\()((?:[+-]?(?:\\d*\\.)?\\d+)+))?", Pattern.MULTILINE);
-    private final Pattern pathName = Pattern.compile("(\\w+)\\s*\\=\\s*(?:\\s*\\w+(.trajectory(?:Sequence)?Builder))\\s*\\(\\s*");
-    private final Pattern displacement = Pattern.compile("(?:\\.(addDisplacementMarker)\\s*\\(\\s*\\(\\)\\s*\\-\\>\\s*)(?:\\{)(.*?)(?=\\}\\s*\\)\\s*\\.)");
+    private final Pattern dataPattern = Pattern.compile("(?:\\.((?:\\w|\\s)+)\\((?:new Pose2d|new Vector2d))\\s*(?:\\()(.*)(?=\\)\\s*\\))");
+    private final Pattern trajectoryPattern = Pattern.compile("(\\w+)\\s*\\=\\s*(?:\\s*\\w+(.trajectory(?:Sequence)?Builder))(?:\\s*\\(\\s*)((.|\\r\\n|\\r|\\n)*?)(?=\\.build\\(\\)\\;)");
+    private final Pattern markerPattern = Pattern.compile("(?:\\.(UNSTABLE_addTemporalMarkerOffset)\\s*\\(((?:[+-]?(?:\\d*\\.)?\\d+)+),\\s*\\(\\)\\s*\\-\\>\\s*)(?:\\{)((?:.|\\r\\n|\\r|\\n)*?)(?=\\}\\s*\\)\\s*)");
+    private final Pattern numberPattern = Pattern.compile("((?:[+-]?(?:\\d*\\.)?\\d+)+)");
+    //latest regex to match pose/vector2d
+    //(?:\.((?:\w|\s)+)\((?:new Pose2d|new Vector2d))\s*(?:\()(.*)(?=\)\s*\))
+
+    //match any number
+    //((?:[+-]?(?:\d*\.)?\d+)+)
+
+    //ignore comments
+    //^(?!\s*\/\/).*
+
+    //new regex with commenting
+    //(\w+)\s*\=\s*(?:\s*\w+(.trajectory(?:Sequence)?Builder))(?:\s*\(\s*)((?:.|\r\n|\r|\n)*?)(?=\.build\(\)\;)
+
+
     private Main main;
     public Import(Main main){
         this.main = main;
     }
 
+
+    /**
+     * Reads the file and generates a list of node managers
+     * @param file
+     * @return LinkedList<NodeManager>
+     */
     public LinkedList<NodeManager> read(File file){
         String allText = "";
         LinkedList<NodeManager> managers = new LinkedList<>();
         try{
             Scanner reader = new Scanner(file);
             while(reader.hasNextLine()){
-                allText += reader.nextLine();
+                String line = reader.nextLine();
+                if(line.matches("^(?!\\s*\\/\\/).*")) //lines will only be added if they aren't commented
+                    allText += line + "\n";
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        allText.replaceAll("\n", "");
 
-        Matcher matcher = pathName.matcher(allText);
+//        allText.replaceAll("\n", "");
+
+        Matcher matcher = trajectoryPattern.matcher(allText);
         LinkedList<Integer> starts = new LinkedList<>();
         LinkedList<Integer> ends = new LinkedList<>();
 //        Set<String> data = new HashSet<>();
@@ -44,13 +66,11 @@ public class Import {
             managers.add(manager);
         }
         for (int i = 0; i < managers.size(); i++) {
-            NodeManager manager = managers.get(i);
-            int end = allText.length();
-            if(i < managers.size()-1) end = ends.get(i+1);
-            Matcher data = dataPattern.matcher(allText.substring(starts.get(i), end));
 
+            NodeManager manager = managers.get(i);
+            //matches all the data within the trajectory builder
+            Matcher data = dataPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
             while(data.find()){
-                boolean discard = false;
                 Node node = new Node();
                 String type = data.group(1);
                 try{
@@ -63,29 +83,41 @@ public class Import {
                 node.y = main.scale*72;
                 node.robotHeading = 90;
                 node.robotHeading = 90;
-                try{
-                    node.x = (Double.parseDouble(data.group(2))+72)* main.scale;
-                    node.y = (72 - (Double.parseDouble(data.group(3))))*main.scale;
+                Matcher numbers = numberPattern.matcher(data.group(2));
 
+                List<Double> nlist = new LinkedList<>();
+                while(numbers.find()){
+                    try{
+                        nlist.add(Double.parseDouble(numbers.group(1)));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        nlist.add(0.0);
+                    }
+                }
+                try{
+                    node.x = (nlist.get(0)+72.0)*main.scale;
+                    node.y = (72.0 - nlist.get(1))*main.scale;
                     switch (node.getType()){
                         case splineTo:
-                            node.splineHeading = Double.parseDouble(data.group(4))-90;
+                        case splineToConstantHeading:
+                            node.splineHeading = nlist.get(2)-90.0;
                             node.robotHeading = node.splineHeading;
                             break;
                         case splineToSplineHeading:
                         case splineToLinearHeading:
-                            node.splineHeading = Double.parseDouble(data.group(5))-90;
-                            node.robotHeading = Double.parseDouble(data.group(4))-90;
+                            node.splineHeading = nlist.get(3)-90.0;
+                            node.robotHeading = nlist.get(2)-90.0;
                             break;
-                        case splineToConstantHeading:
-                            node.splineHeading = Double.parseDouble(data.group(4))-90;
-                            node.robotHeading = node.splineHeading;
+                        case lineTo:
+                        case lineToConstantHeading:
                             break;
-                        case displacementMarker:
-                            discard = true;
+                        case lineToSplineHeading:
+                        case lineToLinearHeading:
+                            node.robotHeading = nlist.get(2)-90.0;
                             break;
                         default:
-                            throw new Exception("Unknown spline type");
+
+
                     }
                 } catch (Exception e) {
 //                    e.printStackTrace();
@@ -94,8 +126,12 @@ public class Import {
                     node.robotHeading = 90;
                     node.robotHeading = 90;
                 }
-                if(!discard)
-                    manager.add(node);
+                manager.add(node);
+            }
+            Matcher markers = markerPattern.matcher(allText.substring(starts.get(i), ends.get(i)));
+            while(markers.find()){
+                Marker marker = new Marker(Double.parseDouble(markers.group(2)), markers.group(3).trim(), Marker.Type.addTemporalMarker);
+                manager.add(marker);
             }
         }
         return managers;

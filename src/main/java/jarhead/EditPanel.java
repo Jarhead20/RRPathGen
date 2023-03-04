@@ -5,6 +5,8 @@ import javax.swing.text.NumberFormatter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class EditPanel extends JPanel {
 
@@ -17,7 +19,6 @@ public class EditPanel extends JPanel {
     public JFormattedTextField splineHeading = new JFormattedTextField(formatter);
     public JFormattedTextField robotHeading = new JFormattedTextField(formatter);
     public JTextField name = new JTextField(10);
-    public JTextField code = new JTextField(10);
     public JComboBox type;
 
     EditPanel(Main main){
@@ -30,9 +31,10 @@ public class EditPanel extends JPanel {
         JLabel lRobotHeading = new JLabel("Robot Heading: ", JLabel.TRAILING);
         JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
-        JLabel lCode = new JLabel("Code: ", JLabel.TRAILING);
 
         type = new JComboBox(Node.Type.values());
+//        type = new JComboBox(Arrays.stream(Node.Type.values()).filter(i -> i.toString().contains("line")).toArray());
+
         type.setSelectedIndex(-1);
 
         this.add(lName);
@@ -59,11 +61,7 @@ public class EditPanel extends JPanel {
         lType.setLabelFor(type);
         this.add(type);
 
-        this.add(lCode);
-        lCode.setLabelFor(code);
-        this.add(code);
-
-        SpringUtilities.makeCompactGrid(this,7,2,6,6,6,6);
+        SpringUtilities.makeCompactGrid(this,6,2,6,6,6,6);
         this.setVisible(true);
 
         name.addActionListener(new ActionListener() {
@@ -113,17 +111,6 @@ public class EditPanel extends JPanel {
                 main.drawPanel.repaint();
             }
         });
-
-        code.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) {
-                    System.out.println(code.getText());
-                    getCurrentNode().code = code.getText();
-                }
-                main.drawPanel.repaint();
-            }
-        });
     }
 
     public void saveValues(){
@@ -135,7 +122,6 @@ public class EditPanel extends JPanel {
             node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
             node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
             node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
-            node.code = code.getText();
             main.drawPanel.repaint();
         }
     }
@@ -143,7 +129,7 @@ public class EditPanel extends JPanel {
         return main.getCurrentManager().get(main.currentN);
     }
 
-    public void update() {
+    public void updateText() {
         if(main.currentN == -1){
             splineHeading.setText("");
             robotHeading.setText("");
@@ -151,7 +137,6 @@ public class EditPanel extends JPanel {
             y.setText("");
             type.setSelectedIndex(-1);
             name.setText(main.getCurrentManager().name);
-            code.setText("");
         } else {
             splineHeading.setText(Math.round((getCurrentNode().splineHeading+90)*100)/100.0 + "");
             robotHeading.setText(Math.round((getCurrentNode().robotHeading+90)*100)/100.0 + "");
@@ -159,7 +144,6 @@ public class EditPanel extends JPanel {
             y.setText(Math.round((-main.toInches(getCurrentNode().y))*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());
             name.setText(main.getCurrentManager().name);
-            code.setText(getCurrentNode().code);
         }
     }
 }

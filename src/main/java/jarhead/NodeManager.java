@@ -1,6 +1,10 @@
 package jarhead;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class NodeManager {
 
@@ -9,17 +13,10 @@ public class NodeManager {
     public int editIndex = -1;
     private ArrayList nodes;
     public String name;
-    public boolean reversed = false;
     private int id;
 
     NodeManager(ArrayList<Node> nodes, int id){
-        this.nodes = nodes;
-        this.id = id;
-        this.name = "untitled" + id;
-        if(id != -1){
-            undo = new NodeManager(new ArrayList<>(), -1);
-            redo = new NodeManager(new ArrayList<>(), -1);
-        }
+        this(nodes, id, "untitled" + id);
     }
 
     NodeManager(ArrayList<Node> nodes, int id, String name){
@@ -64,6 +61,11 @@ public class NodeManager {
     public void removeLast(){
         remove(size()-1);
     }
-
+    public List<Marker> getMarkers(){
+        return (List<Marker>) nodes.stream().filter(node -> node instanceof Marker).collect(Collectors.toList());
+    }
+    public List<Node> getNodes(){
+        return (List<Node>) nodes.stream().filter(node -> !(node instanceof Marker)).collect(Collectors.toList());
+    }
 
 }

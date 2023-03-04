@@ -2,13 +2,20 @@ package jarhead;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.*;
 
 public class ExportPanel extends JPanel {
 
     JTextArea field = new JTextArea();
     JScrollPane scroll = new JScrollPane(field);
+    JCheckBox dataType = new JCheckBox("Datatype", true);
+    JCheckBox poseEstimate = new JCheckBox("setPoseEstimate", false);
+    public boolean addDataType = true;
+    public boolean addPoseEstimate = false;
+    JButton copy = new JButton("Copy to clipboard");
     Main main;
-    private final int MULTIPLIER = 3;
 
     ExportPanel(Main main) {
         field.setText("Export");
@@ -18,11 +25,39 @@ public class ExportPanel extends JPanel {
         this.setBackground(Color.darkGray.darker());
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        this.setMinimumSize(new Dimension(200,0));
+        this.setMinimumSize(new Dimension(200,10));
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        this.add(dataType, BorderLayout.WEST);
+        this.add(poseEstimate, BorderLayout.EAST);
+        this.add(copy);
         this.add(scroll);
         this.setVisible(true);
+
+        copy.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection selection = new StringSelection(field.getText());
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, selection);
+            }
+        });
+
+        dataType.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                addDataType = e.getStateChange()==1;
+                main.buttonPanel.export();
+            }
+        });
+        poseEstimate.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                addPoseEstimate = e.getStateChange()==1;
+                main.buttonPanel.export();
+            }
+        });
+
     }
 
     @Override
