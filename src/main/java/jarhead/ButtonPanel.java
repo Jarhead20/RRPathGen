@@ -55,16 +55,12 @@ public class ButtonPanel extends JPanel {
 
         flipButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Node un = new Node(-2,-2);
-                un.state = 3;
-                for (int i = 0; i < getCurrentManager().size(); i++) {
-                    Node node = getCurrentManager().get(i);
-                    node.y = 144*main.scale-node.y;
-                    node.splineHeading = 180-node.splineHeading;
-                    node.robotHeading = 180-node.robotHeading;
-                    getCurrentManager().set(i, node);
-                }
+                main.flip();
                 main.drawPanel.repaint();
+
+                Node recordOfFlip = new Node();
+                recordOfFlip.state = 3;
+                getCurrentManager().undo.add(recordOfFlip);
             }
         });
         undoButton.addActionListener(new ActionListener() {
