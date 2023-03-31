@@ -77,7 +77,6 @@ public class ButtonPanel extends JPanel {
         });
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //todo: add undo for this
                 getCurrentManager().undo.clear();
                 getCurrentManager().redo.clear();
                 getCurrentManager().clear();
