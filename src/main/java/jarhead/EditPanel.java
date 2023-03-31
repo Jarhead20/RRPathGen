@@ -64,66 +64,55 @@ public class EditPanel extends JPanel {
         SpringUtilities.makeCompactGrid(this,6,2,6,6,6,6);
         this.setVisible(true);
 
-        name.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                main.getCurrentManager().name = name.getText();
-                main.drawPanel.repaint();
-            }
+        name.addActionListener(e -> {
+            main.getCurrentManager().name = name.getText();
+            main.drawPanel.repaint();
         });
 
-        x.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().x = (Double.parseDouble(x.getText())+72)*main.scale;
-                main.drawPanel.repaint();
-            }
+        x.addActionListener(e -> {
+            if(main.currentN == -1) return;
+            getCurrentNode().x = (Double.parseDouble(x.getText())+72)*main.scale;
+            main.drawPanel.repaint();
         });
 
-        y.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().y = (72-Double.parseDouble(y.getText()))*main.scale;
-                main.drawPanel.repaint();
-            }
+        y.addActionListener(e -> {
+            if(main.currentN == -1) return;
+            getCurrentNode().y = (72-Double.parseDouble(y.getText()))*main.scale;
+            main.drawPanel.repaint();
         });
 
-        splineHeading.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().splineHeading = Double.parseDouble(splineHeading.getText())-90;
-                main.drawPanel.repaint();
-            }
+        splineHeading.addActionListener(e -> {
+            if(main.currentN == -1) return;
+            getCurrentNode().splineHeading = Double.parseDouble(splineHeading.getText())-90;
+            main.drawPanel.repaint();
         });
 
-        robotHeading.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().robotHeading = Double.parseDouble(robotHeading.getText())-90;
-                main.drawPanel.repaint();
-            }
+        robotHeading.addActionListener(e -> {
+            if(main.currentN == -1) return;
+            getCurrentNode().robotHeading = Double.parseDouble(robotHeading.getText())-90;
+            main.drawPanel.repaint();
         });
 
-        type.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(main.currentN != -1) getCurrentNode().setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
-                main.drawPanel.repaint();
-            }
+        type.addActionListener(e -> {
+            if(main.currentN == -1) return;
+            getCurrentNode().setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
+            main.drawPanel.repaint();
         });
     }
 
     public void saveValues(){
-        if(main.currentN != -1){
-            Node node = getCurrentNode();
-            main.getCurrentManager().name = name.getText();
-            node.x = (Double.parseDouble(x.getText())+72)*main.scale;
-            node.y = (72-Double.parseDouble(y.getText()))*main.scale;
-            node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
-            node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
-            node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
-            main.drawPanel.repaint();
-        }
+        if(main.currentN == -1) return;
+
+        Node node = getCurrentNode();
+        main.getCurrentManager().name = name.getText();
+
+        node.x = (Double.parseDouble(x.getText())+72)*main.scale;
+        node.y = (72-Double.parseDouble(y.getText()))*main.scale;
+        node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
+        node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
+
+        node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
+        main.drawPanel.repaint();
     }
     public Node getCurrentNode(){
         return main.getCurrentManager().get(main.currentN);
