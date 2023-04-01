@@ -34,28 +34,19 @@ public class ExportPanel extends JPanel {
         this.add(scroll);
         this.setVisible(true);
 
-        copy.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                StringSelection selection = new StringSelection(field.getText());
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(selection, selection);
-            }
+        copy.addActionListener(e -> {
+            StringSelection selection = new StringSelection(field.getText());
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, selection);
         });
 
-        dataType.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                addDataType = e.getStateChange()==1;
-                main.buttonPanel.export();
-            }
+        dataType.addItemListener(e -> {
+            addDataType = e.getStateChange()==1;
+            main.buttonPanel.export();
         });
-        poseEstimate.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                addPoseEstimate = e.getStateChange()==1;
-                main.buttonPanel.export();
-            }
+        poseEstimate.addItemListener(e -> {
+            addPoseEstimate = e.getStateChange()==1;
+            main.buttonPanel.export();
         });
 
     }
