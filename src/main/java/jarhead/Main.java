@@ -136,6 +136,16 @@ class Main extends JFrame {
         });
     }
 
+    public void flip() {
+        for (int i = 0; i < getCurrentManager().size(); i++) {
+            Node node = getCurrentManager().get(i);
+            node.y = 144*scale-node.y;
+            node.splineHeading = 180-node.splineHeading;
+            node.robotHeading = 180-node.robotHeading;
+            getCurrentManager().set(i, node);
+        }
+    }
+
     public void undo(){
         undo(false);
     }
@@ -163,15 +173,14 @@ class Main extends JFrame {
                 getCurrentManager().remove(node.index);
                 break;
             case 3: //undo flip
-                for (int i = 0; i < getCurrentManager().size(); i++) {
-                    Node n = getCurrentManager().get(i);
-                    n.y *= -1;
-                    getCurrentManager().set(i, n);
+                flip();
+                drawPanel.repaint();
+
+                if(record) {
+                    Node recordOfFlip = new Node();
+                    recordOfFlip.state = 3;
+                    getCurrentManager().redo.add(recordOfFlip);
                 }
-                currentN = -1;
-                r = node;
-                if(record)
-                    getCurrentManager().redo.add(r);
                 break;
             case 4:  //undo drag
                 if(node.index == -1){
@@ -208,13 +217,12 @@ class Main extends JFrame {
                 getCurrentManager().undo.add(u);
                 break;
             case 3: //redo flip
-                for (int i = 0; i < getCurrentManager().size(); i++) {
-                    Node n = getCurrentManager().get(i);
-                    n.y *= -1;
-                    getCurrentManager().set(i, n);
-                }
-                u = node;
-                getCurrentManager().undo.add(u);
+                flip();
+                drawPanel.repaint();
+
+                Node recordOfFlip = new Node();
+                recordOfFlip.state = 3;
+                getCurrentManager().undo.add(recordOfFlip);
                 break;
             case 4:  //redo drag
                 if(node.index == -1){
@@ -225,6 +233,7 @@ class Main extends JFrame {
                 u.state = 4;
                 getCurrentManager().set(node.index, node);
                 getCurrentManager().undo.add(u);
+                break;
         }
 
         getCurrentManager().redo.removeLast();
