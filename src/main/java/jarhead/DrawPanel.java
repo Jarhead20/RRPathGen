@@ -26,7 +26,6 @@ import java.util.List;
 
 public class DrawPanel extends JPanel {
 
-    final boolean debug = false;
 
     private final LinkedList<NodeManager> managers;
     private final ProgramProperties robot;
@@ -285,7 +284,7 @@ public class DrawPanel extends JPanel {
         }
 
         double overal = (System.currentTimeMillis() - time);
-        if(debug){
+        if(main.debug){
             g.drawString("trajGen (ms): " + trajGen, 10, 30);
             g.drawString("render (ms): " + render, 10, 70);
             g.drawString("node count: " + getCurrentManager().size(), 10, 50);

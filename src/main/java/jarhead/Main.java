@@ -11,6 +11,8 @@ import java.util.*;
 
 class Main extends JFrame {
 
+    public static boolean debug = false;
+
     private ProgramProperties properties;
     public double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
     private NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
@@ -34,6 +36,7 @@ class Main extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
+        if(args.length > 0 && args[0].matches("debug")) debug = true;
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Main().setVisible(true);
