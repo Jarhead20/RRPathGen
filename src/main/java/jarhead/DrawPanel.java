@@ -441,7 +441,7 @@ public class DrawPanel extends JPanel {
                 for (int j = 0; j < markers.size(); j++) {
                     Pose2d pose = traj.get(markers.get(j).displacement-total);
                     double dist = mouse.distance(new Node(pose.getX()*main.scale, pose.getY()*main.scale));
-                    if (dist <= closestMarker) continue;
+                    if (dist >= closestMarker) continue;
                     closestMarker = dist;
                     index = j;
                 }
@@ -452,7 +452,7 @@ public class DrawPanel extends JPanel {
                     double y = pose.getY() * main.scale;
 
                     double dist = mouse.distance(new Node(x, y));
-                    if (dist <= min) continue;
+                    if (dist >= min) continue;
                     displacement = j + total;
                     min = dist;
                 }
@@ -598,7 +598,7 @@ public class DrawPanel extends JPanel {
                         double y = pose.getY() * main.scale;
 
                         double dist = mouse.distance(new Node(x, y));
-                        if (dist <= min) continue;
+                        if (dist >= min) continue;
                         displacement = j+total;
                         min = dist;
                     }
