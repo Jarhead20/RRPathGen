@@ -26,7 +26,7 @@ import java.util.List;
 
 public class DrawPanel extends JPanel {
 
-    boolean debug = false;
+    final boolean debug = false;
 
     private final LinkedList<NodeManager> managers;
     private final ProgramProperties robot;
@@ -252,6 +252,7 @@ public class DrawPanel extends JPanel {
         super.paintComponent(g);
         long time = System.currentTimeMillis();
         long trajGen = 0;
+        long render = 0;
         main.infoPanel.changePanel((main.currentN == -1 && main.currentMarker != -1));
 
         if (preRenderedSplines == null) renderBackgroundSplines();
@@ -270,20 +271,23 @@ public class DrawPanel extends JPanel {
         oldScale = main.scale;
         if (getCurrentManager().size() > 0) {
             Node node = getCurrentManager().getNodes().get(0);
-            trajGen = System.currentTimeMillis();
+            long trajGenStart = System.currentTimeMillis();
             trajectory = generateTrajectory(getCurrentManager(), node);
-
+            trajGen = System.currentTimeMillis() - trajGenStart;
+            long renderStart = System.currentTimeMillis();
             if(trajectory != null) {
                 renderRobotPath((Graphics2D) g, trajectory, lightPurple, 0.5f);
                 renderSplines(g, trajectory, cyan);
                 renderPoints(g, trajectory, cyan, 1);
             }
             renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
+            render = System.currentTimeMillis() - renderStart;
         }
 
         double overal = (System.currentTimeMillis() - time);
         if(debug){
-            g.drawString("trajGen (ms): " + (System.currentTimeMillis() - trajGen), 10, 30);
+            g.drawString("trajGen (ms): " + trajGen, 10, 30);
+            g.drawString("render (ms): " + render, 10, 70);
             g.drawString("node count: " + getCurrentManager().size(), 10, 50);
             g.drawString("overal (ms): " + overal, 10, 10);
         }
