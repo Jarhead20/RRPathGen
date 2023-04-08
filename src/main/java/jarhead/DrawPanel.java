@@ -25,8 +25,6 @@ import java.util.List;
 
 
 public class DrawPanel extends JPanel {
-
-
     private final LinkedList<NodeManager> managers;
     private final ProgramProperties robot;
     private TrajectorySequence trajectory;
@@ -525,7 +523,7 @@ public class DrawPanel extends JPanel {
                     //if the point clicked was a mid point, gen a new point
                     if (mid) {
                         preEdit = (new Node(index));
-                        preEdit.state = 2;
+                        preEdit.state = Node.State.ADD;
                         getCurrentManager().redo.clear();
                         main.currentN = getCurrentManager().size();
                         main.currentMarker = -1;
@@ -540,7 +538,7 @@ public class DrawPanel extends JPanel {
                         mouse.setType(n2.getType());
                         Node prev = getCurrentManager().get(index);
                         preEdit = prev.copy(); //storing the existing data for undo
-                        preEdit.state = 4;
+                        preEdit.state = Node.State.DRAG;
                         getCurrentManager().redo.clear();
                         main.currentN = index;
                         main.currentMarker = -1;
@@ -548,7 +546,7 @@ public class DrawPanel extends JPanel {
                         getCurrentManager().set(index, mouse);
                     }
                 }
-            } else if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1){
+            } else if(e.getClickCount() == 1){
                 int size = getCurrentManager().size();
                 if(size > 0){
                     Node n1 = getCurrentManager().last();
@@ -557,7 +555,7 @@ public class DrawPanel extends JPanel {
                 }
                 preEdit = mouse.copy();
                 preEdit.index = getCurrentManager().size();
-                preEdit.state = 2;
+                preEdit.state = Node.State.ADD;
                 getCurrentManager().redo.clear();
                 main.currentN = getCurrentManager().size();
                 main.currentMarker = -1;
@@ -673,7 +671,7 @@ public class DrawPanel extends JPanel {
                 if (main.currentN < 0) break;
                 Node n = getCurrentManager().get(main.currentN);
                 n.index = main.currentN;
-                n.state = 1;
+                n.state = Node.State.DELETE;
                 getCurrentManager().undo.add(n);
                 getCurrentManager().remove(main.currentN);
                 main.currentN--;

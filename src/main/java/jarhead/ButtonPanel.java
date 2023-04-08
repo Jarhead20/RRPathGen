@@ -7,11 +7,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
 
 public class ButtonPanel extends JPanel {
 
@@ -47,89 +44,73 @@ public class ButtonPanel extends JPanel {
 
         this.setVisible(true);
 
-        exportButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                export();
-            }
-        });
+        exportButton.addActionListener(e -> export());
 
-        flipButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                main.flip();
-                main.drawPanel.repaint();
+        flipButton.addActionListener(e -> {
+            main.flip();
+            main.drawPanel.repaint();
 
-                Node recordOfFlip = new Node();
-                recordOfFlip.state = 3;
-                getCurrentManager().undo.add(recordOfFlip);
-            }
+            Node recordOfFlip = new Node();
+            recordOfFlip.state = Node.State.FLIP;
+            getCurrentManager().undo.add(recordOfFlip);
         });
-        undoButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                main.undo(true);
-                main.drawPanel.repaint();
-            }
+        undoButton.addActionListener(e -> {
+            main.undo(true);
+            main.drawPanel.repaint();
         });
-        redoButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                main.redo();
-                main.drawPanel.repaint();
-            }
+        redoButton.addActionListener(e -> {
+            main.redo();
+            main.drawPanel.repaint();
         });
-        clearButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                getCurrentManager().undo.clear();
-                getCurrentManager().redo.clear();
-                getCurrentManager().clear();
-                int id = main.currentM;
-                for (int i = id; i < managers.size()-1; i++) {
-                    managers.set(i, managers.get(i+1));
-                }
-                if(managers.size() > 1)
-                    managers.removeLast();
-                else main.currentM = 0;
-                if(main.currentM > 0)
-                    main.currentM--;
-                main.currentN = -1;
-                main.infoPanel.editPanel.updateText();
-                main.drawPanel.resetPath();
+        clearButton.addActionListener(e -> {
+            getCurrentManager().undo.clear();
+            getCurrentManager().redo.clear();
+            getCurrentManager().clear();
+            int id = main.currentM;
+            for (int i = id; i < managers.size()-1; i++) {
+                managers.set(i, managers.get(i+1));
+            }
+            if(managers.size() > 1)
+                managers.removeLast();
+            else main.currentM = 0;
+            if(main.currentM > 0)
+                main.currentM--;
+            main.currentN = -1;
+            main.infoPanel.editPanel.updateText();
+            main.drawPanel.resetPath();
 
-                main.drawPanel.renderBackgroundSplines();
-                main.drawPanel.repaint();
-            }
+            main.drawPanel.renderBackgroundSplines();
+            main.drawPanel.repaint();
         });
-        importButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                File file;
-                if(robot.importPath.matches("")){
-                    JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
-                    FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Files", "java");
-                    chooser.setFileFilter(filter);
-                    int r = chooser.showOpenDialog(null);
-                    if(r != JFileChooser.APPROVE_OPTION) return;
-                    robot.importPath = chooser.getSelectedFile().getPath();
-                    robot.prop.setProperty("IMPORT/EXPORT", robot.importPath);
-                    main.saveConfig();
-                    main.infoPanel.settingsPanel.update();
-                    file = chooser.getSelectedFile();
-                } else {
-                    main.saveConfig();
-                    file = new File(robot.importPath);
-                }
-                Import importer = new Import(main);
-                LinkedList<NodeManager> in = importer.read(file);
-                if(getCurrentManager().size() < 1)
-                    managers.remove(getCurrentManager());
-                in.forEach((m) -> {
-                    managers.add(m);
-                });
+        importButton.addActionListener(e -> {
+            File file;
+            if(robot.importPath.matches("")){
+                JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView());
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Files", "java");
+                chooser.setFileFilter(filter);
+                int r = chooser.showOpenDialog(null);
+                if(r != JFileChooser.APPROVE_OPTION) return;
+                robot.importPath = chooser.getSelectedFile().getPath();
+                robot.prop.setProperty("IMPORT/EXPORT", robot.importPath);
+                main.saveConfig();
+                main.infoPanel.settingsPanel.update();
+                file = chooser.getSelectedFile();
+            } else {
+                main.saveConfig();
+                file = new File(robot.importPath);
+            }
+            Import importer = new Import(main);
+            LinkedList<NodeManager> in = importer.read(file);
+            if(getCurrentManager().size() < 1)
+                managers.remove(getCurrentManager());
+            managers.addAll(in);
 
 
-                main.currentM = managers.size()-1;
-                main.currentN = -1;
-                main.infoPanel.editPanel.name.setText(getCurrentManager().name);
-                main.drawPanel.renderBackgroundSplines();
-                main.drawPanel.repaint();
-            }
+            main.currentM = managers.size()-1;
+            main.currentN = -1;
+            main.infoPanel.editPanel.name.setText(getCurrentManager().name);
+            main.drawPanel.renderBackgroundSplines();
+            main.drawPanel.repaint();
         });
     }
 
@@ -162,9 +143,8 @@ public class ButtonPanel extends JPanel {
         sb.append(String.format("%s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
         //sort the markers
         List<Marker> markers = getCurrentManager().getMarkers();
-        markers.sort((n1, n2) -> ((Double) n1.displacement).compareTo(n2.displacement));
-        for (int i = 0; i < markers.size(); i++) {
-            Marker marker = markers.get(i);
+        markers.sort(Comparator.comparingDouble(n -> n.displacement));
+        for (Marker marker : markers) {
             sb.append(String.format(".UNSTABLE_addTemporalMarkerOffset(%.2f,() -> {%s})%n", marker.displacement, marker.code));
         }
         boolean prev = false;
