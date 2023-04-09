@@ -6,7 +6,14 @@ public class Node {
     public double splineHeading;
     public double robotHeading;
     public int index = -1;
-    public int state = 1;
+
+    public enum State {
+        DELETE,
+        ADD,
+        DRAG,
+        FLIP
+    }
+    public State state;
     public boolean reversed = false;
 
     private Type type = Type.splineTo;
