@@ -151,7 +151,7 @@ class Main extends JFrame {
 
     public void undo(boolean record){
         if(getCurrentManager().undo.size()<1) return;
-        Node node = getCurrentManager().undo.last();
+        Node node = getCurrentManager().undo.peek();
         switch (node.state) {
             case ADD:
                 node = getCurrentManager().get(node.index);
@@ -177,11 +177,11 @@ class Main extends JFrame {
                 break;
         }
         if (record) getCurrentManager().redo.add(node);
-        getCurrentManager().undo.removeLast();
+        getCurrentManager().undo.pop();
     }
     public void redo(){
         if(getCurrentManager().redo.size()<1) return;
-        Node node = getCurrentManager().redo.last();
+        Node node = getCurrentManager().redo.peek();
 
         //TODO: fix undo and redo
         switch (node.state){
@@ -208,7 +208,7 @@ class Main extends JFrame {
                 break;
         }
         getCurrentManager().undo.add(node);
-        getCurrentManager().redo.removeLast();
+        getCurrentManager().redo.pop();
     }
 
     public void saveConfig() {
@@ -222,6 +222,12 @@ class Main extends JFrame {
     public void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
+            n.x = (n.x/os)*ns;
+            n.y = (n.y/os)*ns;
+        }
+    }
+    public void scale(Stack<Node> manager, double ns, double os){
+        for (Node n : manager) {
             n.x = (n.x/os)*ns;
             n.y = (n.y/os)*ns;
         }
