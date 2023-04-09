@@ -149,10 +149,6 @@ class Main extends JFrame {
         }
     }
 
-    public void undo(){
-        undo(false);
-    }
-
     public void undo(boolean record){
         if(getCurrentManager().undo.size()<1) return;
         Node node = getCurrentManager().undo.last();
@@ -161,6 +157,7 @@ class Main extends JFrame {
                 node = getCurrentManager().get(node.index);
                 node.state = Node.State.ADD;
                 getCurrentManager().remove(node.index);
+                currentN = node.index-1;
                 break;
             case DELETE:
                 getCurrentManager().add(node.index, node);

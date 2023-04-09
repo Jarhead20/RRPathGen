@@ -664,7 +664,10 @@ public class DrawPanel extends JPanel {
                 }
                 break;
             case KeyEvent.VK_Z:
-                if(e.isControlDown()) main.undo();
+                if(e.isControlDown()) main.undo(true);
+                break;
+            case KeyEvent.VK_Y:
+                if(e.isControlDown()) main.redo();
                 break;
             case KeyEvent.VK_DELETE:
             case KeyEvent.VK_BACK_SPACE:
