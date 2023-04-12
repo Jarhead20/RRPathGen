@@ -350,18 +350,16 @@ public class DrawPanel extends JPanel {
 
         Graphics g = preRenderedSplines.getGraphics();
         for (NodeManager manager : managers){
-            if(!manager.equals(getCurrentManager())){
-                if(manager.size() > 0) {
-                    Node node = manager.getNodes().get(0);
-                    TrajectorySequence trajectory = generateTrajectory(manager, node);
-                    if(trajectory != null) {
-                        renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
-                        renderSplines(g, trajectory, cyan);
-                        renderPoints(g, trajectory, cyan, 1);
-                    }
-                    renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
-                }
+            if(manager.equals(getCurrentManager())) continue;
+            if(manager.size() <= 0) continue;
+            Node node = manager.getNodes().get(0);
+            TrajectorySequence trajectory = generateTrajectory(manager, node);
+            if(trajectory != null) {
+                renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
+                renderSplines(g, trajectory, cyan);
+                renderPoints(g, trajectory, cyan, 1);
             }
+            renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
         }
         g.dispose();
     }
@@ -517,7 +515,7 @@ public class DrawPanel extends JPanel {
 
             mouse = snap(mouse, e);
             if(index != -1){
-                if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1) {
+                if(e.getClickCount() == 1) {
                     getCurrentManager().editIndex = index;
                     edit = true;
                     //if the point clicked was a mid point, gen a new point
@@ -664,7 +662,10 @@ public class DrawPanel extends JPanel {
                 }
                 break;
             case KeyEvent.VK_Z:
-                if(e.isControlDown()) main.undo();
+                if(e.isControlDown()) main.undo(true);
+                break;
+            case KeyEvent.VK_Y:
+                if(e.isControlDown()) main.redo();
                 break;
             case KeyEvent.VK_DELETE:
             case KeyEvent.VK_BACK_SPACE:
