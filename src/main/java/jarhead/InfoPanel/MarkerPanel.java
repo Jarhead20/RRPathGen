@@ -1,4 +1,8 @@
-package jarhead;
+package jarhead.InfoPanel;
+
+import jarhead.Main;
+import jarhead.Marker;
+import jarhead.SpringUtilities;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;

@@ -1,4 +1,8 @@
-package jarhead;
+package jarhead.InfoPanel;
+
+import jarhead.Main;
+import jarhead.ProgramProperties;
+import jarhead.SpringUtilities;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
@@ -46,13 +50,10 @@ public class SettingsPanel extends JPanel {
         for (int i = 0; i < fields.size(); i++) {
             JTextField field = fields.get(i);
             int finalI = i;
-            field.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    robot.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
-                    main.reloadConfig();
-                    main.setState(JFrame.MAXIMIZED_BOTH);
-                }
+            field.addActionListener(e -> {
+                robot.prop.setProperty(labels[finalI].replaceAll(" ","_").toUpperCase(), field.getText());
+                main.reloadConfig();
+                main.setState(JFrame.MAXIMIZED_BOTH);
             });
         }
     }

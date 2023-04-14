@@ -1,16 +1,16 @@
-package jarhead;
+package jarhead.InfoPanel;
+
+import jarhead.Main;
+import jarhead.Node;
+import jarhead.SpringUtilities;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class EditPanel extends JPanel {
 
-    private Main main;
+    private final Main main;
 
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
