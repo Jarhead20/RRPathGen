@@ -2,9 +2,9 @@ package jarhead;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.path.*;
+import com.acmerobotics.roadrunner.path.Path;
+import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryMarker;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import jarhead.trajectorysequence.TrajectorySequence;
@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class DrawPanel extends JPanel {
@@ -105,25 +106,9 @@ public class DrawPanel extends JPanel {
         for (int i = 0; i < trajectory.size(); i++) {
             SequenceSegment segment = trajectory.get(i);
             if(segment == null) continue;
-            if (segment instanceof TrajectorySegment) {
-                Trajectory path = ((TrajectorySegment) segment).getTrajectory();
 
-                g.setColor(color);
-                for (double j = 0; j < path.duration(); j+= robot.resolution) {
-                    Pose2d pose1 = path.get(j-robot.resolution);
-                    Pose2d pose2 = path.get(j);
-                    int x1 = (int) (pose1.getX()*main.scale);
-                    int y1 = (int) (pose1.getY()*main.scale);
-                    int x2 = (int) (pose2.getX()*main.scale);
-                    int y2 = (int) (pose2.getY()*main.scale);
-                    g.drawLine(x1,y1,x2,y2);
-                }
-
-            } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
-                Pose2d startPose = segment.getStartPose();
-                Pose2d endPose = segment.getEndPose();
-                g.drawLine((int)startPose.getX(), (int)startPose.getY(), (int)endPose.getX(), (int)endPose.getY());
-            }
+            g.setColor(color);
+            g = segment.renderSplines(g, robot.resolution, main.scale);
         }
     }
 
@@ -156,10 +141,6 @@ public class DrawPanel extends JPanel {
                     int x1 = (int) (pose1.getX()*main.scale);
                     int y1 = (int) (pose1.getY()*main.scale);
 
-                    res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
-                    j += res;
-                    prevHeading = pose1.getHeading();
-
                     outLine.setToIdentity();
                     outLine.translate(x1, y1);
                     outLine.rotate(pose1.getHeading());
@@ -167,6 +148,10 @@ public class DrawPanel extends JPanel {
                     g2.setColor(color);
                     g2.setTransform(outLine);
                     g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
+
+                    res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
+                    j += res;
+                    prevHeading = pose1.getHeading();
                 }
                 if (path.length() > 0) {
                     Pose2d end = path.end();
@@ -179,6 +164,7 @@ public class DrawPanel extends JPanel {
 
 
             } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
+                //
                 Pose2d pose1 = segment.getStartPose();
                 Pose2d end = segment.getEndPose();
                 int x1 = (int) pose1.getX();
@@ -207,30 +193,8 @@ public class DrawPanel extends JPanel {
         for (int i = 0; i < trajectory.size(); i++) {
             SequenceSegment segment = trajectory.get(i);
             if (segment == null) continue;
-            if (segment instanceof TrajectorySegment) {
-                List<TrajectoryMarker> markers = ((TrajectorySegment) segment).getTrajectory().getMarkers();
-                markers.forEach(trajectoryMarker -> {
-                    Pose2d mid = ((TrajectorySegment) segment).getTrajectory().get(trajectoryMarker.getTime());
-                    double x = mid.getX()*main.scale;
-                    double y = mid.getY()*main.scale;
-                    g.setColor(Color.red);
-                    g.fillOval((int) Math.floor(x - (ovalscale * main.scale)), (int) Math.floor(y - (ovalscale * main.scale)), (int) Math.floor(2 * ovalscale * main.scale), (int) Math.floor(2 * ovalscale * main.scale));
-                });
-                Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-                for (PathSegment pathSegment : path.getSegments()) {
-
-                    Pose2d mid = pathSegment.get(pathSegment.length() / 2);
-                    double x = mid.getX()*main.scale;
-                    double y = mid.getY()*main.scale;
-                    g.setColor(c1);
-                    g.fillOval((int) Math.floor(x - (ovalscale * main.scale)), (int) Math.floor(y - (ovalscale * main.scale)), (int) Math.floor(2 * ovalscale * main.scale), (int) Math.floor(2 * ovalscale * main.scale));
-                }
-
-            } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
-                Pose2d startPose = segment.getStartPose();
-                Pose2d endPose = segment.getEndPose();
-                g.drawLine((int) startPose.getX(), (int) startPose.getY(), (int) endPose.getX(), (int) endPose.getY());
-            }
+            g.setColor(c1);
+            g = segment.renderPoints(g, main.scale, ovalscale);
         }
     }
 
@@ -261,7 +225,7 @@ public class DrawPanel extends JPanel {
                 main.scale(nodeManager.undo, main.scale, oldScale);
                 main.scale(nodeManager.redo, main.scale, oldScale);
             });
-        g.drawImage(new ImageIcon(Main.class.getResource("/field-2022-kai-dark.png")).getImage(), 0, 0, this.getWidth(), this.getHeight(), null);
+        g.drawImage(new ImageIcon(Objects.requireNonNull(Main.class.getResource("/field-2022-kai-dark.png"))).getImage(), 0, 0, this.getWidth(), this.getHeight(), null);
         if (preRenderedSplines == null || preRenderedSplines.getWidth() != this.getWidth())
             renderBackgroundSplines();
         g.drawImage(preRenderedSplines, 0, 0, null);
@@ -281,21 +245,21 @@ public class DrawPanel extends JPanel {
             render = System.currentTimeMillis() - renderStart;
         }
 
-        double overal = (System.currentTimeMillis() - time);
-        if(main.debug){
+        double overall = (System.currentTimeMillis() - time);
+        if(Main.debug){
             g.drawString("trajGen (ms): " + trajGen, 10, 30);
             g.drawString("render (ms): " + render, 10, 70);
             g.drawString("node count: " + getCurrentManager().size(), 10, 50);
-            g.drawString("overal (ms): " + overal, 10, 10);
+            g.drawString("overall (ms): " + overall, 10, 10);
         }
     }
 
-    private TrajectorySequence generateTrajectory(NodeManager manager, Node exlude){
-        Node node = exlude.shrink(main.scale);
+    private TrajectorySequence generateTrajectory(NodeManager manager, Node exclude){
+        Node node = exclude.shrink(main.scale);
         TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(robot.maxVelo, robot.trackWidth), new ProfileAccelerationConstraint(robot.maxAccel), robot.maxAngVelo, robot.maxAngAccel);
-        builder.setReversed(exlude.reversed);
+        builder.setReversed(exclude.reversed);
         for (int i = 0; i < manager.size(); i++) {
-            if(exlude.equals(manager.get(i))) continue; //stops empty path segment error
+            if(exclude.equals(manager.get(i))) continue; //stops empty path segment error
 
             node = manager.get(i).shrink(main.scale);
 
@@ -364,7 +328,7 @@ public class DrawPanel extends JPanel {
         g.dispose();
     }
 
-    private void renderArrows(Graphics g, NodeManager nodeM, int ovalscale, Color color1, Color color2, Color color3) {
+    private void renderArrows(Graphics g, NodeManager nodeM, int ovalScale, Color color1, Color color2, Color color3) {
         Graphics2D g2d = (Graphics2D) g.create();
         BufferedImage bufferedImage = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = bufferedImage.createGraphics();
@@ -381,7 +345,7 @@ public class DrawPanel extends JPanel {
             g2.setTransform(tx);
 
             g2.setColor(color1);
-            g2.fillOval(-ovalscale, -ovalscale, 2 * ovalscale, 2 * ovalscale);
+            g2.fillOval(-ovalScale, -ovalScale, 2 * ovalScale, 2 * ovalScale);
             switch (node.getType()) {
                 case splineTo:
                     g2.setColor(color2);
@@ -513,7 +477,7 @@ public class DrawPanel extends JPanel {
                 mid = false;
             }
 
-            mouse = snap(mouse, e);
+            snap(mouse, e);
             if(index != -1){
                 if(e.getClickCount() == 1) {
                     getCurrentManager().editIndex = index;
