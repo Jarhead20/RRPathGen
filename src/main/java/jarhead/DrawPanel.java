@@ -189,12 +189,12 @@ public class DrawPanel extends JPanel {
         g2.dispose();
     }
 
-    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalscale){
+    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalScale){
         for (int i = 0; i < trajectory.size(); i++) {
             SequenceSegment segment = trajectory.get(i);
             if (segment == null) continue;
             g.setColor(c1);
-            g = segment.renderPoints(g, main.scale, ovalscale);
+            g = segment.renderPoints(g, main.scale, ovalScale);
         }
     }
 
@@ -392,7 +392,6 @@ public class DrawPanel extends JPanel {
             double displacement = -1;
             double closestMarker = min;
             int index = -1;
-            int count = 0;
             double total = 0;
             List<Marker> markers = getCurrentManager().getMarkers();
             for (int i = 0; i < trajectory.size(); i++) {
@@ -425,17 +424,16 @@ public class DrawPanel extends JPanel {
                 getCurrentManager().editIndex = index;
             } else {
                 Marker marker = new Marker(displacement);
-                getCurrentManager().add(count, marker);
-                getCurrentManager().editIndex = count;
+                getCurrentManager().add(0, marker);
+                getCurrentManager().editIndex = 0;
             }
             main.currentN = -1;
             main.currentMarker = index;
             main.infoPanel.markerPanel.updateText();
             edit = true;
         } else { //regular node
-            double closest = 99999;
-            boolean mid = false;
-            int index = -1;
+            Node closest = new Node();
+            
             TrajectorySequence trajectory = getTrajectory();
             //find closest mid
             int counter = 0; //i don't like this but its the easiest way
@@ -453,13 +451,13 @@ public class DrawPanel extends JPanel {
 
                         double px = (pose.getX()*main.scale) - mouse.x;
                         double py = (pose.getY()*main.scale) - mouse.y;
-                        counter++;
                         double midDist = Math.sqrt(px * px + py * py);
+                        counter++;
 
-                        if (midDist >= (clickSize * main.scale) || midDist >= closest) continue;
-                        closest = midDist;
-                        index = counter;
-                        mid = true;
+                        if (midDist >= closest.distanceToMouse) continue;
+                        closest.distanceToMouse = midDist;
+                        closest.index = counter;
+                        closest.mid = true;
                     }
                 }
             }
@@ -468,44 +466,47 @@ public class DrawPanel extends JPanel {
                 Node close = getCurrentManager().get(i);
                 double distance = mouse.distance(close);
                 //find closest that isn't a mid
-                if(distance >= (clickSize*main.scale) || distance >= closest) continue;
-                closest = distance;
-                index = i;
+                if(distance >= closest.distanceToMouse) continue;
+                closest.distanceToMouse = distance;
+                closest.index = i;
                 mouse.splineHeading = close.splineHeading;
                 mouse.robotHeading = close.robotHeading;
                 mouse.reversed = close.reversed;
-                mid = false;
+                closest.mid = false;
             }
 
+            if (closest.distanceToMouse >= (clickSize * main.scale))
+                closest.index = -1;
+
             snap(mouse, e);
-            if(index != -1){
+            if(closest.index != -1){
                 if(e.getClickCount() == 1) {
-                    getCurrentManager().editIndex = index;
+                    getCurrentManager().editIndex = closest.index;
                     edit = true;
                     //if the point clicked was a mid point, gen a new point
-                    if (mid) {
-                        preEdit = (new Node(index));
+                    if (closest.mid) {
+                        preEdit = (new Node(closest.index));
                         preEdit.state = Node.State.ADD;
                         getCurrentManager().redo.clear();
                         main.currentN = getCurrentManager().size();
                         main.currentMarker = -1;
                         //TODO: make it face towards the tangential heading
-                        mouse.splineHeading = mouse.headingTo(getCurrentManager().get(index));
+                        mouse.splineHeading = mouse.headingTo(getCurrentManager().get(closest.index));
                         mouse.robotHeading = mouse.splineHeading;
-                        getCurrentManager().add(index, mouse);
+                        getCurrentManager().add(closest.index, mouse);
                     } else { //editing existing node
-                        Node n2 = getCurrentManager().get(index);
+                        Node n2 = getCurrentManager().get(closest.index);
                         mouse.x = n2.x;
                         mouse.y = n2.y;
                         mouse.setType(n2.getType());
-                        Node prev = getCurrentManager().get(index);
+                        Node prev = getCurrentManager().get(closest.index);
                         preEdit = prev.copy(); //storing the existing data for undo
                         preEdit.state = Node.State.DRAG;
                         getCurrentManager().redo.clear();
-                        main.currentN = index;
+                        main.currentN = closest.index;
                         main.currentMarker = -1;
                         main.infoPanel.editPanel.updateText();
-                        getCurrentManager().set(index, mouse);
+                        getCurrentManager().set(closest.index, mouse);
                     }
                 }
             } else if(e.getClickCount() == 1){
@@ -529,12 +530,12 @@ public class DrawPanel extends JPanel {
     }
 
     private void mReleased(MouseEvent e){
+        if(SwingUtilities.isLeftMouseButton(e) || SwingUtilities.isRightMouseButton(e)){
+            edit = false;
+        }
         if(SwingUtilities.isLeftMouseButton(e)){
             getCurrentManager().undo.add(preEdit);
-            edit = false;
             getCurrentManager().editIndex = -1;
-        } else if(SwingUtilities.isRightMouseButton(e)){
-            edit = false;
         }
         main.infoPanel.editPanel.updateText();
 

@@ -6,6 +6,8 @@ public class Node {
     public double splineHeading;
     public double robotHeading;
     public int index = -1;
+    public boolean mid = false;
+    public double distanceToMouse = 99999;
 
     public enum State {
         DELETE,
