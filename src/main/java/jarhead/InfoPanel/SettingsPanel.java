@@ -7,20 +7,19 @@ import jarhead.SpringUtilities;
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class SettingsPanel extends JPanel {
 
-    private Main main;
+    private final Main main;
 
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
-    private LinkedList<JTextField> fields = new LinkedList<>();
-    private String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Angular Velo", "Max Angular Accel"};
-    private ProgramProperties robot;
+    private final LinkedList<JTextField> fields = new LinkedList<>();
+    private final String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Angular Velo", "Max Angular Accel"};
+    private final ProgramProperties robot;
     SettingsPanel(Main main, ProgramProperties properties){
         this.robot = properties;
         this.main = main;
@@ -30,11 +29,11 @@ public class SettingsPanel extends JPanel {
 
         for (String label : labels) {
             JTextField input;
-            if(label == labels[3])
+            if(Objects.equals(label, labels[3]))
                 input = new JTextField();
             else
                 input = new JFormattedTextField(formatter);
-            input.setCursor(new Cursor(2));
+            input.setCursor(new Cursor(Cursor.TEXT_CURSOR));
             input.setColumns(10);
 //            input.setMaximumSize(new Dimension((int)main.scale*5,10));
             JLabel l = new JLabel(label + ": ", JLabel.TRAILING);

@@ -100,6 +100,7 @@ public class EditPanel extends JPanel {
         });
     }
 
+    //TOOD move into main
     public void saveValues(){
         if(main.currentN == -1) return;
 
@@ -114,7 +115,7 @@ public class EditPanel extends JPanel {
         node.setType(type.getItemAt(type.getSelectedIndex()));
         main.drawPanel.repaint();
     }
-    public Node getCurrentNode(){
+    private Node getCurrentNode(){
         return main.getCurrentManager().get(main.currentN);
     }
 
@@ -125,14 +126,13 @@ public class EditPanel extends JPanel {
             x.setText("");
             y.setText("");
             type.setSelectedIndex(-1);
-            name.setText(main.getCurrentManager().name);
         } else {
             splineHeading.setText(Math.round((getCurrentNode().splineHeading+90)*100)/100.0 + "");
             robotHeading.setText(Math.round((getCurrentNode().robotHeading+90)*100)/100.0 + "");
             x.setText(Math.round(main.toInches(getCurrentNode().x)*100.0)/100.0 + "");
             y.setText(Math.round((-main.toInches(getCurrentNode().y))*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());
-            name.setText(main.getCurrentManager().name);
         }
+        name.setText(main.getCurrentManager().name);
     }
 }

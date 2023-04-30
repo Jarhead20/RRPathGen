@@ -77,7 +77,7 @@ public class MarkerPanel extends JPanel {
         marker.displacement = Double.parseDouble(displacement.getText());
         main.drawPanel.repaint();
     }
-    public Marker getCurrentMarker(){
+    private Marker getCurrentMarker(){
         return main.getCurrentManager().getMarkers().get(main.currentMarker);
     }
 
