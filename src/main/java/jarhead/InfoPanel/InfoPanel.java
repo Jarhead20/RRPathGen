@@ -36,8 +36,10 @@ public class InfoPanel extends JPanel {
             editPanel.setVisible(true);
             markerPanel.setVisible(false);
         }
+    }
 
-
+    public void setManagerName(String name) {
+        editPanel.name.setText(name);
     }
 
 }

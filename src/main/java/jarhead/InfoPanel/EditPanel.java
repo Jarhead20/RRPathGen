@@ -12,14 +12,14 @@ public class EditPanel extends JPanel {
 
     private final Main main;
 
-    NumberFormat format = NumberFormat.getInstance();
-    NumberFormatter formatter = new NumberFormatter(format);
-    public JFormattedTextField x = new JFormattedTextField(formatter);
-    public JFormattedTextField y = new JFormattedTextField(formatter);
-    public JFormattedTextField splineHeading = new JFormattedTextField(formatter);
-    public JFormattedTextField robotHeading = new JFormattedTextField(formatter);
-    public JTextField name = new JTextField(10);
-    public JComboBox type;
+    private final NumberFormat format = NumberFormat.getInstance();
+    private final NumberFormatter formatter = new NumberFormatter(format);
+    private final JFormattedTextField x = new JFormattedTextField(formatter);
+    private final JFormattedTextField y = new JFormattedTextField(formatter);
+    private final JFormattedTextField splineHeading = new JFormattedTextField(formatter);
+    private final JFormattedTextField robotHeading = new JFormattedTextField(formatter);
+    protected JTextField name = new JTextField(10);
+    private final JComboBox<Node.Type> type;
 
     EditPanel(Main main){
         this.main = main;
@@ -32,7 +32,7 @@ public class EditPanel extends JPanel {
         JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
 
-        type = new JComboBox(Node.Type.values());
+        type = new JComboBox<>(Node.Type.values());
 //        type = new JComboBox(Arrays.stream(Node.Type.values()).filter(i -> i.toString().contains("line")).toArray());
 
         type.setSelectedIndex(-1);
@@ -95,7 +95,7 @@ public class EditPanel extends JPanel {
 
         type.addActionListener(e -> {
             if(main.currentN == -1) return;
-            getCurrentNode().setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
+            getCurrentNode().setType(type.getItemAt(type.getSelectedIndex()));
             main.drawPanel.repaint();
         });
     }
@@ -111,7 +111,7 @@ public class EditPanel extends JPanel {
         node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
         node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
 
-        node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
+        node.setType(type.getItemAt(type.getSelectedIndex()));
         main.drawPanel.repaint();
     }
     public Node getCurrentNode(){
