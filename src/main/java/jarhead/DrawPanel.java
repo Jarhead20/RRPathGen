@@ -480,36 +480,34 @@ public class DrawPanel extends JPanel {
 
             snap(mouse, e);
             if(closest.index != -1){
-                if(e.getClickCount() == 1) {
-                    getCurrentManager().editIndex = closest.index;
-                    edit = true;
-                    //if the point clicked was a mid point, gen a new point
-                    if (closest.mid) {
-                        preEdit = (new Node(closest.index));
-                        preEdit.state = Node.State.ADD;
-                        getCurrentManager().redo.clear();
-                        main.currentN = getCurrentManager().size();
-                        main.currentMarker = -1;
-                        //TODO: make it face towards the tangential heading
-                        mouse.splineHeading = mouse.headingTo(getCurrentManager().get(closest.index));
-                        mouse.robotHeading = mouse.splineHeading;
-                        getCurrentManager().add(closest.index, mouse);
-                    } else { //editing existing node
-                        Node n2 = getCurrentManager().get(closest.index);
-                        mouse.x = n2.x;
-                        mouse.y = n2.y;
-                        mouse.setType(n2.getType());
-                        Node prev = getCurrentManager().get(closest.index);
-                        preEdit = prev.copy(); //storing the existing data for undo
-                        preEdit.state = Node.State.DRAG;
-                        getCurrentManager().redo.clear();
-                        main.currentN = closest.index;
-                        main.currentMarker = -1;
-                        main.infoPanel.editPanel.updateText();
-                        getCurrentManager().set(closest.index, mouse);
-                    }
+                getCurrentManager().editIndex = closest.index;
+                edit = true;
+                //if the point clicked was a mid-point, gen a new point
+                if (closest.mid) {
+                    preEdit = (new Node(closest.index));
+                    preEdit.state = Node.State.ADD;
+                    getCurrentManager().redo.clear();
+                    main.currentN = getCurrentManager().size();
+                    main.currentMarker = -1;
+                    //TODO: make it face towards the tangential heading
+                    mouse.splineHeading = mouse.headingTo(getCurrentManager().get(closest.index));
+                    mouse.robotHeading = mouse.splineHeading;
+                    getCurrentManager().add(closest.index, mouse);
+                } else { //editing existing node
+                    Node n2 = getCurrentManager().get(closest.index);
+                    mouse.x = n2.x;
+                    mouse.y = n2.y;
+                    mouse.setType(n2.getType());
+                    Node prev = getCurrentManager().get(closest.index);
+                    preEdit = prev.copy(); //storing the existing data for undo
+                    preEdit.state = Node.State.DRAG;
+                    getCurrentManager().redo.clear();
+                    main.currentN = closest.index;
+                    main.currentMarker = -1;
+                    main.infoPanel.editPanel.updateText();
+                    getCurrentManager().set(closest.index, mouse);
                 }
-            } else if(e.getClickCount() == 1){
+            } else {
                 int size = getCurrentManager().size();
                 if(size > 0){
                     Node n1 = getCurrentManager().last();
