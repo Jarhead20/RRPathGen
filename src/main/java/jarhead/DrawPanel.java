@@ -246,12 +246,12 @@ public class DrawPanel extends JPanel {
         }
 
         double overall = (System.currentTimeMillis() - time);
-        if(Main.debug){
-            g.drawString("trajGen (ms): " + trajGen, 10, 30);
-            g.drawString("render (ms): " + render, 10, 70);
-            g.drawString("node count: " + getCurrentManager().size(), 10, 50);
-            g.drawString("overall (ms): " + overall, 10, 10);
-        }
+
+        if(!Main.debug) return;
+        g.drawString("trajGen (ms): " + trajGen, 10, 30);
+        g.drawString("render (ms): " + render, 10, 70);
+        g.drawString("node count: " + getCurrentManager().size(), 10, 50);
+        g.drawString("overall (ms): " + overall, 10, 10);
     }
 
     private TrajectorySequence generateTrajectory(NodeManager manager, Node exclude){
@@ -388,11 +388,12 @@ public class DrawPanel extends JPanel {
         Node mouse = new Node(e.getPoint());
         //marker
         if (SwingUtilities.isRightMouseButton(e)) {
-            double min = 99999;
-            double displacement = -1;
-            double closestMarker = min;
-            int index = -1;
+            double closestPose = 99999;
+            Marker closestMarker = new Marker(-1);
+            closestMarker.distanceToMouse = 99999;
+            closestMarker.index = -1;
             double total = 0;
+
             List<Marker> markers = getCurrentManager().getMarkers();
             for (int i = 0; i < trajectory.size(); i++) {
                 SequenceSegment segment = trajectory.get(i);
@@ -400,12 +401,16 @@ public class DrawPanel extends JPanel {
                 if (!(segment instanceof TrajectorySegment)) continue;
 
                 Trajectory traj = ((TrajectorySegment) segment).getTrajectory();
+                // find closest
                 for (int j = 0; j < markers.size(); j++) {
                     Pose2d pose = traj.get(markers.get(j).displacement-total);
-                    double dist = mouse.distance(new Node(pose.getX()*main.scale, pose.getY()*main.scale));
-                    if (dist >= closestMarker) continue;
-                    closestMarker = dist;
-                    index = j;
+                    double x = pose.getX() * main.scale;
+                    double y = pose.getY() * main.scale;
+
+                    double dist = mouse.distance(new Node(x, y));
+                    if (dist >= closestMarker.distanceToMouse) continue;
+                    closestMarker.distanceToMouse = dist;
+                    closestMarker.index = j;
                 }
 
                 for (double j = 0; j < traj.duration(); j += robot.resolution/10) {
@@ -414,28 +419,28 @@ public class DrawPanel extends JPanel {
                     double y = pose.getY() * main.scale;
 
                     double dist = mouse.distance(new Node(x, y));
-                    if (dist >= min) continue;
-                    displacement = j + total;
-                    min = dist;
+                    if (dist >= closestPose) continue;
+                    closestMarker.displacement = j + total;
+                    closestPose = dist;
                 }
                 total += traj.duration();
             }
-            if(closestMarker < (clickSize * main.scale)) {
-                getCurrentManager().editIndex = index;
+            if(closestMarker.distanceToMouse < (clickSize * main.scale)) {
+                getCurrentManager().editIndex = closestMarker.index;
             } else {
-                Marker marker = new Marker(displacement);
+                Marker marker = new Marker(closestMarker.displacement);
                 getCurrentManager().add(0, marker);
                 getCurrentManager().editIndex = 0;
             }
             main.currentN = -1;
-            main.currentMarker = index;
+            main.currentMarker = closestMarker.index;
             main.infoPanel.markerPanel.updateText();
             edit = true;
         } else { //regular node
             Node closest = new Node();
             
             TrajectorySequence trajectory = getTrajectory();
-            //find closest mid
+            //find closest midpoint
             int counter = 0; //i don't like this but its the easiest way
             if(trajectory != null){
                 for (int i = 0; i < trajectory.size(); i++) {
@@ -457,7 +462,7 @@ public class DrawPanel extends JPanel {
                         if (midDist >= closest.distanceToMouse) continue;
                         closest.distanceToMouse = midDist;
                         closest.index = counter;
-                        closest.mid = true;
+                        closest.isMidpoint = true;
                     }
                 }
             }
@@ -465,14 +470,14 @@ public class DrawPanel extends JPanel {
             for (int i = 0; i < getCurrentManager().size(); i++) {
                 Node close = getCurrentManager().get(i);
                 double distance = mouse.distance(close);
-                //find closest that isn't a mid
+                //find closest that isn't a midpoint
                 if(distance >= closest.distanceToMouse) continue;
                 closest.distanceToMouse = distance;
                 closest.index = i;
                 mouse.splineHeading = close.splineHeading;
                 mouse.robotHeading = close.robotHeading;
                 mouse.reversed = close.reversed;
-                closest.mid = false;
+                closest.isMidpoint = false;
             }
 
             if (closest.distanceToMouse >= (clickSize * main.scale))
@@ -482,8 +487,8 @@ public class DrawPanel extends JPanel {
             if(closest.index != -1){
                 getCurrentManager().editIndex = closest.index;
                 edit = true;
-                //if the point clicked was a mid-point, gen a new point
-                if (closest.mid) {
+                //if the point clicked was a midpoint, gen a new point
+                if (closest.isMidpoint) {
                     preEdit = (new Node(closest.index));
                     preEdit.state = Node.State.ADD;
                     getCurrentManager().redo.clear();
