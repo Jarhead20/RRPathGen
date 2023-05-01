@@ -1,17 +1,17 @@
-package jarhead;
+package jarhead.InfoPanel;
+
+import jarhead.*;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class InfoPanel extends JPanel {
 
-    private Main main;
     public SettingsPanel settingsPanel;
     public EditPanel editPanel;
     public MarkerPanel markerPanel;
 
-    InfoPanel(Main main, ProgramProperties props) {
-        this.main = main;
+    public InfoPanel(Main main, ProgramProperties props) {
         this.setOpaque(true);
         this.settingsPanel = new SettingsPanel(main, props);
         this.editPanel = new EditPanel(main);
@@ -36,8 +36,10 @@ public class InfoPanel extends JPanel {
             editPanel.setVisible(true);
             markerPanel.setVisible(false);
         }
+    }
 
-
+    public void setManagerName(String name) {
+        editPanel.name.setText(name);
     }
 
 }

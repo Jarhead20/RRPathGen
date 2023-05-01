@@ -108,7 +108,7 @@ public class ButtonPanel extends JPanel {
 
             main.currentM = managers.size()-1;
             main.currentN = -1;
-            main.infoPanel.editPanel.name.setText(getCurrentManager().name);
+            main.infoPanel.setManagerName(getCurrentManager().name);
             main.drawPanel.renderBackgroundSplines();
             main.drawPanel.repaint();
         });

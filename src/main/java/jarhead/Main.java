@@ -1,6 +1,7 @@
 package jarhead;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
+import jarhead.InfoPanel.InfoPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +10,7 @@ import java.awt.event.ComponentEvent;
 import java.io.*;
 import java.util.*;
 
-class Main extends JFrame {
+public class Main extends JFrame {
 
     public static boolean debug = false;
 

@@ -14,7 +14,7 @@ public class ProgramProperties {
     public double maxAngVelo;
     public double maxAngAccel;
     public Properties prop;
-    private File file;
+    private final File file;
 
     public ProgramProperties(File file) {
         this.file = file;
@@ -25,25 +25,6 @@ public class ProgramProperties {
         readFile(file);
 
         reload();
-    }
-
-    public void readFile(File file){
-        FileInputStream stream = null;
-        try{
-            stream = new FileInputStream(file);
-            prop.load(stream);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (null != stream) {
-                try {
-                    stream.close();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     public void reload(){
@@ -70,15 +51,16 @@ public class ProgramProperties {
             file.createNewFile();
             FileWriter writer = new FileWriter(file, false);
             writer.write(
-                    "ROBOT_WIDTH=18\n" +
-                            "ROBOT_LENGTH=18\n" +
-                            "RESOLUTION=0.1\n" +
-                            "IMPORT/EXPORT=\n" +
-                            "TRACK_WIDTH=15\n" +
-                            "MAX_VELO=60\n" +
-                            "MAX_ACCEL=60\n" +
-                            "MAX_ANGULAR_VELO=60\n" +
-                            "MAX_ANGULAR_ACCEL=60"
+                    """
+                            ROBOT_WIDTH=18
+                            ROBOT_LENGTH=18
+                            RESOLUTION=0.1
+                            IMPORT/EXPORT=
+                            TRACK_WIDTH=15
+                            MAX_VELO=60
+                            MAX_ACCEL=60
+                            MAX_ANGULAR_VELO=60
+                            MAX_ANGULAR_ACCEL=60"""
             );
             writer.close();
             readFile(file);
@@ -87,22 +69,19 @@ public class ProgramProperties {
         }
     }
 
+    public void readFile(File file){
+        try (FileInputStream in = new FileInputStream(file)){
+            prop.load(in);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void save(){
-        FileOutputStream out = null;
-        try{
-            out = new FileOutputStream(file);
+        try (FileOutputStream out = new FileOutputStream(file)){
             prop.store(out, "V1.3");
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (null != out) {
-                try {
-                    out.close();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

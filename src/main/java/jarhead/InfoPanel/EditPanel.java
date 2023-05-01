@@ -1,25 +1,25 @@
-package jarhead;
+package jarhead.InfoPanel;
+
+import jarhead.Main;
+import jarhead.Node;
+import jarhead.SpringUtilities;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class EditPanel extends JPanel {
 
-    private Main main;
+    private final Main main;
 
-    NumberFormat format = NumberFormat.getInstance();
-    NumberFormatter formatter = new NumberFormatter(format);
-    public JFormattedTextField x = new JFormattedTextField(formatter);
-    public JFormattedTextField y = new JFormattedTextField(formatter);
-    public JFormattedTextField splineHeading = new JFormattedTextField(formatter);
-    public JFormattedTextField robotHeading = new JFormattedTextField(formatter);
-    public JTextField name = new JTextField(10);
-    public JComboBox type;
+    private final NumberFormat format = NumberFormat.getInstance();
+    private final NumberFormatter formatter = new NumberFormatter(format);
+    private final JFormattedTextField x = new JFormattedTextField(formatter);
+    private final JFormattedTextField y = new JFormattedTextField(formatter);
+    private final JFormattedTextField splineHeading = new JFormattedTextField(formatter);
+    private final JFormattedTextField robotHeading = new JFormattedTextField(formatter);
+    protected JTextField name = new JTextField(10);
+    private final JComboBox<Node.Type> type;
 
     EditPanel(Main main){
         this.main = main;
@@ -32,7 +32,7 @@ public class EditPanel extends JPanel {
         JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
 
-        type = new JComboBox(Node.Type.values());
+        type = new JComboBox<>(Node.Type.values());
 //        type = new JComboBox(Arrays.stream(Node.Type.values()).filter(i -> i.toString().contains("line")).toArray());
 
         type.setSelectedIndex(-1);
@@ -95,11 +95,12 @@ public class EditPanel extends JPanel {
 
         type.addActionListener(e -> {
             if(main.currentN == -1) return;
-            getCurrentNode().setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
+            getCurrentNode().setType(type.getItemAt(type.getSelectedIndex()));
             main.drawPanel.repaint();
         });
     }
 
+    //TOOD move into main
     public void saveValues(){
         if(main.currentN == -1) return;
 
@@ -111,10 +112,10 @@ public class EditPanel extends JPanel {
         node.splineHeading = Double.parseDouble(splineHeading.getText())-90;
         node.robotHeading = Double.parseDouble(robotHeading.getText())-90;
 
-        node.setType((Node.Type) type.getItemAt(type.getSelectedIndex()));
+        node.setType(type.getItemAt(type.getSelectedIndex()));
         main.drawPanel.repaint();
     }
-    public Node getCurrentNode(){
+    private Node getCurrentNode(){
         return main.getCurrentManager().get(main.currentN);
     }
 
@@ -125,14 +126,13 @@ public class EditPanel extends JPanel {
             x.setText("");
             y.setText("");
             type.setSelectedIndex(-1);
-            name.setText(main.getCurrentManager().name);
         } else {
             splineHeading.setText(Math.round((getCurrentNode().splineHeading+90)*100)/100.0 + "");
             robotHeading.setText(Math.round((getCurrentNode().robotHeading+90)*100)/100.0 + "");
             x.setText(Math.round(main.toInches(getCurrentNode().x)*100.0)/100.0 + "");
             y.setText(Math.round((-main.toInches(getCurrentNode().y))*100.0)/100.0 + "");
             type.setSelectedItem(getCurrentNode().getType());
-            name.setText(main.getCurrentManager().name);
         }
+        name.setText(main.getCurrentManager().name);
     }
 }
