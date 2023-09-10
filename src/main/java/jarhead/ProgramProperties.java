@@ -51,16 +51,15 @@ public class ProgramProperties {
             file.createNewFile();
             FileWriter writer = new FileWriter(file, false);
             writer.write(
-                    """
-                            ROBOT_WIDTH=18
-                            ROBOT_LENGTH=18
-                            RESOLUTION=0.1
-                            IMPORT/EXPORT=
-                            TRACK_WIDTH=15
-                            MAX_VELO=60
-                            MAX_ACCEL=60
-                            MAX_ANGULAR_VELO=60
-                            MAX_ANGULAR_ACCEL=60"""
+                    "ROBOT_WIDTH=18\n" +
+                    "ROBOT_LENGTH=18\n" +
+                    "RESOLUTION=0.1\n" +
+                    "IMPORT/EXPORT=\n" +
+                    "TRACK_WIDTH=15\n" +
+                    "MAX_VELO=60\n" +
+                    "MAX_ACCEL=60\n" +
+                    "MAX_ANGULAR_VELO=60\n" +
+                    "MAX_ANGULAR_ACCEL=60"
             );
             writer.close();
             readFile(file);
