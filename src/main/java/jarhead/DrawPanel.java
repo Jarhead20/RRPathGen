@@ -225,7 +225,7 @@ public class DrawPanel extends JPanel {
                 main.scale(nodeManager.undo, main.scale, oldScale);
                 main.scale(nodeManager.redo, main.scale, oldScale);
             });
-        g.drawImage(new ImageIcon(Objects.requireNonNull(Main.class.getResource("/Juice-CENTERSTAGE-Dark.png"))).getImage(), 0, 0, this.getWidth(), this.getHeight(), null);
+        g.drawImage(new ImageIcon(Objects.requireNonNull(Main.class.getResource("/field-2023-centerstage-juice-dark-rotated.png"))).getImage(), 0, 0, this.getWidth(), this.getHeight(), null);
         if (preRenderedSplines == null || preRenderedSplines.getWidth() != this.getWidth())
             renderBackgroundSplines();
         g.drawImage(preRenderedSplines, 0, 0, null);
