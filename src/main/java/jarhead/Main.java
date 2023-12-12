@@ -14,8 +14,8 @@ public class Main extends JFrame {
 
     public static boolean debug = false;
 
-    private ProgramProperties properties;
-    public double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
+    public static ProgramProperties properties;
+    public static double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
     private static NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
     private static LinkedList<NodeManager> managers = new LinkedList<>();
 
@@ -143,7 +143,7 @@ public class Main extends JFrame {
     public static void undo() {
         undo(false);
     }
-    public void flip() {
+    public static void flip() {
         for (int i = 0; i < getCurrentManager().size(); i++) {
             Node node = getCurrentManager().get(i);
             node.y = 144*scale-node.y;

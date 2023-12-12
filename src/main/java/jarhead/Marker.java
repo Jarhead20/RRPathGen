@@ -5,7 +5,7 @@ public class Marker extends Node {
     public String code;
 
     public Marker(double displacement){
-        this(displacement, "", Type.addTemporalMarker);
+        this(displacement, "", Type.splineTo);
         super.isMidpoint = true;
     }
 

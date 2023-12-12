@@ -15,21 +15,16 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class DrawPanel extends JPanel {
     private final LinkedList<NodeManager> managers;
     private final ProgramProperties robot;
-    private TrajectorySequence trajectory;
     private final Main main;
-
-
-    private LinkedList<NodeManager> managers;
-    private ProgramProperties robot;
     private Action trajectory;
     DriveShim driveShim = new DriveShim(DriveTrainType.MECANUM, new Constraints(60,60,60,60,15), new Pose2d(0,0,0));
     Render render = new Render();
-    private Main main;
     private Node preEdit;
     private boolean edit = false;
     final double clickSize = 2;
@@ -102,74 +97,65 @@ public class DrawPanel extends JPanel {
         this.setFocusable(true);
     }
 
-    private void renderSplines(Graphics g, TrajectorySequence trajectory, Color color) {
-        for (int i = 0; i < trajectory.size(); i++) {
-            SequenceSegment segment = trajectory.get(i);
-            if(segment == null) continue;
 
-            g.setColor(color);
-            g = segment.renderSplines(g, robot.resolution, main.scale);
-        }
-    }
-
-    private void renderRobotPath(Graphics2D g, Action action2, Color color, float transparency) {
-        if (this.getWidth() != this.getHeight()) System.out.println("w != h");
-        BufferedImage image;
-        if (this.getWidth() > 0)
-            image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-        else
-            image = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
-        Graphics2D g2 = (Graphics2D) image.getGraphics();
-        g2.setColor(color);
-        double rX = robot.robotLength * main.scale;
-        double rY = robot.robotWidth * main.scale;
-        double prevHeading = 0;
-        SequentialAction action1 = (SequentialAction) action2;
-        for (Action action : action1.getInitialActions()) {
-            if (action != null) {
-                if (action instanceof TrajectoryAction) {
-                    TimeTrajectory trajectory = ((TrajectoryAction) action).getT();
-//                    CompositePosePath paths = (Path) trajectory.path;
-
-                    if (trajectory.duration > 0)
-                        prevHeading = trajectory.get(0).heading.real.value();
-                    double res;
-                    for (double j = 0; j < trajectory.duration;) {
-
-                        Pose2dDual<Time> pose1 = trajectory.get(j);
-                        double temp = Math.min((2 * Math.PI) - Math.abs(pose1.heading.real.value() - prevHeading), Math.abs(pose1.heading.real.value() - prevHeading));
-                        int x1 = (int) (pose1.position.x.value()*main.scale);
-                        int y1 = (int) (pose1.position.y.value()*main.scale);
-
-                        res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
-                        j += res/10;
-                        prevHeading = pose1.heading.real.value();
-
-                        outLine.setToIdentity();
-                        outLine.translate(x1, y1);
-                        outLine.rotate(pose1.heading.real.value());
-
-                        g2.setColor(color);
-                        g2.setTransform(outLine);
-                        g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
-                    }
-                    if (trajectory.duration > 0) {
-                        Pose2dDual<Time> end = trajectory.get(trajectory.duration);
-                        outLine.setToIdentity();
-                        outLine.translate(end.position.x.value()*main.scale, end.position.y.value()*main.scale);
-                        outLine.rotate(end.heading.real.value());
-                        g2.setTransform(outLine);
-                        g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
-                    }
-
-                }
-            }
-        }
-        Composite comp = g.getComposite();
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
-        g.drawImage(image, 0, 0, null);
-        g.setComposite(comp);
-        g2.dispose();
+//    private void renderRobotPath(Graphics2D g, Action action2, Color color, float transparency) {
+//        if (this.getWidth() != this.getHeight()) System.out.println("w != h");
+//        BufferedImage image;
+//        if (this.getWidth() > 0)
+//            image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+//        else
+//            image = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+//        Graphics2D g2 = (Graphics2D) image.getGraphics();
+//        g2.setColor(color);
+//        double rX = robot.robotLength * main.scale;
+//        double rY = robot.robotWidth * main.scale;
+//        double prevHeading = 0;
+//        SequentialAction action1 = (SequentialAction) action2;
+//        for (Action action : action1.getInitialActions()) {
+//            if (action != null) {
+//                if (action instanceof TrajectoryAction) {
+//                    TimeTrajectory trajectory = ((TrajectoryAction) action).getT();
+////                    CompositePosePath paths = (Path) trajectory.path;
+//
+//                    if (trajectory.duration > 0)
+//                        prevHeading = trajectory.get(0).heading.real.value();
+//                    double res;
+//                    for (double j = 0; j < trajectory.duration;) {
+//
+//                        Pose2dDual<Time> pose1 = trajectory.get(j);
+//                        double temp = Math.min((2 * Math.PI) - Math.abs(pose1.heading.real.value() - prevHeading), Math.abs(pose1.heading.real.value() - prevHeading));
+//                        int x1 = (int) (pose1.position.x.value()*main.scale);
+//                        int y1 = (int) (pose1.position.y.value()*main.scale);
+//
+//                        res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
+//                        j += res/10;
+//                        prevHeading = pose1.heading.real.value();
+//
+//                        outLine.setToIdentity();
+//                        outLine.translate(x1, y1);
+//                        outLine.rotate(pose1.heading.real.value());
+//
+//                        g2.setColor(color);
+//                        g2.setTransform(outLine);
+//                        g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
+//                    }
+//                    if (trajectory.duration > 0) {
+//                        Pose2dDual<Time> end = trajectory.get(trajectory.duration);
+//                        outLine.setToIdentity();
+//                        outLine.translate(end.position.x.value()*main.scale, end.position.y.value()*main.scale);
+//                        outLine.rotate(end.heading.real.value());
+//                        g2.setTransform(outLine);
+//                        g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) main.scale * 2, (int) main.scale * 2);
+//                    }
+//
+//                }
+//            }
+//        }
+//        Composite comp = g.getComposite();
+//        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+//        g.drawImage(image, 0, 0, null);
+//        g.setComposite(comp);
+//        g2.dispose();
 
 
 
@@ -233,22 +219,22 @@ public class DrawPanel extends JPanel {
 //                }
 //            }
 //        }
-            Composite comp = g.getComposite();
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
-            g.drawImage(image, 0, 0, null);
-            g.setComposite(comp);
-            g2.dispose();
+//            Composite comp = g.getComposite();
+//            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+//            g.drawImage(image, 0, 0, null);
+//            g.setComposite(comp);
+//            g2.dispose();
 //        }
-    }
+//    }
 
-    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalScale){
-        for (int i = 0; i < trajectory.size(); i++) {
-            SequenceSegment segment = trajectory.get(i);
-            if (segment == null) continue;
-            g.setColor(c1);
-            g = segment.renderPoints(g, main.scale, ovalScale);
-        }
-    }
+//    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalScale){
+//        for (int i = 0; i < trajectory.size(); i++) {
+//            SequenceSegment segment = trajectory.get(i);
+//            if (segment == null) continue;
+//            g.setColor(c1);
+//            g = segment.renderPoints(g, main.scale, ovalScale);
+//        }
+//    }
 //    private void renderPoints (Graphics g, Action action, Color c1, int ovalscale){
 //
 //        if (action != null) {
@@ -314,11 +300,12 @@ public class DrawPanel extends JPanel {
             long renderStart = System.currentTimeMillis();
             if(trajectory != null) {
 //                renderRobotPath((Graphics2D) g, trajectory, lightPurple, 0.5f);
+                render.renderRobotPath((Graphics2D) g, ActionEntityKt.actionTimeline(trajectory).getSecond(), lightPurple, 0.5f, this.getWidth(), this.getHeight());
                 render.renderSplines((Graphics2D) g, ActionEntityKt.actionTimeline(trajectory).getSecond(), cyan, 5, main.scale);
 //                renderPoints(g, trajectory, cyan, 1);
             }
             renderTime = System.currentTimeMillis() - renderStart;
-            //renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
+            renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
         }
 
         double overall = (System.currentTimeMillis() - time);
@@ -326,15 +313,13 @@ public class DrawPanel extends JPanel {
         if(!Main.debug) return;
         g.drawString("trajGen (ms): " + trajGen, 10, 30);
         g.drawString("render (ms): " + renderTime, 10, 70);
-        g.drawString("render (ms): " + render, 10, 70);g.drawString("node count: " + getCurrentManager().size(), 10, 50);
+        g.drawString("render (ms): " + renderTime, 10, 70);g.drawString("node count: " + getCurrentManager().size(), 10, 50);
         g.drawString("overall (ms): " + overall, 10, 10);
     }
 
     private Action generateTrajectory(NodeManager manager, Node exlude){
         if(manager.size() < 2) return null;
         Node n1 = manager.get(1).shrink(main.scale);
-//        TrajectoryActionBuilder builder = build.videoBuilder(new Pose2d(node.x,node.y,Math.toRadians(-node.robotHeading-90)));
-
         return render.generateTrajectory(driveShim, exlude, main.scale, manager);
     }
 
@@ -349,11 +334,12 @@ public class DrawPanel extends JPanel {
             if(manager.equals(getCurrentManager())) continue;
             if(manager.size() <= 0) continue;
             Node node = manager.getNodes().get(0);
-            TrajectorySequence trajectory = generateTrajectory(manager, node);
+            Action trajectory = generateTrajectory(manager, node);
             if(trajectory != null) {
-                renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
-                renderSplines(g, trajectory, cyan);
-                renderPoints(g, trajectory, cyan, 1);
+                render.renderSplines((Graphics2D) g, ActionEntityKt.actionTimeline(trajectory).getSecond(), dLightPurple, 5, main.scale);
+//                renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
+//                renderSplines(g, trajectory, cyan);
+//                renderPoints(g, trajectory, cyan, 1);
             }
             renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
         }
@@ -430,139 +416,143 @@ public class DrawPanel extends JPanel {
             double total = 0;
 
             List<Marker> markers = getCurrentManager().getMarkers();
-            for (int i = 0; i < trajectory.size(); i++) {
-                SequenceSegment segment = trajectory.get(i);
-                if (segment == null) continue;
-                if (!(segment instanceof TrajectorySegment)) continue;
-
-                Trajectory traj = ((TrajectorySegment) segment).getTrajectory();
-                // find closest
-                for (int j = 0; j < markers.size(); j++) {
-                    Pose2d pose = traj.get(markers.get(j).displacement-total);
-                    double x = pose.getX() * main.scale;
-                    double y = pose.getY() * main.scale;
-
-                    double dist = mouse.distance(new Node(x, y));
-                    if (dist >= closestMarker.distanceToMouse) continue;
-                    closestMarker.distanceToMouse = dist;
-                    closestMarker.index = j;
-                }
-
-                for (double j = 0; j < traj.duration(); j += robot.resolution/10) {
-                    Pose2d pose = traj.get(j);
-                    double x = pose.getX() * main.scale;
-                    double y = pose.getY() * main.scale;
-
-                    double dist = mouse.distance(new Node(x, y));
-                    if (dist >= closestPose) continue;
-                    closestMarker.displacement = j + total;
-                    closestPose = dist;
-                }
-                total += traj.duration();
-            }
-            if(closestMarker.distanceToMouse < (clickSize * main.scale)) {
-                getCurrentManager().editIndex = closestMarker.index;
-            } else {
-                Marker marker = new Marker(closestMarker.displacement);
-                getCurrentManager().add(0, marker);
-                getCurrentManager().editIndex = 0;
-            }
-            main.currentN = -1;
-            main.currentMarker = closestMarker.index;
-            main.infoPanel.markerPanel.updateText();
-            edit = true;
-        } else { //regular node
-            Node closest = new Node();
-
-            TrajectorySequence trajectory = getTrajectory();
-            //find closest midpoint
-            int counter = 0; //i don't like this but its the easiest way
-            if(trajectory != null){
-                for (int i = 0; i < trajectory.size(); i++) {
-                    SequenceSegment segment = trajectory.get(i);
-                    if(segment == null) continue;
-                    if (!(segment instanceof TrajectorySegment)) continue;
-
-                    Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-                    List<PathSegment> segments = path.getSegments();
-
-                    for (PathSegment segment2 : segments) {
-                        Pose2d pose = segment2.get(segment2.length() / 2.0);
-
-                        double px = (pose.getX()*main.scale) - mouse.x;
-                        double py = (pose.getY()*main.scale) - mouse.y;
-                        double midDist = Math.sqrt(px * px + py * py);
-                        counter++;
-
-                        if (midDist >= closest.distanceToMouse) continue;
-                        closest.distanceToMouse = midDist;
-                        closest.index = counter;
-                        closest.isMidpoint = true;
-                    }
-                }
-            }
-
-            for (int i = 0; i < getCurrentManager().size(); i++) {
-                Node close = getCurrentManager().get(i);
-                double distance = mouse.distance(close);
-                //find closest that isn't a midpoint
-                if(distance >= closest.distanceToMouse) continue;
-                closest.distanceToMouse = distance;
-                closest.index = i;
-                mouse.splineHeading = close.splineHeading;
-                mouse.robotHeading = close.robotHeading;
-                mouse.reversed = close.reversed;
-                closest.isMidpoint = false;
-            }
-
-            if (closest.distanceToMouse >= (clickSize * main.scale))
-                closest.index = -1;
-
+//            for (int i = 0; i < trajectory.size(); i++) {
+//                SequenceSegment segment = trajectory.get(i);
+//                if (segment == null) continue;
+//                if (!(segment instanceof TrajectorySegment)) continue;
+//
+//                Trajectory traj = ((TrajectorySegment) segment).getTrajectory();
+//                // find closest
+//                for (int j = 0; j < markers.size(); j++) {
+//                    Pose2d pose = traj.get(markers.get(j).displacement-total);
+//                    double x = pose.getX() * main.scale;
+//                    double y = pose.getY() * main.scale;
+//
+//                    double dist = mouse.distance(new Node(x, y));
+//                    if (dist >= closestMarker.distanceToMouse) continue;
+//                    closestMarker.distanceToMouse = dist;
+//                    closestMarker.index = j;
+//                }
+//
+//                for (double j = 0; j < traj.duration(); j += robot.resolution/10) {
+//                    Pose2d pose = traj.get(j);
+//                    double x = pose.getX() * main.scale;
+//                    double y = pose.getY() * main.scale;
+//
+//                    double dist = mouse.distance(new Node(x, y));
+//                    if (dist >= closestPose) continue;
+//                    closestMarker.displacement = j + total;
+//                    closestPose = dist;
+//                }
+//                total += traj.duration();
+//            }
+//            if(closestMarker.distanceToMouse < (clickSize * main.scale)) {
+//                getCurrentManager().editIndex = closestMarker.index;
+//            } else {
+//                Marker marker = new Marker(closestMarker.displacement);
+//                getCurrentManager().add(0, marker);
+//                getCurrentManager().editIndex = 0;
+//            }
+//            main.currentN = -1;
+//            main.currentMarker = closestMarker.index;
+//            main.infoPanel.markerPanel.updateText();
+//            edit = true;
+//        } else { //regular node
+//            Node closest = new Node();
+//
+//            TrajectorySequence trajectory = getTrajectory();
+//            //find closest midpoint
+//            int counter = 0; //i don't like this but its the easiest way
+//            if(trajectory != null){
+//                for (int i = 0; i < trajectory.size(); i++) {
+//                    SequenceSegment segment = trajectory.get(i);
+//                    if(segment == null) continue;
+//                    if (!(segment instanceof TrajectorySegment)) continue;
+//
+//                    Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
+//                    List<PathSegment> segments = path.getSegments();
+//
+//                    for (PathSegment segment2 : segments) {
+//                        Pose2d pose = segment2.get(segment2.length() / 2.0);
+//
+//                        double px = (pose.getX()*main.scale) - mouse.x;
+//                        double py = (pose.getY()*main.scale) - mouse.y;
+//                        double midDist = Math.sqrt(px * px + py * py);
+//                        counter++;
+//
+//                        if (midDist >= closest.distanceToMouse) continue;
+//                        closest.distanceToMouse = midDist;
+//                        closest.index = counter;
+//                        closest.isMidpoint = true;
+//                    }
+//                }
+//            }
+//
+//            for (int i = 0; i < getCurrentManager().size(); i++) {
+//                Node close = getCurrentManager().get(i);
+//                double distance = mouse.distance(close);
+//                //find closest that isn't a midpoint
+//                if(distance >= closest.distanceToMouse) continue;
+//                closest.distanceToMouse = distance;
+//                closest.index = i;
+//                mouse.splineHeading = close.splineHeading;
+//                mouse.robotHeading = close.robotHeading;
+//                mouse.reversed = close.reversed;
+//                closest.isMidpoint = false;
+//            }
+//
+//            if (closest.distanceToMouse >= (clickSize * main.scale))
+//                closest.index = -1;
+//
             snap(mouse, e);
-            if(closest.index != -1){
-                getCurrentManager().editIndex = closest.index;
-                edit = true;
-                //if the point clicked was a midpoint, gen a new point
-                if (closest.isMidpoint) {
-                    preEdit = (new Node(closest.index));
-                    preEdit.state = Node.State.ADD;
-                    getCurrentManager().redo.clear();
-                    main.currentN = getCurrentManager().size();
-                    main.currentMarker = -1;
-                    //TODO: make it face towards the tangential heading
-                    mouse.splineHeading = mouse.headingTo(getCurrentManager().get(closest.index));
-                    mouse.robotHeading = mouse.splineHeading;
-                    getCurrentManager().add(closest.index, mouse);
-                } else { //editing existing node
-                    Node n2 = getCurrentManager().get(closest.index);
-                    mouse.x = n2.x;
-                    mouse.y = n2.y;
-                    mouse.setType(n2.getType());
-                    Node prev = getCurrentManager().get(closest.index);
-                    preEdit = prev.copy(); //storing the existing data for undo
-                    preEdit.state = Node.State.DRAG;
-                    getCurrentManager().redo.clear();
-                    main.currentN = closest.index;
-                    main.currentMarker = -1;
-                    main.infoPanel.editPanel.updateText();
-                    getCurrentManager().set(closest.index, mouse);
-                }
-            } else {
-                int size = getCurrentManager().size();
-                if(size > 0){
-                    Node n1 = getCurrentManager().last();
-                    mouse.splineHeading = n1.headingTo(mouse);
-                    mouse.robotHeading = mouse.splineHeading;
-                }
-                preEdit = mouse.copy();
-                preEdit.index = getCurrentManager().size();
-                preEdit.state = Node.State.ADD;
-                getCurrentManager().redo.clear();
-                main.currentN = getCurrentManager().size();
-                main.currentMarker = -1;
-                getCurrentManager().add(mouse);
-            }
+//            if(closest.index != -1){
+//                getCurrentManager().editIndex = closest.index;
+//                edit = true;
+//                //if the point clicked was a midpoint, gen a new point
+//                if (closest.isMidpoint) {
+//                    preEdit = (new Node(closest.index));
+//                    preEdit.state = Node.State.ADD;
+//                    getCurrentManager().redo.clear();
+//                    main.currentN = getCurrentManager().size();
+//                    main.currentMarker = -1;
+//                    //TODO: make it face towards the tangential heading
+//                    mouse.splineHeading = mouse.headingTo(getCurrentManager().get(closest.index));
+//                    mouse.robotHeading = mouse.splineHeading;
+//                    getCurrentManager().add(closest.index, mouse);
+//                } else { //editing existing node
+//                    Node n2 = getCurrentManager().get(closest.index);
+//                    mouse.x = n2.x;
+//                    mouse.y = n2.y;
+//                    mouse.setType(n2.getType());
+//                    Node prev = getCurrentManager().get(closest.index);
+//                    preEdit = prev.copy(); //storing the existing data for undo
+//                    preEdit.state = Node.State.DRAG;
+//                    getCurrentManager().redo.clear();
+//                    main.currentN = closest.index;
+//                    main.currentMarker = -1;
+//                    main.infoPanel.editPanel.updateText();
+//                    getCurrentManager().set(closest.index, mouse);
+//                }
+//            } else {
+
+//            }
         }
+        int size = getCurrentManager().size();
+        if(size > 0){
+            Node n1 = getCurrentManager().last();
+            mouse.splineHeading = n1.headingTo(mouse);
+            mouse.robotHeading = mouse.splineHeading;
+        }
+        preEdit = mouse.copy();
+        preEdit.index = getCurrentManager().size();
+        preEdit.state = Node.State.ADD;
+        getCurrentManager().redo.clear();
+        main.currentN = getCurrentManager().size();
+        main.currentMarker = -1;
+        getCurrentManager().add(mouse);
+
+
+
         main.infoPanel.editPanel.updateText();
         repaint();
     }

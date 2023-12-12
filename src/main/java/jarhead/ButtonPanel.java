@@ -7,8 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 
 public class ButtonPanel extends JPanel {
@@ -175,20 +174,20 @@ public class ButtonPanel extends JPanel {
                 case splineToConstantHeading:
                     sb.append(String.format(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
                     break;
-                case lineTo:
-                    sb.append(String.format(".lineTo(new Vector2d(%.2f, %.2f))%n", x, -y));
-                    break;
-                case lineToSplineHeading:
-                    sb.append(String.format(".lineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
-                    break;
-                case lineToLinearHeading:
-                    sb.append(String.format(".lineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
-                    break;
-                case lineToConstantHeading:
-                    sb.append(String.format(".lineToConstantHeading(new Vector2d(%.2f, %.2f))%n", x, -y, (node.splineHeading +90)));
-                    break;
-                case addTemporalMarker:
-                    break;
+//                case lineTo:
+//                    sb.append(String.format(".lineTo(new Vector2d(%.2f, %.2f))%n", x, -y));
+//                    break;
+//                case lineToSplineHeading:
+//                    sb.append(String.format(".lineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
+//                    break;
+//                case lineToLinearHeading:
+//                    sb.append(String.format(".lineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
+//                    break;
+//                case lineToConstantHeading:
+//                    sb.append(String.format(".lineToConstantHeading(new Vector2d(%.2f, %.2f))%n", x, -y, (node.splineHeading +90)));
+//                    break;
+//                case addTemporalMarker:
+//                    break;
                 default:
                     sb.append("couldn't find type");
                     break;
