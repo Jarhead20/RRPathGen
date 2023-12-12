@@ -10,11 +10,12 @@ import java.io.*;
 import java.util.*;
 
 class Main extends JFrame {
+    public static boolean debug = false;
 
     private ProgramProperties properties;
     public double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
-    private NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
-    private LinkedList<NodeManager> managers = new LinkedList<>();
+    private static NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
+    private static LinkedList<NodeManager> managers = new LinkedList<>();
 
     public DrawPanel drawPanel;
     public InfoPanel infoPanel;
@@ -22,8 +23,8 @@ class Main extends JFrame {
     public ExportPanel exportPanel;
 
 
-    public int currentM = 0;
-    public int currentN = -1;
+    public static int currentM = 0;
+    public static int currentN = -1;
     public int currentMarker = -1;
     public Main() {
         FlatDarculaLaf.setup();
@@ -34,6 +35,7 @@ class Main extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
+        if(args.length > 0 && args[0].matches("debug")) debug = true;
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Main().setVisible(true);
@@ -136,11 +138,11 @@ class Main extends JFrame {
         });
     }
 
-    public void undo(){
+    public static void undo(){
         undo(false);
     }
 
-    public void undo(boolean record){
+    public static void undo(boolean record){
         if(getCurrentManager().undo.size()<1) return;
         Node node = getCurrentManager().undo.last();
         Node r;
@@ -246,7 +248,7 @@ class Main extends JFrame {
         }
     }
 
-    public NodeManager getCurrentManager() {
+    public static NodeManager getCurrentManager() {
         currentManager = managers.get(currentM);
         return currentManager;
     }
