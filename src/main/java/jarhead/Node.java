@@ -6,7 +6,16 @@ public class Node {
     public double splineHeading;
     public double robotHeading;
     public int index = -1;
-    public int state = 1;
+    public boolean isMidpoint = false;
+    public double distanceToMouse = 99999;
+
+    public enum State {
+        DELETE,
+        ADD,
+        DRAG,
+        FLIP
+    }
+    public State state;
     public boolean reversed = false;
 
     private Type type = Type.splineTo;
@@ -54,10 +63,9 @@ public class Node {
     public Type getType(){
         return this.type;
     }
-    public Node setLocation(Node p){
+    public void setLocation(Node p){
         this.x = p.x;
         this.y = p.y;
-        return this;
     }
 
     public Node copy(){

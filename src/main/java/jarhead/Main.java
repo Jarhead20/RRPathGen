@@ -1,6 +1,7 @@
 package jarhead;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
+import jarhead.InfoPanel.InfoPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +10,8 @@ import java.awt.event.ComponentEvent;
 import java.io.*;
 import java.util.*;
 
-class Main extends JFrame {
+public class Main extends JFrame {
+
     public static boolean debug = false;
 
     private ProgramProperties properties;
@@ -138,98 +140,79 @@ class Main extends JFrame {
         });
     }
 
-    public static void undo(){
+    public static void undo() {
         undo(false);
+    }
+    public void flip() {
+        for (int i = 0; i < getCurrentManager().size(); i++) {
+            Node node = getCurrentManager().get(i);
+            node.y = 144*scale-node.y;
+            node.splineHeading = 180-node.splineHeading;
+            node.robotHeading = 180-node.robotHeading;
+            getCurrentManager().set(i, node);
+        }
     }
 
     public static void undo(boolean record){
         if(getCurrentManager().undo.size()<1) return;
-        Node node = getCurrentManager().undo.last();
-        Node r;
-        Node temp;
-        switch (node.state){
-            case 1: //undo delete
-                getCurrentManager().add(node.index, node);
-                r = node;
-                currentN = node.index;
-                if(record)
-                    getCurrentManager().redo.add(r);
-                break;
-            case 2: //undo add new node
-                temp = getCurrentManager().get(node.index);
-                r = temp.copy();
-                r.state = 2;
-                currentN = node.index-1;
-                if(record)
-                    getCurrentManager().redo.add(r);
+        Node node = getCurrentManager().undo.peek();
+        switch (node.state) {
+            case ADD:
+                node = getCurrentManager().get(node.index);
+                node.state = Node.State.ADD;
                 getCurrentManager().remove(node.index);
+                currentN = node.index-1;
                 break;
-            case 3: //undo flip
-                for (int i = 0; i < getCurrentManager().size(); i++) {
-                    Node n = getCurrentManager().get(i);
-                    n.y *= -1;
-                    getCurrentManager().set(i, n);
-                }
-                currentN = -1;
-                r = node;
-                if(record)
-                    getCurrentManager().redo.add(r);
+            case DELETE:
+                getCurrentManager().add(node.index, node);
+                currentN = node.index;
                 break;
-            case 4:  //undo drag
-                if(node.index == -1){
-                    node.index = getCurrentManager().size()-1;
+            case DRAG:
+                if(node.index == -1) {
+                    node.index = getCurrentManager().size() - 1;
                 }
-                temp = getCurrentManager().get(node.index);
-                r = temp.copy();
-                r.state = 4;
+                Node temp = getCurrentManager().get(node.index);
+                temp.state = Node.State.DRAG;
                 getCurrentManager().set(node.index, node);
-                if(record)
-                    getCurrentManager().redo.add(r);
+                node = temp;
+                break;
+            case FLIP:
+                flip();
                 break;
         }
-        getCurrentManager().undo.removeLast();
+        if (record) getCurrentManager().redo.add(node);
+        getCurrentManager().undo.pop();
     }
     public void redo(){
         if(getCurrentManager().redo.size()<1) return;
+        Node node = getCurrentManager().redo.peek();
 
-        Node node = getCurrentManager().redo.last();
-        Node u;
-        Node temp;
         //TODO: fix undo and redo
         switch (node.state){
-            case 1: //redo delete
-                temp = getCurrentManager().get(node.index);
-                u = temp.copy();
-                u.state = 1;
-                getCurrentManager().undo.add(u);
+            case ADD:
+                getCurrentManager().add(node.index, node);
+                currentN = node.index;
+                break;
+            case DELETE:
+                node = getCurrentManager().get(node.index);
+                node.state = Node.State.DELETE;
                 getCurrentManager().remove(node.index);
                 break;
-            case 2: //redo add new node
-                getCurrentManager().add(node.index, node);
-                u = node;
-                getCurrentManager().undo.add(u);
-                break;
-            case 3: //redo flip
-                for (int i = 0; i < getCurrentManager().size(); i++) {
-                    Node n = getCurrentManager().get(i);
-                    n.y *= -1;
-                    getCurrentManager().set(i, n);
-                }
-                u = node;
-                getCurrentManager().undo.add(u);
-                break;
-            case 4:  //redo drag
+            case DRAG:
                 if(node.index == -1){
                     node.index = getCurrentManager().size()-1;
                 }
-                temp = getCurrentManager().get(node.index);
-                u = temp.copy();
-                u.state = 4;
+                Node temp = getCurrentManager().get(node.index);
+                temp.state = Node.State.DRAG;
                 getCurrentManager().set(node.index, node);
-                getCurrentManager().undo.add(u);
+                node = temp;
+                break;
+            case FLIP:
+                flip();
+                break;
         }
-
-        getCurrentManager().redo.removeLast();
+        getCurrentManager().undo.add(node);
+        getCurrentManager().redo.pop();
     }
 
     public void saveConfig() {
@@ -243,6 +226,12 @@ class Main extends JFrame {
     public void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
+            n.x = (n.x/os)*ns;
+            n.y = (n.y/os)*ns;
+        }
+    }
+    public void scale(Stack<Node> manager, double ns, double os){
+        for (Node n : manager) {
             n.x = (n.x/os)*ns;
             n.y = (n.y/os)*ns;
         }
