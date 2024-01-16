@@ -438,7 +438,7 @@ public class DrawPanel extends JPanel {
             edit = true;
         } else { //regular node
             Node closest = new Node();
-            
+
             TrajectorySequence trajectory = getTrajectory();
             //find closest midpoint
             int counter = 0; //i don't like this but its the easiest way
@@ -578,9 +578,13 @@ public class DrawPanel extends JPanel {
             } else {
                 int index = getCurrentManager().editIndex;
                 Node mark = getCurrentManager().get(index);
+
+                double heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+                if (e.isControlDown()) heading = Math.floor((heading + 22.5) / 45) * 45;
+                System.out.println(heading);
                 if(e.isAltDown()) {
-                    if(e.isShiftDown()) mark.robotHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
-                    else mark.splineHeading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+                    if(e.isShiftDown()) mark.robotHeading = heading;
+                    else mark.splineHeading = heading;
                 }
                 else mark.setLocation(snap(mouse, e));
                 main.currentN = index;
@@ -591,8 +595,10 @@ public class DrawPanel extends JPanel {
             Node mark = getCurrentManager().last();
             mark.index = getCurrentManager().size()-1;
 
-            mark.splineHeading = Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y));
-            mark.robotHeading = mark.splineHeading;
+            double heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
+            if (e.isControlDown()) heading = Math.floor((heading + 22.5) / 45) * 45;
+            mark.splineHeading = heading;
+            mark.robotHeading = heading;
 
             main.currentN = getCurrentManager().size()-1;
             main.currentMarker = -1;

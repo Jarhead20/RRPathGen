@@ -20,22 +20,23 @@ RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/ro
 
 Generate your paths using the key binds below and once you are done export the path with the export button and copy paste it into your autonomous program.
 
-| Key Bind            | Action                  |
-|---------------------|-------------------------|
-| Left Click          | Add New Point           |
-| Left Drag (Point)   | Drags Selected Point    |
-| Alt + Left Click    | Change End Tangent      |
-| Shift + Alt + Left Click | Change Robot Heading |
-| Left Arrow          | Next Path               |
-| Right Arrow         | Previous Path           |
-| R                   | Reverse Robot Direction |
-| Delete / Backspace  | Delete Selected Node    |
-| Ctrl + Z            | Undo Previous Action    |
+| Key Bind                 | Action                  |
+|--------------------------|-------------------------|
+| Left Click               | Add New Point           |
+| Left Drag (Point)        | Drags Selected Point    |
+| Alt + Left Click         | Change End Tangent      |
+| Shift + Alt + Left Click | Change Robot Heading    |
+| Left Arrow               | Next Path               |
+| Right Arrow              | Previous Path           |
+| R                        | Reverse Robot Direction |
+| Delete / Backspace       | Delete Selected Node    |
+| Ctrl + Z                 | Undo Previous Action    |
+| Ctrl Drag (Point)        | Snapping Rotations      |
 
 If you accidentally do something wrong with the config, just delete it at `%appdata%/RRPathGen` for Windows, `~/Library/Application Support/RRPathGen/config.properties` for MacOS and `~/.RRPathGen/config.properties` for Linux.
 
 
-## Acknowledgements 
+## Acknowledgements
 The inspiration from this project came from Technic Bots' [Blitz](https://technicbots.com/Blitz) app.<br />
 The field images were aquired from [MeepMeep](https://github.com/NoahBres/MeepMeep).<br />
 And a big thank you to [Ryan Brott](https://github.com/rbrott) for helping me with the spline implementation.
