@@ -24,8 +24,8 @@ Generate your paths using the key binds below and once you are done export the p
 |---------------------|-------------------------|
 | Left Click          | Add New Point           |
 | Left Drag (Point)   | Drags Selected Point    |
-| Alt(Control) + Left Click    | Change End Tangent      |
-| Shift + Alt(Control) + Left Click | Change Robot Heading |
+| Alt(Option) + Left Click    | Change End Tangent      |
+| Shift + Alt(Option) + Left Click | Change Robot Heading |
 | Left Arrow          | Next Path               |
 | Right Arrow         | Previous Path           |
 | R                   | Reverse Robot Direction |
