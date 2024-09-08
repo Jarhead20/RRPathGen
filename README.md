@@ -1,7 +1,7 @@
 # RRPathGen
 
 RRPathGen is a tool to generate [Road Runner](https://github.com/acmerobotics/road-runner) v0.5 paths.
-![RRPathGen](https://i.imgur.com/TN0eaFO.png)
+![RRPathGen](https://github.com/user-attachments/assets/13bc744e-f0ce-4779-aa87-9471e72bad61)
 
 ## Installation (Jar)
 
