@@ -127,15 +127,20 @@ class Render {
                     }
 
                     val poses = displacements.map { action.t.path[it, 1].value() }
+//                    get the first pose
+                    val coord = poses[0].position
+                    trajectoryDrawnPath.moveTo(coord.x*scale, coord.y*scale)
+
+//                    get the mid point
+                    val midPoint = poses[displacementSamples/2].position
+                    g.drawOval(
+                        (midPoint.x*scale).toInt() - ovalScale / 2,
+                        (midPoint.y*scale).toInt() - ovalScale / 2,
+                        ovalScale, ovalScale)
 
                     for (pose in poses.drop(1)) {
                         val coord = pose.position
-                        if (first) {
-                            trajectoryDrawnPath.moveTo(coord.x*scale, coord.y*scale)
-                            first = false
-                        } else {
-                            trajectoryDrawnPath.lineTo(coord.x*scale, coord.y*scale)
-                        }
+                        trajectoryDrawnPath.lineTo(coord.x*scale, coord.y*scale)
                     }
                 }
 //                is TurnAction -> {

@@ -300,7 +300,7 @@ public class DrawPanel extends JPanel {
             long renderStart = System.currentTimeMillis();
             if(trajectory != null) {
 //                renderRobotPath((Graphics2D) g, trajectory, lightPurple, 0.5f);
-                render.renderRobotPath((Graphics2D) g, ActionEntityKt.actionTimeline(trajectory).getSecond(), lightPurple, 0.5f, this.getWidth(), this.getHeight());
+//                render.renderRobotPath((Graphics2D) g, ActionEntityKt.actionTimeline(trajectory).getSecond(), lightPurple, 0.5f, this.getWidth(), this.getHeight());
                 render.renderSplines((Graphics2D) g, ActionEntityKt.actionTimeline(trajectory).getSecond(), cyan, 5, main.scale);
 //                renderPoints(g, trajectory, cyan, 1);
             }
@@ -416,6 +416,16 @@ public class DrawPanel extends JPanel {
             double total = 0;
 
             List<Marker> markers = getCurrentManager().getMarkers();
+
+//            if(trajectory != null){
+//                if(trajectory instanceof TrajectoryAction){
+//                    TimeTrajectory traj = ((TrajectoryAction) trajectory).getT();
+//                    CompositePosePath paths = (CompositePosePath) traj.path;
+//                    for (PosePath path : paths.paths) {
+//                        Pose2dDual<Arclength> mid = path.get(path.length() / 2, 0);
+//
+
+
 //            for (int i = 0; i < trajectory.size(); i++) {
 //                SequenceSegment segment = trajectory.get(i);
 //                if (segment == null) continue;
