@@ -38,7 +38,7 @@ If you accidentally do something wrong with the config, just delete it at `%appd
 
 ## Acknowledgements
 The inspiration from this project came from Technic Bots' [Blitz](https://technicbots.com/Blitz) app.<br />
-The field images were aquired from [MeepMeep](https://github.com/NoahBres/MeepMeep).<br />
+The field images were aquired from [Team Juice 16236](https://www.reddit.com/r/FTC/comments/1fbhxka/into_the_deep_meepmeep_custom_field_images/).<br />
 And a big thank you to [Ryan Brott](https://github.com/rbrott) for helping me with the spline implementation.
 
 ## Contributing
