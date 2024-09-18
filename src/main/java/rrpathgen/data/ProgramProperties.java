@@ -4,6 +4,11 @@ import java.io.*;
 import java.util.Properties;
 
 public class ProgramProperties {
+    public enum Library {
+        RROLD,
+        RRNEW
+    }
+    public Library lib;
     public double robotWidth;
     public double robotLength;
     public double resolution;
@@ -29,6 +34,7 @@ public class ProgramProperties {
 
     public void reload(){
         try{
+            lib = Library.valueOf(prop.getProperty("LIB"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
             resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
@@ -51,6 +57,7 @@ public class ProgramProperties {
             file.createNewFile();
             FileWriter writer = new FileWriter(file, false);
             writer.write(
+                    "LIB=RROLD\n" +
                     "ROBOT_WIDTH=18\n" +
                     "ROBOT_LENGTH=18\n" +
                     "RESOLUTION=0.1\n" +
@@ -78,7 +85,7 @@ public class ProgramProperties {
 
     public void save(){
         try (FileOutputStream out = new FileOutputStream(file)){
-            prop.store(out, "V1.3");
+            prop.store(out, "V1.7");
         } catch (Exception e) {
             e.printStackTrace();
         }

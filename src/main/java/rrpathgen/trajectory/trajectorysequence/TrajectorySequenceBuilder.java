@@ -1,4 +1,4 @@
-package rrpathgen.trajectorysequence;
+package rrpathgen.trajectory.trajectorysequence;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -19,10 +19,10 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAcceleration
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.acmerobotics.roadrunner.util.Angle;
 
-import rrpathgen.trajectorysequence.sequencesegment.TurnSegment;
-import rrpathgen.trajectorysequence.sequencesegment.SequenceSegment;
-import rrpathgen.trajectorysequence.sequencesegment.TrajectorySegment;
-import rrpathgen.trajectorysequence.sequencesegment.WaitSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.TurnSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.TrajectorySegment;
 
 import java.util.ArrayList;
 import java.util.Collections;

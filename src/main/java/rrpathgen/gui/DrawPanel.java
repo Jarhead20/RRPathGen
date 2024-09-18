@@ -12,12 +12,12 @@ import rrpathgen.data.Marker;
 import rrpathgen.data.Node;
 import rrpathgen.data.NodeManager;
 import rrpathgen.data.ProgramProperties;
-import rrpathgen.trajectorysequence.TrajectorySequence;
-import rrpathgen.trajectorysequence.TrajectorySequenceBuilder;
-import rrpathgen.trajectorysequence.sequencesegment.SequenceSegment;
-import rrpathgen.trajectorysequence.sequencesegment.TrajectorySegment;
-import rrpathgen.trajectorysequence.sequencesegment.TurnSegment;
-import rrpathgen.trajectorysequence.sequencesegment.WaitSegment;
+import rrpathgen.trajectory.trajectorysequence.TrajectorySequence;
+import rrpathgen.trajectory.trajectorysequence.TrajectorySequenceBuilder;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.TrajectorySegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.TurnSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
 
 import javax.swing.*;
 import java.awt.*;

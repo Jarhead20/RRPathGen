@@ -1,8 +1,8 @@
-package rrpathgen.trajectorysequence;
+package rrpathgen.trajectory.trajectorysequence;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
-import rrpathgen.trajectorysequence.sequencesegment.SequenceSegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
 
 import java.util.Collections;
 import java.util.List;

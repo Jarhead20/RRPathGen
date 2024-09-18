@@ -17,7 +17,7 @@ public class NodeManager {
     public String name;
 
     public NodeManager(ArrayList<Node> nodes, int id){
-        this(nodes, "untitled" + id);
+        this(nodes, "trajectory" + id);
     }
 
     NodeManager(ArrayList<Node> nodes, String name){
