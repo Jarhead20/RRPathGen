@@ -1,4 +1,6 @@
-package jarhead;
+package rrpathgen.data;
+
+import rrpathgen.util.SizedStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +16,7 @@ public class NodeManager {
     private final ArrayList<Node> nodes;
     public String name;
 
-    NodeManager(ArrayList<Node> nodes, int id){
+    public NodeManager(ArrayList<Node> nodes, int id){
         this(nodes, "untitled" + id);
     }
 

@@ -1,6 +1,7 @@
-package jarhead.InfoPanel;
+package rrpathgen.gui.infoPanel;
 
-import jarhead.*;
+import rrpathgen.*;
+import rrpathgen.data.ProgramProperties;
 
 import javax.swing.*;
 import java.awt.*;

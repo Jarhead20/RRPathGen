@@ -1,8 +1,8 @@
-package jarhead.InfoPanel;
+package rrpathgen.gui.infoPanel;
 
-import jarhead.Main;
-import jarhead.ProgramProperties;
-import jarhead.SpringUtilities;
+import rrpathgen.Main;
+import rrpathgen.data.ProgramProperties;
+import rrpathgen.util.SpringUtilities;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;

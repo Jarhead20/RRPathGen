@@ -1,7 +1,13 @@
-package jarhead;
+package rrpathgen;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
-import jarhead.InfoPanel.InfoPanel;
+import rrpathgen.data.Node;
+import rrpathgen.data.NodeManager;
+import rrpathgen.data.ProgramProperties;
+import rrpathgen.gui.ButtonPanel;
+import rrpathgen.gui.DrawPanel;
+import rrpathgen.gui.ExportPanel;
+import rrpathgen.gui.infoPanel.InfoPanel;
 
 import javax.swing.*;
 import java.awt.*;

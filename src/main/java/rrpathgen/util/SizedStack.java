@@ -1,4 +1,4 @@
-package jarhead;
+package rrpathgen.util;
 
 import java.util.Stack;
 

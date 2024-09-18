@@ -1,4 +1,4 @@
-package jarhead;
+package rrpathgen.data;
 
 public class Node {
     public double x;
@@ -31,25 +31,25 @@ public class Node {
         lineToConstantHeading,
         addTemporalMarker,
     }
-    Node(){
+    public Node(){
 
     }
 
-    Node(java.awt.Point p){
+    public Node(java.awt.Point p){
         this.x = p.x;
         this.y = p.y;
 
     }
-    Node(double x, double y){
+    public Node(double x, double y){
         this.x = x;
         this.y = y;
     }
 
-    Node(int index){
+    public Node(int index){
         this.index = index;
     }
 
-    Node(double x, double y, double splineHeading, int index){
+    public Node(double x, double y, double splineHeading, int index){
         this.x = x;
         this.y = y;
         this.splineHeading = splineHeading;

@@ -1,4 +1,4 @@
-package jarhead;
+package rrpathgen.data;
 
 import java.io.*;
 import java.util.Properties;

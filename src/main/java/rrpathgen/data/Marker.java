@@ -1,4 +1,4 @@
-package jarhead;
+package rrpathgen.data;
 
 public class Marker extends Node {
     public double displacement;

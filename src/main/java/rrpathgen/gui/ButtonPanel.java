@@ -1,11 +1,16 @@
-package jarhead;
+package rrpathgen.gui;
+
+import rrpathgen.util.Import;
+import rrpathgen.Main;
+import rrpathgen.data.Marker;
+import rrpathgen.data.Node;
+import rrpathgen.data.NodeManager;
+import rrpathgen.data.ProgramProperties;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -22,7 +27,7 @@ public class ButtonPanel extends JPanel {
     private Main main;
     private ProgramProperties robot;
 
-    ButtonPanel(LinkedList<NodeManager> managers, Main main, ProgramProperties props){
+    public ButtonPanel(LinkedList<NodeManager> managers, Main main, ProgramProperties props){
         this.robot = props;
         this.main = main;
         this.managers = managers;

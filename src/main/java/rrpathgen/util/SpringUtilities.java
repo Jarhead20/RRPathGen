@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package jarhead;
+package rrpathgen.util;
 
 import javax.swing.*;
 import javax.swing.SpringLayout;

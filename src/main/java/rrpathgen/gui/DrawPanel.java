@@ -1,4 +1,4 @@
-package jarhead;
+package rrpathgen.gui;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -7,12 +7,17 @@ import com.acmerobotics.roadrunner.path.PathSegment;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
-import jarhead.trajectorysequence.TrajectorySequence;
-import jarhead.trajectorysequence.TrajectorySequenceBuilder;
-import jarhead.trajectorysequence.sequencesegment.SequenceSegment;
-import jarhead.trajectorysequence.sequencesegment.TrajectorySegment;
-import jarhead.trajectorysequence.sequencesegment.TurnSegment;
-import jarhead.trajectorysequence.sequencesegment.WaitSegment;
+import rrpathgen.Main;
+import rrpathgen.data.Marker;
+import rrpathgen.data.Node;
+import rrpathgen.data.NodeManager;
+import rrpathgen.data.ProgramProperties;
+import rrpathgen.trajectorysequence.TrajectorySequence;
+import rrpathgen.trajectorysequence.TrajectorySequenceBuilder;
+import rrpathgen.trajectorysequence.sequencesegment.SequenceSegment;
+import rrpathgen.trajectorysequence.sequencesegment.TrajectorySegment;
+import rrpathgen.trajectorysequence.sequencesegment.TurnSegment;
+import rrpathgen.trajectorysequence.sequencesegment.WaitSegment;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,7 +76,7 @@ public class DrawPanel extends JPanel {
     }
 
 
-    DrawPanel(LinkedList<NodeManager> managers, Main main, ProgramProperties props) {
+    public DrawPanel(LinkedList<NodeManager> managers, Main main, ProgramProperties props) {
         super();
         this.robot = props;
         this.managers = managers;
@@ -581,7 +586,6 @@ public class DrawPanel extends JPanel {
 
                 double heading = (Math.toDegrees(Math.atan2(mark.x - mouse.x, mark.y - mouse.y)));
                 if (e.isControlDown()) heading = Math.floor((heading + 22.5) / 45) * 45;
-                System.out.println(heading);
                 if(e.isAltDown()) {
                     if(e.isShiftDown()) mark.robotHeading = heading;
                     else mark.splineHeading = heading;

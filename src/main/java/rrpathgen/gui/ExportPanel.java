@@ -1,10 +1,11 @@
-package jarhead;
+package rrpathgen.gui;
+
+import rrpathgen.Main;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
 
 public class ExportPanel extends JPanel {
 
@@ -17,7 +18,7 @@ public class ExportPanel extends JPanel {
     JButton copy = new JButton("Copy to clipboard");
     Main main;
 
-    ExportPanel(Main main) {
+    public ExportPanel(Main main) {
         field.setText("Export");
 
         this.main = main;
