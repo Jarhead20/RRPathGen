@@ -2,6 +2,7 @@ package rrpathgen.trajectory;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.path.Path;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import rrpathgen.Main;
@@ -13,14 +14,17 @@ import rrpathgen.trajectory.trajectorysequence.TrajectorySequence;
 import rrpathgen.trajectory.trajectorysequence.TrajectorySequenceBuilder;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.TrajectorySegment;
+import rrpathgen.trajectory.trajectorysequence.sequencesegment.TurnSegment;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 public class OldRRTrajectory implements Trajectory{
-
+    AffineTransform outLine = new AffineTransform();
     private TrajectorySequence sequence;
 
     @Override
@@ -161,9 +165,66 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
-    public void renderRobot(Graphics g, double scale, double ovalScale, Pose2d robotPose) {
+    public void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot) {
 
+        double rX = robot.robotLength * Main.scale;
+        double rY = robot.robotWidth * Main.scale;
+        double prevHeading = 0;
+        if (sequence.get(0).getDuration() > 0)
+            prevHeading = sequence.start().getHeading();
+        double res;
+
+
+        for (int i = 0; i < sequence.size(); i++) {
+            SequenceSegment segment = sequence.get(i);
+            if(segment == null) continue;
+            if (segment instanceof TrajectorySegment) {
+
+                Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
+                for (double j = 0; j < path.length();) {
+                    Pose2d pose1 = path.get(j);
+                    double temp = Math.min((2 * Math.PI) - Math.abs(pose1.getHeading() - prevHeading), Math.abs(pose1.getHeading() - prevHeading));
+                    int x1 = (int) (pose1.getX()*Main.scale);
+                    int y1 = (int) (pose1.getY()*Main.scale);
+
+                    outLine.setToIdentity();
+                    outLine.translate(x1, y1);
+                    outLine.rotate(pose1.getHeading());
+                    g.setTransform(outLine);
+                    g.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
+
+                    res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
+                    j += res;
+                    prevHeading = pose1.getHeading();
+                }
+                if (path.length() > 0) {
+                    Pose2d end = path.end();
+                    outLine.setToIdentity();
+                    outLine.translate(end.getX()*Main.scale, end.getY()*Main.scale);
+                    outLine.rotate(end.getHeading());
+                    g.setTransform(outLine);
+                    g.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
+                }
+
+
+            } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
+                //
+                Pose2d pose1 = segment.getStartPose();
+                Pose2d end = segment.getEndPose();
+                int x1 = (int) pose1.getX();
+                int y1 = (int) pose1.getY();
+
+                double h1 = Math.min(end.getHeading(), pose1.getHeading());
+                double h2 = Math.max(end.getHeading(), pose1.getHeading());
+                for (double j = h1; j < h2; j+= (robot.resolution/10)) {
+                    outLine.setToIdentity();
+                    outLine.translate(x1, y1);
+                    outLine.rotate(j);
+                    g.setColor(Color.red);
+                    g.setTransform(outLine);
+                    g.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
+                }
+            }
+        }
     }
-
-
 }

@@ -25,6 +25,6 @@ public interface Trajectory {
     void renderPoints(Graphics g, double scale, double ovalScale, Polygon poly, Color color);
 
     public void renderMarkers(Graphics g, double scale, double ovalScale);
-    public void renderRobot(Graphics g, double scale, double ovalScale, Pose2d robotPose);
+    public void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot);
 
 }

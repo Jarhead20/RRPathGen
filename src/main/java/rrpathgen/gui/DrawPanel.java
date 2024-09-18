@@ -45,7 +45,6 @@ public class DrawPanel extends JPanel {
 
     private BufferedImage preRenderedSplines;
     AffineTransform tx = new AffineTransform();
-    AffineTransform outLine = new AffineTransform();
     int[] xPoly = {0, -2, 0, 2};
     int[] yPoly = {0, -4, -3, -4};
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
@@ -126,67 +125,7 @@ public class DrawPanel extends JPanel {
             image = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         g2.setColor(color);
-        double rX = robot.robotLength * Main.scale;
-        double rY = robot.robotWidth * Main.scale;
-        double prevHeading = 0;
-        if (trajectory.get(0).getDuration() > 0)
-            prevHeading = trajectory.start().getHeading();
-        double res;
-
-
-        for (int i = 0; i < trajectory.size(); i++) {
-            SequenceSegment segment = trajectory.get(i);
-            if(segment == null) continue;
-            if (segment instanceof TrajectorySegment) {
-
-                Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-                for (double j = 0; j < path.length();) {
-                    Pose2d pose1 = path.get(j);
-                    double temp = Math.min((2 * Math.PI) - Math.abs(pose1.getHeading() - prevHeading), Math.abs(pose1.getHeading() - prevHeading));
-                    int x1 = (int) (pose1.getX()*Main.scale);
-                    int y1 = (int) (pose1.getY()*Main.scale);
-
-                    outLine.setToIdentity();
-                    outLine.translate(x1, y1);
-                    outLine.rotate(pose1.getHeading());
-
-                    g2.setColor(color);
-                    g2.setTransform(outLine);
-                    g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
-
-                    res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
-                    j += res;
-                    prevHeading = pose1.getHeading();
-                }
-                if (path.length() > 0) {
-                    Pose2d end = path.end();
-                    outLine.setToIdentity();
-                    outLine.translate(end.getX()*Main.scale, end.getY()*Main.scale);
-                    outLine.rotate(end.getHeading());
-                    g2.setTransform(outLine);
-                    g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
-                }
-
-
-            } else if (segment instanceof TurnSegment || segment instanceof WaitSegment) {
-                //
-                Pose2d pose1 = segment.getStartPose();
-                Pose2d end = segment.getEndPose();
-                int x1 = (int) pose1.getX();
-                int y1 = (int) pose1.getY();
-
-                double h1 = Math.min(end.getHeading(), pose1.getHeading());
-                double h2 = Math.max(end.getHeading(), pose1.getHeading());
-                for (double j = h1; j < h2; j+= (robot.resolution/10)) {
-                    outLine.setToIdentity();
-                    outLine.translate(x1, y1);
-                    outLine.rotate(j);
-                    g.setColor(Color.red);
-                    g2.setTransform(outLine);
-                    g2.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
-                }
-            }
-        }
+        traj.renderRobot(g2, Main.scale, 1, new Pose2d(0, 0, 0), robot);
         Composite comp = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
         g.drawImage(image, 0, 0, null);
