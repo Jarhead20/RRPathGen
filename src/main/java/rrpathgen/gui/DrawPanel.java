@@ -328,10 +328,23 @@ public class DrawPanel extends JPanel {
                     getCurrentManager().redo.clear();
                     Main.currentN = getCurrentManager().size();
                     Main.currentMarker = -1;
+//                    check the markers in the manager and if they are before the point to add
+                    int newIndex = closest.index;
+                    for (int i = 0; i < getCurrentManager().size(); i++) {
+                        if(getCurrentManager().get(i) instanceof Marker) {
+                            newIndex++;
+                            getCurrentManager().editIndex++;
+                        }
+                    }
+
                     //TODO: make it face towards the tangential heading
-                    mouse.splineHeading = mouse.headingTo(getCurrentManager().get(closest.index));
+                    mouse.splineHeading = mouse.headingTo(getCurrentManager().get(newIndex));
                     mouse.robotHeading = mouse.splineHeading;
-                    getCurrentManager().add(closest.index, mouse);
+
+
+
+
+                    getCurrentManager().add(newIndex, mouse);
                 } else { //editing existing node
                     Node n2 = getCurrentManager().get(closest.index);
                     mouse.x = n2.x;
