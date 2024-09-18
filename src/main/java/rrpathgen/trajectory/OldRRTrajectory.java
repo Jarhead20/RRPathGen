@@ -183,8 +183,9 @@ public class OldRRTrajectory implements Trajectory{
             g.fillOval(-ovalScale, -ovalScale, 2 * ovalScale, 2 * ovalScale);
             switch (node.getType()) {
                 case splineTo:
-                    g.setColor(color2);
-                    break;
+//                    g.setColor(color2);
+                    continue;
+//                    break;
                 case splineToSplineHeading:
                     g.setColor(color2.brighter());
                     break;
