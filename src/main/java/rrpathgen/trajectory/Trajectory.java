@@ -11,28 +11,27 @@ import java.util.List;
 public interface Trajectory {
 
     void generateTrajectory(NodeManager manager, Node exclude, ProgramProperties robot);
-    public boolean isReady();
+    boolean isReady();
 
-    public List<Pose2d> starts();
-    public List<Pose2d> ends();
-    public double totalDuration();
-    public double duration(int i);
-    public int size();
-    public Pose2d get(int i, double j);
+    List<Pose2d> starts();
+    List<Pose2d> ends();
+    double totalDuration();
+    double duration(int i);
+    int size();
+    Pose2d get(int i, double j);
 
-    public List<Pose2d> midPoints();
+    List<Pose2d> midPoints();
 
     void renderSplines(Graphics g, double resolution, double scale, Color color);
 
     void renderPoints(Graphics g, double scale, double ovalScale, Color color);
     void resetPath();
-    public void renderMarkers(Graphics g, double scale, double ovalScale, Color color);
-    public void renderArrows(Graphics2D g, NodeManager nodeM, Polygon poly, int ovalScale, Color color1, Color color2, Color color3);
-    public void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot);
+    void renderMarkers(Graphics g, double scale, double ovalScale, Color color);
+    void renderArrows(Graphics2D g, NodeManager nodeM, Polygon poly, int ovalScale, Color color1, Color color2, Color color3);
+    void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot);
 
-    public Node.Type[] getValidNodeTypes();
-    public Node.Type[] getValidMarkerTypes();
-
-    public String constructExportString();
+    Node.Type[] getValidNodeTypes();
+    Node.Type[] getValidMarkerTypes();
+    String constructExportString();
 
 }
