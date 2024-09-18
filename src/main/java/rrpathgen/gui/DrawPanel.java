@@ -293,9 +293,9 @@ public class DrawPanel extends JPanel {
         Node mouse = new Node(e.getPoint());
         //marker
         if (SwingUtilities.isRightMouseButton(e)) {
-            double closestPose = 99999;
+            double closestPose = Double.MAX_VALUE;
             Marker closestMarker = new Marker(-1);
-            closestMarker.distanceToMouse = 99999;
+            closestMarker.distanceToMouse = Double.MAX_VALUE;
             closestMarker.index = -1;
             double total = 0;
 

@@ -161,6 +161,11 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
+    public void resetPath() {
+        sequence = null;
+    }
+
+    @Override
     public void renderMarkers(Graphics g, double scale, double ovalScale) {
 
     }

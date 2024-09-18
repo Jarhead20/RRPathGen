@@ -23,7 +23,7 @@ public interface Trajectory {
     void renderSplines(Graphics g, double resolution, double scale, Color color);
 
     void renderPoints(Graphics g, double scale, double ovalScale, Color color);
-
+    void resetPath();
     public void renderMarkers(Graphics g, double scale, double ovalScale);
     public void renderArrows(Graphics2D g, NodeManager nodeM, Polygon poly, int ovalScale, Color color1, Color color2, Color color3);
     public void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot);
