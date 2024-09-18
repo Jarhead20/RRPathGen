@@ -22,7 +22,8 @@ public interface Trajectory {
 
     void renderSplines(Graphics g, double resolution, double scale, Color color);
 
-    public void renderPoints(Graphics g, double scale, double ovalScale, Polygon poly);
+    void renderPoints(Graphics g, double scale, double ovalScale, Polygon poly, Color color);
+
     public void renderMarkers(Graphics g, double scale, double ovalScale);
     public void renderRobot(Graphics g, double scale, double ovalScale, Pose2d robotPose);
 

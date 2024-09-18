@@ -194,13 +194,8 @@ public class DrawPanel extends JPanel {
         g2.dispose();
     }
 
-    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color c1, int ovalScale){
-        for (int i = 0; i < trajectory.size(); i++) {
-            SequenceSegment segment = trajectory.get(i);
-            if (segment == null) continue;
-            g.setColor(c1);
-            g = segment.renderPoints(g, Main.scale, ovalScale);
-        }
+    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color color, int ovalScale){
+        traj.renderPoints(g, Main.scale, ovalScale, poly, color);
     }
 
 

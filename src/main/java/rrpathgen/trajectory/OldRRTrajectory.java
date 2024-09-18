@@ -146,8 +146,13 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
-    public void renderPoints(Graphics g, double scale, double ovalScale, Polygon poly) {
-
+    public void renderPoints(Graphics g, double scale, double ovalScale, Polygon poly, Color color) {
+        for (int i = 0; i < this.size(); i++) {
+            SequenceSegment segment = sequence.get(i);
+            if (segment == null) continue;
+            g.setColor(color);
+            g = segment.renderPoints(g, Main.scale, ovalScale);
+        }
     }
 
     @Override
