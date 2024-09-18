@@ -82,7 +82,7 @@ public class ButtonPanel extends JPanel {
                 main.currentM--;
             main.currentN = -1;
             main.infoPanel.editPanel.updateText();
-            main.drawPanel.resetPath();
+            main.drawPanel.getTrajectory().resetPath();
 
             main.drawPanel.renderBackgroundSplines();
             main.drawPanel.repaint();

@@ -11,10 +11,12 @@ import java.util.List;
 public interface Trajectory {
 
     void generateTrajectory(NodeManager manager, Node exclude, ProgramProperties robot);
+    public boolean isReady();
 
     public List<Pose2d> starts();
     public List<Pose2d> ends();
-    public double duration();
+    public double totalDuration();
+    public double duration(int i);
     public int size();
     public Pose2d get(int i, double j);
 
@@ -27,5 +29,7 @@ public interface Trajectory {
     public void renderMarkers(Graphics g, double scale, double ovalScale);
     public void renderArrows(Graphics2D g, NodeManager nodeM, Polygon poly, int ovalScale, Color color1, Color color2, Color color3);
     public void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot);
+
+    public Node.Type[] getValidTypes();
 
 }

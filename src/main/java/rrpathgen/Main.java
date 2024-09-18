@@ -64,7 +64,7 @@ public class Main extends JFrame {
             scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
             properties.reload();
 
-
+            infoPanel.editPanel.updateNodeTypes();
             infoPanel.settingsPanel.update();
             drawPanel.update();
         } catch (Exception e){
@@ -83,7 +83,6 @@ public class Main extends JFrame {
             else
                 path = System.getProperty("user.home") + "/.RRPathGen/config.properties";
             properties = new ProgramProperties(new File(path));
-
 
         } catch (Exception e){
             e.printStackTrace();

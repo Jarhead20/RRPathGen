@@ -50,9 +50,9 @@ public abstract class SequenceSegment {
 
     public Graphics renderPoints(Graphics g, double scale, double ovalScale) {
         // scale and ovalScale are needed since TrajectorySegment overrides this method
-        Pose2d startPose = getStartPose();
-        Pose2d endPose = getEndPose();
-        g.drawLine((int) startPose.getX(), (int) startPose.getY(), (int) endPose.getX(), (int) endPose.getY());
+//        Pose2d startPose = getStartPose();
+//        Pose2d endPose = getEndPose();
+//        g.drawLine((int) startPose.getX(), (int) startPose.getY(), (int) endPose.getX(), (int) endPose.getY());
         return g;
     }
 }

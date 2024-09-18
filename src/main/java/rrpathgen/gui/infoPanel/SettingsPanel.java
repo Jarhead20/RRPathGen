@@ -18,7 +18,9 @@ public class SettingsPanel extends JPanel {
     NumberFormat format = NumberFormat.getInstance();
     NumberFormatter formatter = new NumberFormatter(format);
     private final LinkedList<JTextField> fields = new LinkedList<>();
-    private final String[] labels = {"Library", "Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Angular Velo", "Max Angular Accel"};
+
+    private final JComboBox<ProgramProperties.Library> library;
+    private final String[] labels = {"Robot Width", "Robot Length", "Resolution", "Import/Export", "Track Width", "Max Velo", "Max Accel", "Max Angular Velo", "Max Angular Accel"};
     private final ProgramProperties robot;
     SettingsPanel(Main main, ProgramProperties properties){
         this.robot = properties;
@@ -26,6 +28,14 @@ public class SettingsPanel extends JPanel {
         this.setOpaque(true);
 //        this.setPreferredSize(new Dimension((int) Math.floor(30 * main.scale), (int) Math.floor(40 * main.scale)));
         this.setLayout(new SpringLayout());
+
+        library = new JComboBox<>(ProgramProperties.Library.values());
+//        set the index to the selected library in the config
+        library.setSelectedIndex(Objects.requireNonNull(ProgramProperties.Library.valueOf(robot.prop.getProperty("LIBRARY"))).ordinal());
+        JLabel lLibrary = new JLabel("Library: ", JLabel.TRAILING);
+        this.add(lLibrary);
+        lLibrary.setLabelFor(library);
+        this.add(library);
 
         for (String label : labels) {
             JTextField input;
@@ -43,7 +53,9 @@ public class SettingsPanel extends JPanel {
             fields.add(input);
         }
 
-        SpringUtilities.makeCompactGrid(this,labels.length,2,6,6,6,6);
+
+
+        SpringUtilities.makeCompactGrid(this,labels.length+1,2,6,6,6,6);
         this.setVisible(true);
 
         for (int i = 0; i < fields.size(); i++) {
@@ -55,6 +67,12 @@ public class SettingsPanel extends JPanel {
                 main.setState(JFrame.MAXIMIZED_BOTH);
             });
         }
+
+        library.addActionListener(e -> {
+            robot.prop.setProperty("LIBRARY", Objects.requireNonNull(ProgramProperties.Library.values()[library.getSelectedIndex()]).name());
+            main.reloadConfig();
+            main.setState(JFrame.MAXIMIZED_BOTH);
+        });
     }
 
     public void update(){

@@ -32,7 +32,8 @@ public class EditPanel extends JPanel {
         JLabel lName = new JLabel("Name: ", JLabel.TRAILING);
         JLabel lType = new JLabel("Type: ", JLabel.TRAILING);
 
-        type = new JComboBox<>(Node.Type.values());
+
+        type = new JComboBox<>();
 //        type = new JComboBox(Arrays.stream(Node.Type.values()).filter(i -> i.toString().contains("line")).toArray());
 
         type.setSelectedIndex(-1);
@@ -134,5 +135,12 @@ public class EditPanel extends JPanel {
             type.setSelectedItem(getCurrentNode().getType());
         }
         name.setText(main.getCurrentManager().name);
+    }
+
+    public void updateNodeTypes(){
+        type.removeAllItems();
+        for(Node.Type t : Main.drawPanel.getTrajectory().getValidTypes()){
+            type.addItem(t);
+        }
     }
 }

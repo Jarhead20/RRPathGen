@@ -36,7 +36,7 @@ import static rrpathgen.Main.*;
 public class DrawPanel extends JPanel {
     private final LinkedList<NodeManager> managers;
     private final ProgramProperties robot;
-    private TrajectorySequence trajectory;
+//    private TrajectorySequence trajectory;
     private rrpathgen.trajectory.Trajectory traj;
     private final Main Main;
     private Node preEdit;
@@ -50,7 +50,15 @@ public class DrawPanel extends JPanel {
     Polygon poly = new Polygon(xPoly, yPoly, xPoly.length);
 
     public void update(){
-        resetPath();
+        switch (robot.lib){
+            case RROLD:
+                traj = new OldRRTrajectory();
+                break;
+//            case RRNEW:
+//                traj = new rrpathgen.trajectory.NewRRTrajectory();
+//                break;
+        }
+        traj.resetPath();
         preRenderedSplines = null;
 //        renderBackgroundSplines();
         repaint();
@@ -85,7 +93,6 @@ public class DrawPanel extends JPanel {
         this.managers = managers;
         this.Main = Main;
 
-        this.traj = new OldRRTrajectory();
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
@@ -110,13 +117,14 @@ public class DrawPanel extends JPanel {
             public void keyPressed(KeyEvent e) { }
         });
         this.setFocusable(true);
+        update();
     }
 
-    private void renderSplines(Graphics g, TrajectorySequence trajectory, Color color) {
+    private void renderSplines(Graphics g, Color color) {
         traj.renderSplines(g, robot.resolution, Main.scale, color);
     }
 
-    private void renderRobotPath(Graphics2D g, TrajectorySequence trajectory, Color color, float transparency) {
+    private void renderRobotPath(Graphics2D g, Color color, float transparency) {
         if (this.getWidth() != this.getHeight()) System.out.println("w != h");
         BufferedImage image;
         if (this.getWidth() > 0)
@@ -133,7 +141,7 @@ public class DrawPanel extends JPanel {
         g2.dispose();
     }
 
-    private void renderPoints (Graphics g, TrajectorySequence trajectory, Color color, int ovalScale){
+    private void renderPoints (Graphics g, Color color, int ovalScale){
         traj.renderPoints(g, Main.scale, ovalScale, color);
     }
 
@@ -167,13 +175,13 @@ public class DrawPanel extends JPanel {
         if (getCurrentManager().size() > 0) {
             Node node = getCurrentManager().getNodes().get(0);
             long trajGenStart = System.currentTimeMillis();
-            trajectory = generateTrajectory(getCurrentManager(), node);
+            traj.generateTrajectory(getCurrentManager(), node, robot);
             trajGen = System.currentTimeMillis() - trajGenStart;
             long renderStart = System.currentTimeMillis();
-            if(trajectory != null) {
-                renderRobotPath((Graphics2D) g, trajectory, lightPurple, 0.5f);
-                renderSplines(g, trajectory, cyan);
-                renderPoints(g, trajectory, cyan, 1);
+            if(traj.isReady()) {
+                renderRobotPath((Graphics2D) g, lightPurple, 0.5f);
+                renderSplines(g, cyan);
+                renderPoints(g, cyan, 1);
             }
             renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
             render = System.currentTimeMillis() - renderStart;
@@ -188,59 +196,6 @@ public class DrawPanel extends JPanel {
         g.drawString("overall (ms): " + overall, 10, 10);
     }
 
-    private TrajectorySequence generateTrajectory(NodeManager manager, Node exclude){
-        traj.generateTrajectory(manager, exclude, robot);
-        Node node = exclude.shrink(Main.scale);
-        TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(robot.maxVelo, robot.trackWidth), new ProfileAccelerationConstraint(robot.maxAccel), Math.toRadians(robot.maxAngVelo), Math.toRadians(robot.maxAngAccel));
-        builder.setReversed(exclude.reversed);
-        for (int i = 0; i < manager.size(); i++) {
-            if(exclude.equals(manager.get(i))) continue; //stops empty path segment error
-
-            node = manager.get(i).shrink(Main.scale);
-
-            try{
-
-                switch (node.getType()){
-                    case splineTo:
-                        builder.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                        break;
-                    case splineToSplineHeading:
-                        builder.splineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                        break;
-                    case splineToLinearHeading:
-                        builder.splineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)), Math.toRadians(-node.splineHeading-90));
-                        break;
-                    case splineToConstantHeading:
-                        builder.splineToConstantHeading(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
-                        break;
-                    case lineTo:
-                        builder.lineTo(new Vector2d(node.x, node.y));
-                        break;
-                    case lineToSplineHeading:
-                        builder.lineToSplineHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)));
-                        break;
-                    case lineToLinearHeading:
-                        builder.lineToLinearHeading(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading-90)));
-                        break;
-                    case lineToConstantHeading:
-                        builder.lineToConstantHeading(new Vector2d(node.x, node.y));
-                        break;
-                    case addTemporalMarker:
-                        Marker marker = (Marker) manager.get(i);
-                        builder.UNSTABLE_addTemporalMarkerOffset(marker.displacement, () -> {});
-                }
-                builder.setReversed(node.reversed);
-            } catch (Exception e) {
-                Main.undo(false);
-                i--;
-                e.printStackTrace();
-            }
-        }
-        if(manager.size() > 1)
-            return builder.build();
-        return null;
-    }
-
     public void renderBackgroundSplines(){
         if(this.getWidth() > 0)
             preRenderedSplines = new BufferedImage((this.getWidth()), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
@@ -252,11 +207,11 @@ public class DrawPanel extends JPanel {
             if(manager.equals(getCurrentManager())) continue;
             if(manager.size() <= 0) continue;
             Node node = manager.getNodes().get(0);
-            TrajectorySequence trajectory = generateTrajectory(manager, node);
-            if(trajectory != null) {
-                renderRobotPath((Graphics2D) g, trajectory, dLightPurple, 0.5f);
-                renderSplines(g, trajectory, cyan);
-                renderPoints(g, trajectory, cyan, 1);
+            traj.generateTrajectory(manager, node, robot);
+            if(traj.isReady()) {
+                renderRobotPath((Graphics2D) g, dLightPurple, 0.5f);
+                renderSplines(g, cyan);
+                renderPoints(g, cyan, 1);
             }
             renderArrows(g, manager, 1, dDarkPurple, dLightPurple, dCyan);
         }
@@ -277,12 +232,8 @@ public class DrawPanel extends JPanel {
         return Main.getCurrentManager();
     }
 
-    public TrajectorySequence getTrajectory(){
-        return trajectory;
-    }
-
-    public void resetPath(){
-        trajectory = null;
+    public rrpathgen.trajectory.Trajectory getTrajectory(){
+        return traj;
     }
 
     private void mPressed(MouseEvent e) {
@@ -300,15 +251,10 @@ public class DrawPanel extends JPanel {
             double total = 0;
 
             List<Marker> markers = getCurrentManager().getMarkers();
-            for (int i = 0; i < trajectory.size(); i++) {
-                SequenceSegment segment = trajectory.get(i);
-                if (segment == null) continue;
-                if (!(segment instanceof TrajectorySegment)) continue;
-
-                Trajectory traj = ((TrajectorySegment) segment).getTrajectory();
+            for (int i = 0; i < traj.size(); i++) {
                 // find closest
                 for (int j = 0; j < markers.size(); j++) {
-                    Pose2d pose = traj.get(markers.get(j).displacement-total);
+                    Pose2d pose = traj.get(i, markers.get(j).displacement-total);
                     double x = pose.getX() * Main.scale;
                     double y = pose.getY() * Main.scale;
 
@@ -318,8 +264,8 @@ public class DrawPanel extends JPanel {
                     closestMarker.index = j;
                 }
 
-                for (double j = 0; j < traj.duration(); j += robot.resolution/10) {
-                    Pose2d pose = traj.get(j);
+                for (double j = 0; j < traj.duration(i); j += robot.resolution/10) {
+                    Pose2d pose = traj.get(i, j);
                     double x = pose.getX() * Main.scale;
                     double y = pose.getY() * Main.scale;
 
@@ -328,7 +274,7 @@ public class DrawPanel extends JPanel {
                     closestMarker.displacement = j + total;
                     closestPose = dist;
                 }
-                total += traj.duration();
+                total += traj.duration(i);
             }
             if(closestMarker.distanceToMouse < (clickSize * Main.scale)) {
                 getCurrentManager().editIndex = closestMarker.index;
@@ -343,34 +289,24 @@ public class DrawPanel extends JPanel {
             edit = true;
         } else { //regular node
             Node closest = new Node();
-
-            TrajectorySequence trajectory = getTrajectory();
             //find closest midpoint
             int counter = 0; //i don't like this but its the easiest way
-            if(trajectory != null){
-                for (int i = 0; i < trajectory.size(); i++) {
-                    SequenceSegment segment = trajectory.get(i);
-                    if(segment == null) continue;
-                    if (!(segment instanceof TrajectorySegment)) continue;
 
-                    Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-                    List<PathSegment> segments = path.getSegments();
+            List<Pose2d> midPoints = traj.midPoints();
 
-                    for (PathSegment segment2 : segments) {
-                        Pose2d pose = segment2.get(segment2.length() / 2.0);
+            for (Pose2d pose : midPoints) {
 
-                        double px = (pose.getX()*Main.scale) - mouse.x;
-                        double py = (pose.getY()*Main.scale) - mouse.y;
-                        double midDist = Math.sqrt(px * px + py * py);
-                        counter++;
+                double px = (pose.getX()*Main.scale) - mouse.x;
+                double py = (pose.getY()*Main.scale) - mouse.y;
+                double midDist = Math.sqrt(px * px + py * py);
+                counter++;
 
-                        if (midDist >= closest.distanceToMouse) continue;
-                        closest.distanceToMouse = midDist;
-                        closest.index = counter;
-                        closest.isMidpoint = true;
-                    }
-                }
+                if (midDist >= closest.distanceToMouse) continue;
+                closest.distanceToMouse = midDist;
+                closest.index = counter;
+                closest.isMidpoint = true;
             }
+
 
             for (int i = 0; i < getCurrentManager().size(); i++) {
                 Node close = getCurrentManager().get(i);
@@ -458,14 +394,10 @@ public class DrawPanel extends JPanel {
                 double min = 99999;
                 double displacement = -1;
                 double total = 0;
-                for (int i = 0; i < trajectory.size(); i++) {
-                    SequenceSegment segment = trajectory.get(i);
-                    if (segment == null) continue;
-                    if (!(segment instanceof TrajectorySegment)) continue;
+                for (int i = 0; i < traj.size(); i++) {
 
-                    Trajectory path = ((TrajectorySegment) segment).getTrajectory();
-                    for (double j = 0; j < path.duration(); j += robot.resolution/10) {
-                        Pose2d pose = path.get(j);
+                    for (double j = 0; j < traj.duration(i); j += robot.resolution/10) {
+                        Pose2d pose = traj.get(i, j);
                         double x = pose.getX() * Main.scale;
                         double y = pose.getY() * Main.scale;
 
@@ -474,7 +406,7 @@ public class DrawPanel extends JPanel {
                         displacement = j+total;
                         min = dist;
                     }
-                    total += path.duration();
+                    total += traj.duration(i);
                 }
                 ((Marker) getCurrentManager().get(index)).displacement = displacement;
                 Main.currentN = -1;
@@ -519,17 +451,17 @@ public class DrawPanel extends JPanel {
                 if(Main.currentM <= 0) break;
                 Main.currentM--;
                 Main.currentN = -1;
-                resetPath();
+                traj.resetPath();
                 break;
             case KeyEvent.VK_RIGHT:
                 if(Main.currentM+1 < managers.size()){
                     Main.currentM++;
                     Main.currentN = -1;
-                    resetPath();
+                    traj.resetPath();
                 } else if(getCurrentManager().size() > 0){
                     NodeManager manager = new NodeManager(new ArrayList<>(), managers.size());
                     managers.add(manager);
-                    resetPath();
+                    traj.resetPath();
                     Main.currentN = -1;
                     Main.currentM++;
                 }

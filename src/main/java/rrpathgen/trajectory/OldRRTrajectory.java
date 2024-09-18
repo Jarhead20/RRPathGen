@@ -19,7 +19,6 @@ import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +26,8 @@ public class OldRRTrajectory implements Trajectory{
     AffineTransform outLine = new AffineTransform();
     private TrajectorySequence sequence;
     AffineTransform tx = new AffineTransform();
+
+
 
     @Override
     public void generateTrajectory(NodeManager manager, Node exclude, ProgramProperties robot) {
@@ -39,7 +40,6 @@ public class OldRRTrajectory implements Trajectory{
             node = manager.get(i).shrink(Main.scale);
 
             try{
-
                 switch (node.getType()){
                     case splineTo:
                         builder.splineTo(new Vector2d(node.x, node.y), Math.toRadians(-node.splineHeading-90));
@@ -82,6 +82,11 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
+    public boolean isReady() {
+        return sequence != null;
+    }
+
+    @Override
     public List<Pose2d> starts() {
         List<Pose2d> starts = new ArrayList<>();
         for (int i = 0; i < sequence.size(); i++) {
@@ -105,9 +110,16 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
-    public double duration() {
+    public double totalDuration() {
         return sequence.duration();
     }
+
+    @Override
+    public double duration(int i) {
+        return sequence.get(i).getDuration();
+    }
+
+
 
     @Override
     public int size() {
@@ -129,8 +141,10 @@ public class OldRRTrajectory implements Trajectory{
     @Override
     public List<Pose2d> midPoints() {
         List<Pose2d> midPoints = new ArrayList<>();
+        if(!isReady()) return midPoints;
         for (int i = 0; i < sequence.size(); i++) {
             SequenceSegment segment = sequence.get(i);
+            if(segment == null) continue;
             if (segment instanceof TrajectorySegment) {
                 TrajectorySegment trajectorySegment = (TrajectorySegment) segment;
                 midPoints.add(trajectorySegment.getTrajectory().get(trajectorySegment.getDuration()/2));
@@ -268,5 +282,20 @@ public class OldRRTrajectory implements Trajectory{
                 }
             }
         }
+    }
+
+    @Override
+    public Node.Type[] getValidTypes() {
+        return new Node.Type[]{
+                Node.Type.splineTo,
+                Node.Type.splineToSplineHeading,
+                Node.Type.splineToLinearHeading,
+                Node.Type.splineToConstantHeading,
+                Node.Type.lineTo,
+                Node.Type.lineToSplineHeading,
+                Node.Type.lineToLinearHeading,
+                Node.Type.lineToConstantHeading,
+                Node.Type.addTemporalMarker
+        };
     }
 }
