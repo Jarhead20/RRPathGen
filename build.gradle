@@ -39,7 +39,7 @@ jar {
 
 task customFatJar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'jarhead.Main'
+        attributes 'Main-Class': 'rrpathgen.Main'
     }
     baseName = 'RRPathGen'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
