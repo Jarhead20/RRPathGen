@@ -1,11 +1,14 @@
 package rrpathgen.trajectory;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import rrpathgen.data.Node;
+import rrpathgen.data.NodeManager;
 import rrpathgen.trajectory.trajectorysequence.TrajectorySequence;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.TrajectorySegment;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,9 +16,11 @@ public class OldRRTrajectory implements Trajectory{
 
     private TrajectorySequence sequence;
 
-    public OldRRTrajectory(TrajectorySequence sequence) {
-        this.sequence = sequence;
+    @Override
+    public void generateTrajectory(NodeManager manager, Node exclude) {
+
     }
+
     @Override
     public List<Pose2d> starts() {
         List<Pose2d> starts = new ArrayList<>();
@@ -66,4 +71,26 @@ public class OldRRTrajectory implements Trajectory{
         }
         return midPoints;
     }
+
+    @Override
+    public void renderSplines(Graphics g, double resolution, double scale) {
+
+    }
+
+    @Override
+    public void renderPoints(Graphics g, double scale, double ovalScale) {
+
+    }
+
+    @Override
+    public void renderMarkers(Graphics g, double scale, double ovalScale) {
+
+    }
+
+    @Override
+    public void renderRobot(Graphics g, double scale, double ovalScale, Pose2d robotPose) {
+
+    }
+
+
 }

@@ -29,7 +29,7 @@ public class SettingsPanel extends JPanel {
 
         for (String label : labels) {
             JTextField input;
-            if(Objects.equals(label, labels[3]))
+            if(label.equals(labels[0]) || label.equals(labels[4]))
                 input = new JTextField();
             else
                 input = new JFormattedTextField(formatter);

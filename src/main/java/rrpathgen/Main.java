@@ -20,20 +20,20 @@ public class Main extends JFrame {
 
     public static boolean debug = false;
 
-    private ProgramProperties properties;
-    public double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
-    private NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
-    private LinkedList<NodeManager> managers = new LinkedList<>();
+    private static ProgramProperties properties;
+    public static double scale = 1;// = Toolkit.getDefaultToolkit().getScreenSize().height > 1080 ? 8 : 6; //set scale to 6 for 1080p and 8 for 1440p
+    private static NodeManager currentManager = new NodeManager(new ArrayList<>(), 0);
+    private static LinkedList<NodeManager> managers = new LinkedList<>();
 
-    public DrawPanel drawPanel;
-    public InfoPanel infoPanel;
-    public ButtonPanel buttonPanel;
-    public ExportPanel exportPanel;
+    public static DrawPanel drawPanel;
+    public static InfoPanel infoPanel;
+    public static ButtonPanel buttonPanel;
+    public static ExportPanel exportPanel;
 
 
-    public int currentM = 0;
-    public int currentN = -1;
-    public int currentMarker = -1;
+    public static int currentM = 0;
+    public static int currentN = -1;
+    public static int currentMarker = -1;
     public Main() {
         FlatDarculaLaf.setup();
         loadConfig();
@@ -51,7 +51,7 @@ public class Main extends JFrame {
         });
     }
 
-    public void reloadConfig() {
+    public static void reloadConfig() {
         try{
             drawPanel.getPreferredSize();
             scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
@@ -65,7 +65,7 @@ public class Main extends JFrame {
         }
     }
 
-    public void loadConfig() {
+    public static void loadConfig() {
         try{
             String os = System.getProperty("os.name").toLowerCase();
             String path;
@@ -146,7 +146,7 @@ public class Main extends JFrame {
         });
     }
 
-    public void flip() {
+    public static void flip() {
         for (int i = 0; i < getCurrentManager().size(); i++) {
             Node node = getCurrentManager().get(i);
             node.y = 144*scale-node.y;
@@ -156,7 +156,7 @@ public class Main extends JFrame {
         }
     }
 
-    public void undo(boolean record){
+    public static void undo(boolean record){
         if(getCurrentManager().undo.size()<1) return;
         Node node = getCurrentManager().undo.peek();
         switch (node.state) {
@@ -186,7 +186,7 @@ public class Main extends JFrame {
         if (record) getCurrentManager().redo.add(node);
         getCurrentManager().undo.pop();
     }
-    public void redo(){
+    public static void redo(){
         if(getCurrentManager().redo.size()<1) return;
         Node node = getCurrentManager().redo.peek();
 
@@ -218,34 +218,34 @@ public class Main extends JFrame {
         getCurrentManager().redo.pop();
     }
 
-    public void saveConfig() {
+    public static void saveConfig() {
         properties.save();
     }
 
-    public double toInches(double in){
+    public static double toInches(double in){
         return (1.0/scale * in)-72;
     }
 
-    public void scale(NodeManager manager, double ns, double os){
+    public static void scale(NodeManager manager, double ns, double os){
         for (int j = 0; j < manager.size(); j++) {
             Node n = manager.get(j);
             n.x = (n.x/os)*ns;
             n.y = (n.y/os)*ns;
         }
     }
-    public void scale(Stack<Node> manager, double ns, double os){
+    public static void scale(Stack<Node> manager, double ns, double os){
         for (Node n : manager) {
             n.x = (n.x/os)*ns;
             n.y = (n.y/os)*ns;
         }
     }
 
-    public NodeManager getCurrentManager() {
+    public static NodeManager getCurrentManager() {
         currentManager = managers.get(currentM);
         return currentManager;
     }
 
-    public LinkedList<NodeManager> getManagers() {
+    public static LinkedList<NodeManager> getManagers() {
         return managers;
     }
 }

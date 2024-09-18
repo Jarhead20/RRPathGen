@@ -34,7 +34,7 @@ public class ProgramProperties {
 
     public void reload(){
         try{
-            lib = Library.valueOf(prop.getProperty("LIB"));
+            lib = Library.valueOf(prop.getProperty("LIBRARY"));
             robotLength = Double.parseDouble(prop.getProperty("ROBOT_LENGTH"));
             robotWidth = Double.parseDouble(prop.getProperty("ROBOT_WIDTH"));
             resolution = Double.parseDouble(prop.getProperty("RESOLUTION"));
@@ -45,7 +45,9 @@ public class ProgramProperties {
             maxAngVelo = Double.parseDouble(prop.getProperty("MAX_ANGULAR_VELO"));
             maxAngAccel = Double.parseDouble(prop.getProperty("MAX_ANGULAR_ACCEL"));
         } catch (NullPointerException e){
+            e.printStackTrace();
             prop = new Properties();
+            System.out.println("Generating new file");
             generateFile(file);
         }
 
@@ -57,7 +59,7 @@ public class ProgramProperties {
             file.createNewFile();
             FileWriter writer = new FileWriter(file, false);
             writer.write(
-                    "LIB=RROLD\n" +
+                    "LIBRARY=RROLD\n" +
                     "ROBOT_WIDTH=18\n" +
                     "ROBOT_LENGTH=18\n" +
                     "RESOLUTION=0.1\n" +
