@@ -12,6 +12,7 @@ import rrpathgen.data.Marker;
 import rrpathgen.data.Node;
 import rrpathgen.data.NodeManager;
 import rrpathgen.data.ProgramProperties;
+import rrpathgen.trajectory.OldRRTrajectory;
 import rrpathgen.trajectory.trajectorysequence.TrajectorySequence;
 import rrpathgen.trajectory.trajectorysequence.TrajectorySequenceBuilder;
 import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
@@ -29,11 +30,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import static rrpathgen.Main.*;
+
 
 public class DrawPanel extends JPanel {
     private final LinkedList<NodeManager> managers;
     private final ProgramProperties robot;
     private TrajectorySequence trajectory;
+    private rrpathgen.trajectory.Trajectory traj;
     private final Main Main;
     private Node preEdit;
     private boolean edit = false;
@@ -81,6 +85,8 @@ public class DrawPanel extends JPanel {
         this.robot = props;
         this.managers = managers;
         this.Main = Main;
+
+        this.traj = new OldRRTrajectory();
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 mPressed(e);
@@ -108,13 +114,7 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderSplines(Graphics g, TrajectorySequence trajectory, Color color) {
-        for (int i = 0; i < trajectory.size(); i++) {
-            SequenceSegment segment = trajectory.get(i);
-            if(segment == null) continue;
-
-            g.setColor(color);
-            g = segment.renderSplines(g, robot.resolution, Main.scale);
-        }
+        traj.renderSplines(g, robot.resolution, Main.scale, color);
     }
 
     private void renderRobotPath(Graphics2D g, TrajectorySequence trajectory, Color color, float transparency) {
@@ -204,12 +204,7 @@ public class DrawPanel extends JPanel {
     }
 
 
-    Color cyan = new Color(104, 167, 157);
-    Color darkPurple = new Color(124, 78, 158);
-    Color lightPurple = new Color(147, 88, 172);
-    Color dLightPurple = lightPurple.darker();
-    Color dCyan = cyan.darker();
-    Color dDarkPurple = darkPurple.darker();
+
 
     double oldScale = 0;
 
@@ -260,6 +255,7 @@ public class DrawPanel extends JPanel {
     }
 
     private TrajectorySequence generateTrajectory(NodeManager manager, Node exclude){
+        traj.generateTrajectory(manager, exclude, robot);
         Node node = exclude.shrink(Main.scale);
         TrajectorySequenceBuilder builder = new TrajectorySequenceBuilder(new Pose2d(node.x, node.y, Math.toRadians(-node.robotHeading - 90)), Math.toRadians(-node.splineHeading - 90), new MecanumVelocityConstraint(robot.maxVelo, robot.trackWidth), new ProfileAccelerationConstraint(robot.maxAccel), Math.toRadians(robot.maxAngVelo), Math.toRadians(robot.maxAngAccel));
         builder.setReversed(exclude.reversed);

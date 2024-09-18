@@ -30,6 +30,13 @@ public class Main extends JFrame {
     public static ButtonPanel buttonPanel;
     public static ExportPanel exportPanel;
 
+    public static Color cyan = new Color(104, 167, 157);
+    public static Color darkPurple = new Color(124, 78, 158);
+    public static Color lightPurple = new Color(147, 88, 172);
+    public static Color dLightPurple = lightPurple.darker();
+    public static Color dCyan = cyan.darker();
+    public static Color dDarkPurple = darkPurple.darker();
+
 
     public static int currentM = 0;
     public static int currentN = -1;
