@@ -26,6 +26,7 @@ import java.util.List;
 public class OldRRTrajectory implements Trajectory{
     AffineTransform outLine = new AffineTransform();
     private TrajectorySequence sequence;
+    AffineTransform tx = new AffineTransform();
 
     @Override
     public void generateTrajectory(NodeManager manager, Node exclude, ProgramProperties robot) {
@@ -150,7 +151,7 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
-    public void renderPoints(Graphics g, double scale, double ovalScale, Polygon poly, Color color) {
+    public void renderPoints(Graphics g, double scale, double ovalScale, Color color) {
         for (int i = 0; i < this.size(); i++) {
             SequenceSegment segment = sequence.get(i);
             if (segment == null) continue;
@@ -162,6 +163,41 @@ public class OldRRTrajectory implements Trajectory{
     @Override
     public void renderMarkers(Graphics g, double scale, double ovalScale) {
 
+    }
+
+    @Override
+    public void renderArrows(Graphics2D g, NodeManager nodeM, Polygon poly, int ovalScale, Color color1, Color color2, Color color3) {
+        List<Node> nodes = nodeM.getNodes();
+        for (Node node : nodes) {
+            tx.setToIdentity();
+            tx.translate(node.x, node.y);
+            if (!node.reversed)
+                tx.rotate(Math.toRadians(-node.robotHeading + 180));
+            else
+                tx.rotate(Math.toRadians(-node.robotHeading));
+            tx.scale(Main.scale, Main.scale);
+
+            g.setTransform(tx);
+
+            g.setColor(color1);
+            g.fillOval(-ovalScale, -ovalScale, 2 * ovalScale, 2 * ovalScale);
+            switch (node.getType()) {
+                case splineTo:
+                    g.setColor(color2);
+                    break;
+                case splineToSplineHeading:
+                    g.setColor(color2.brighter());
+                    break;
+                case splineToLinearHeading:
+                    g.setColor(Color.magenta);
+                    break;
+                default:
+                    g.setColor(color3.brighter());
+//                    throw new IllegalStateException("Unexpected value: " + node.getType());
+                    break;
+            }
+            g.fill(poly);
+        }
     }
 
     @Override

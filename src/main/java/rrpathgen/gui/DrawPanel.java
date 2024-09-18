@@ -134,7 +134,7 @@ public class DrawPanel extends JPanel {
     }
 
     private void renderPoints (Graphics g, TrajectorySequence trajectory, Color color, int ovalScale){
-        traj.renderPoints(g, Main.scale, ovalScale, poly, color);
+        traj.renderPoints(g, Main.scale, ovalScale, color);
     }
 
 
@@ -267,37 +267,7 @@ public class DrawPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g.create();
         BufferedImage bufferedImage = new BufferedImage(preRenderedSplines.getWidth(), preRenderedSplines.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = bufferedImage.createGraphics();
-        List<Node> nodes = nodeM.getNodes();
-        for (Node node : nodes) {
-            tx.setToIdentity();
-            tx.translate(node.x, node.y);
-            if (!node.reversed)
-                tx.rotate(Math.toRadians(-node.robotHeading + 180));
-            else
-                tx.rotate(Math.toRadians(-node.robotHeading));
-            tx.scale(Main.scale, Main.scale);
-
-            g2.setTransform(tx);
-
-            g2.setColor(color1);
-            g2.fillOval(-ovalScale, -ovalScale, 2 * ovalScale, 2 * ovalScale);
-            switch (node.getType()) {
-                case splineTo:
-                    g2.setColor(color2);
-                    break;
-                case splineToSplineHeading:
-                    g2.setColor(color2.brighter());
-                    break;
-                case splineToLinearHeading:
-                    g2.setColor(Color.magenta);
-                    break;
-                default:
-                    g2.setColor(color3.brighter());
-//                    throw new IllegalStateException("Unexpected value: " + node.getType());
-                    break;
-            }
-            g2.fill(poly);
-        }
+        traj.renderArrows(g2, nodeM, poly, ovalScale, color1, color2, color3);
         g2d.drawImage(bufferedImage, 0,0,null);
     }
 
