@@ -138,6 +138,7 @@ public class EditPanel extends JPanel {
     }
 
     public void updateNodeTypes(){
+        System.out.println("updating node types");
         type.removeAllItems();
         for(Node.Type t : Main.drawPanel.getTrajectory().getValidNodeTypes()){
             type.addItem(t);
