@@ -64,9 +64,11 @@ public class Main extends JFrame {
             scale = ((double)drawPanel.getHeight())/144.0; //set scale to 6 for 1080p and 8 for 1440p
             properties.reload();
 
+            infoPanel.markerPanel.upateNodeTypes();
             infoPanel.editPanel.updateNodeTypes();
             infoPanel.settingsPanel.update();
             drawPanel.update();
+            System.out.println("reload config");
         } catch (Exception e){
             e.printStackTrace();
         }

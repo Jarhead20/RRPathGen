@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'jarhead'
-version '1.4.4'
+version '1.7.0'
 
 
 repositories {

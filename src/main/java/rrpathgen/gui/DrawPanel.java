@@ -1,24 +1,13 @@
 package rrpathgen.gui;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.path.Path;
-import com.acmerobotics.roadrunner.path.PathSegment;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
+
 import rrpathgen.Main;
 import rrpathgen.data.Marker;
 import rrpathgen.data.Node;
 import rrpathgen.data.NodeManager;
 import rrpathgen.data.ProgramProperties;
 import rrpathgen.trajectory.OldRRTrajectory;
-import rrpathgen.trajectory.trajectorysequence.TrajectorySequence;
-import rrpathgen.trajectory.trajectorysequence.TrajectorySequenceBuilder;
-import rrpathgen.trajectory.trajectorysequence.sequencesegment.SequenceSegment;
-import rrpathgen.trajectory.trajectorysequence.sequencesegment.TrajectorySegment;
-import rrpathgen.trajectory.trajectorysequence.sequencesegment.TurnSegment;
-import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,9 +43,9 @@ public class DrawPanel extends JPanel {
             case RROLD:
                 traj = new OldRRTrajectory();
                 break;
-//            case RRNEW:
-//                traj = new rrpathgen.trajectory.NewRRTrajectory();
-//                break;
+            case RRNEW:
+                traj = new rrpathgen.trajectory.NewRRTrajectory();
+                break;
         }
         traj.resetPath();
         preRenderedSplines = null;
@@ -145,7 +134,9 @@ public class DrawPanel extends JPanel {
         traj.renderPoints(g, Main.scale, ovalScale, color);
     }
 
-
+    private void renderMarkers(Graphics g, Color color, int ovalScale){
+        traj.renderMarkers(g, Main.scale, ovalScale, color);
+    }
 
 
     double oldScale = 0;
@@ -182,6 +173,7 @@ public class DrawPanel extends JPanel {
                 renderRobotPath((Graphics2D) g, lightPurple, 0.5f);
                 renderSplines(g, cyan);
                 renderPoints(g, cyan, 1);
+                renderMarkers(g, Color.RED, 1);
             }
             renderArrows(g, getCurrentManager(), 1, darkPurple, lightPurple, cyan);
             render = System.currentTimeMillis() - renderStart;
@@ -244,6 +236,7 @@ public class DrawPanel extends JPanel {
         Node mouse = new Node(e.getPoint());
         //marker
         if (SwingUtilities.isRightMouseButton(e)) {
+            if(traj.getValidMarkerTypes().length < 1) return;
             double closestPose = Double.MAX_VALUE;
             Marker closestMarker = new Marker(-1);
             closestMarker.distanceToMouse = Double.MAX_VALUE;

@@ -26,10 +26,13 @@ public interface Trajectory {
 
     void renderPoints(Graphics g, double scale, double ovalScale, Color color);
     void resetPath();
-    public void renderMarkers(Graphics g, double scale, double ovalScale);
+    public void renderMarkers(Graphics g, double scale, double ovalScale, Color color);
     public void renderArrows(Graphics2D g, NodeManager nodeM, Polygon poly, int ovalScale, Color color1, Color color2, Color color3);
     public void renderRobot(Graphics2D g, double scale, double ovalScale, Pose2d robotPose, ProgramProperties robot);
 
-    public Node.Type[] getValidTypes();
+    public Node.Type[] getValidNodeTypes();
+    public Node.Type[] getValidMarkerTypes();
+
+    public String constructExportString();
 
 }

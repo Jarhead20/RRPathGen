@@ -3,6 +3,8 @@ package rrpathgen.trajectory;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.Path;
+import com.acmerobotics.roadrunner.path.PathSegment;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryMarker;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import rrpathgen.Main;
@@ -20,7 +22,10 @@ import rrpathgen.trajectory.trajectorysequence.sequencesegment.WaitSegment;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+
+import static rrpathgen.Main.getCurrentManager;
 
 public class OldRRTrajectory implements Trajectory{
     AffineTransform outLine = new AffineTransform();
@@ -166,11 +171,20 @@ public class OldRRTrajectory implements Trajectory{
 
     @Override
     public void renderPoints(Graphics g, double scale, double ovalScale, Color color) {
+
         for (int i = 0; i < this.size(); i++) {
             SequenceSegment segment = sequence.get(i);
-            if (segment == null) continue;
-            g.setColor(color);
-            g = segment.renderPoints(g, Main.scale, ovalScale);
+            if(segment == null) continue;
+            if (segment instanceof TrajectorySegment) {
+                TrajectorySegment trajectorySegment = (TrajectorySegment) segment;
+
+                Pose2d mid = trajectorySegment.getTrajectory().get(trajectorySegment.getTrajectory().duration() / 2);
+
+                double x = mid.getX()*scale;
+                double y = mid.getY()*scale;
+                g.fillOval((int) (x - (ovalScale * scale)), (int) (y - (ovalScale * scale)), (int) (2 * ovalScale * scale), (int) (2 * ovalScale * scale));
+
+            }
         }
     }
 
@@ -180,8 +194,23 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
-    public void renderMarkers(Graphics g, double scale, double ovalScale) {
+    public void renderMarkers(Graphics g, double scale, double ovalScale, Color color) {
+        for (int i = 0; i < this.size(); i++) {
+            SequenceSegment segment = sequence.get(i);
+            if(segment == null) continue;
+            if (segment instanceof TrajectorySegment) {
+                g.setColor(color);
+                TrajectorySegment trajectorySegment = (TrajectorySegment) segment;
 
+                List<TrajectoryMarker> markers = trajectorySegment.getTrajectory().getMarkers();
+                markers.forEach(trajectoryMarker -> {
+                    Pose2d mid = trajectorySegment.getTrajectory().get(trajectoryMarker.getTime());
+                    double x = mid.getX() * scale;
+                    double y = mid.getY() * scale;
+                    g.fillOval((int) (x - (ovalScale * scale)), (int) (y - (ovalScale * scale)), (int) (2 * ovalScale * scale), (int) (2 * ovalScale * scale));
+                });
+            }
+        }
     }
 
     @Override
@@ -225,21 +254,15 @@ public class OldRRTrajectory implements Trajectory{
 
         double rX = robot.robotLength * Main.scale;
         double rY = robot.robotWidth * Main.scale;
-        double prevHeading = 0;
-        if (sequence.get(0).getDuration() > 0)
-            prevHeading = sequence.start().getHeading();
-        double res;
-
 
         for (int i = 0; i < sequence.size(); i++) {
             SequenceSegment segment = sequence.get(i);
             if(segment == null) continue;
             if (segment instanceof TrajectorySegment) {
 
-                Path path = ((TrajectorySegment) segment).getTrajectory().getPath();
-                for (double j = 0; j < path.length();) {
-                    Pose2d pose1 = path.get(j);
-                    double temp = Math.min((2 * Math.PI) - Math.abs(pose1.getHeading() - prevHeading), Math.abs(pose1.getHeading() - prevHeading));
+                com.acmerobotics.roadrunner.trajectory.Trajectory trajectory = ((TrajectorySegment) segment).getTrajectory();
+                for (double j = 0; j < trajectory.duration(); j+= robot.resolution) {
+                    Pose2d pose1 = trajectory.get(j);
                     int x1 = (int) (pose1.getX()*Main.scale);
                     int y1 = (int) (pose1.getY()*Main.scale);
 
@@ -249,12 +272,9 @@ public class OldRRTrajectory implements Trajectory{
                     g.setTransform(outLine);
                     g.fillRoundRect((int) Math.floor(-rX / 2), (int) Math.floor(-rY / 2), (int) Math.floor(rX), (int) Math.floor(rY), (int) Main.scale * 2, (int) Main.scale * 2);
 
-                    res = robot.resolution / ((robot.resolution) + temp); //* (1-(Math.abs(pose1.getHeading() - prevHeading)));
-                    j += res;
-                    prevHeading = pose1.getHeading();
                 }
-                if (path.length() > 0) {
-                    Pose2d end = path.end();
+                if (trajectory.duration() > 0) {
+                    Pose2d end = trajectory.end();
                     outLine.setToIdentity();
                     outLine.translate(end.getX()*Main.scale, end.getY()*Main.scale);
                     outLine.rotate(end.getHeading());
@@ -285,7 +305,7 @@ public class OldRRTrajectory implements Trajectory{
     }
 
     @Override
-    public Node.Type[] getValidTypes() {
+    public Node.Type[] getValidNodeTypes() {
         return new Node.Type[]{
                 Node.Type.splineTo,
                 Node.Type.splineToSplineHeading,
@@ -295,7 +315,84 @@ public class OldRRTrajectory implements Trajectory{
                 Node.Type.lineToSplineHeading,
                 Node.Type.lineToLinearHeading,
                 Node.Type.lineToConstantHeading,
+        };
+    }
+
+    @Override
+    public Node.Type[] getValidMarkerTypes() {
+        return new Node.Type[]{
                 Node.Type.addTemporalMarker
         };
+    }
+
+
+    @Override
+    public String constructExportString() {
+        Node node = getCurrentManager().getNodes().get(0);
+        double x = Main.toInches(node.x);
+        double y = Main.toInches(node.y);
+
+        StringBuilder sb = new StringBuilder();
+        if(Main.exportPanel.addDataType) sb.append("TrajectorySequence ");
+        sb.append(String.format("%s = drive.trajectorySequenceBuilder(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n",getCurrentManager().name, x, -y, (node.robotHeading +90)));
+        //sort the markers
+        List<Marker> markers = getCurrentManager().getMarkers();
+        markers.sort(Comparator.comparingDouble(n -> n.displacement));
+        for (Marker marker : markers) {
+            sb.append(String.format(".UNSTABLE_addTemporalMarkerOffset(%.2f,() -> {%s})%n", marker.displacement, marker.code));
+        }
+        boolean prev = false;
+        for (int i = 0; i < getCurrentManager().size(); i++) {
+            node = getCurrentManager().get(i);
+            if(node.equals(getCurrentManager().getNodes().get(0))) {
+                if(node.reversed != prev){
+                    sb.append(String.format(".setReversed(%s)%n", node.reversed));
+                    prev = node.reversed;
+                }
+                continue;
+            }
+            x = Main.toInches(node.x);
+            y = Main.toInches(node.y);
+
+
+            switch (node.getType()){
+                case splineTo:
+                    sb.append(String.format(".splineTo(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
+                    break;
+                case splineToSplineHeading:
+                    sb.append(String.format(".splineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
+                    break;
+                case splineToLinearHeading:
+                    sb.append(String.format(".splineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)), Math.toRadians(%.2f))%n", x, -y, (node.robotHeading +90), (node.splineHeading +90)));
+                    break;
+                case splineToConstantHeading:
+                    sb.append(String.format(".splineToConstantHeading(new Vector2d(%.2f, %.2f), Math.toRadians(%.2f))%n", x, -y, (node.splineHeading +90)));
+                    break;
+                case lineTo:
+                    sb.append(String.format(".lineTo(new Vector2d(%.2f, %.2f))%n", x, -y));
+                    break;
+                case lineToSplineHeading:
+                    sb.append(String.format(".lineToSplineHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
+                    break;
+                case lineToLinearHeading:
+                    sb.append(String.format(".lineToLinearHeading(new Pose2d(%.2f, %.2f, Math.toRadians(%.2f)))%n", x, -y, (node.robotHeading +90)));
+                    break;
+                case lineToConstantHeading:
+                    sb.append(String.format(".lineToConstantHeading(new Vector2d(%.2f, %.2f))%n", x, -y, (node.splineHeading +90)));
+                    break;
+                case addTemporalMarker:
+                    break;
+                default:
+                    sb.append("couldn't find type");
+                    break;
+            }
+            if(node.reversed != prev){
+                sb.append(String.format(".setReversed(%s)%n", node.reversed));
+                prev = node.reversed;
+            }
+        }
+        sb.append(String.format(".build();%n"));
+        if(Main.exportPanel.addPoseEstimate) sb.append(String.format("drive.setPoseEstimate(%s.start());", getCurrentManager().name));
+        return sb.toString();
     }
 }

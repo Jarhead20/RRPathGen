@@ -19,11 +19,12 @@ public class MarkerPanel extends JPanel {
     private final JTextField code = new JTextField(10);
     private final JTextField name = new JTextField(10);
 
+    private final JComboBox<Node.Type> type = new JComboBox<>();
+
     //TODO: add the trajectory name
     MarkerPanel(Main main){
         this.main = main;
-        JComboBox<Node.Type> type = new JComboBox<>(Marker.Type.values());
-        type.setSelectedIndex(0);
+        type.setSelectedIndex(-1);
         this.setOpaque(true);
         this.setLayout(new SpringLayout());
         JLabel lDisplacement = new JLabel("Displacement: ", JLabel.TRAILING);
@@ -82,6 +83,7 @@ public class MarkerPanel extends JPanel {
     }
 
     public void updateText() {
+        upateNodeTypes();
         if(main.currentMarker == -1){
             code.setText("");
             displacement.setText("0");
@@ -90,6 +92,13 @@ public class MarkerPanel extends JPanel {
             code.setText(getCurrentMarker().code);
             displacement.setText(String.format("%.2f",getCurrentMarker().displacement));
             name.setText(main.getCurrentManager().name);
+        }
+    }
+
+    public void upateNodeTypes(){
+        type.removeAllItems();
+        for(Node.Type t : Main.drawPanel.getTrajectory().getValidMarkerTypes()){
+            type.addItem(t);
         }
     }
 }

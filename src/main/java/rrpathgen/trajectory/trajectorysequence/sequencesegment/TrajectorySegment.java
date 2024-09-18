@@ -39,29 +39,4 @@ public final class TrajectorySegment extends SequenceSegment {
         }
         return g;
     }
-
-    @Override
-    public Graphics renderPoints(Graphics g, double scale, double ovalScale) {
-        // so that the color doesn't need to be included as a param
-        Color tempColor = g.getColor();
-
-        g.setColor(Color.red);
-        List<TrajectoryMarker> markers = getTrajectory().getMarkers();
-        markers.forEach(trajectoryMarker -> {
-            Pose2d mid = getTrajectory().get(trajectoryMarker.getTime());
-            double x = mid.getX()*scale;
-            double y = mid.getY()*scale;
-            g.fillOval((int) (x - (ovalScale * scale)), (int) (y - (ovalScale * scale)), (int) (2 * ovalScale * scale), (int) (2 * ovalScale * scale));
-        });
-
-        g.setColor(tempColor);
-        Path path = getTrajectory().getPath();
-        for (PathSegment pathSegment : path.getSegments()) {
-            Pose2d mid = pathSegment.get(pathSegment.length() / 2);
-            double x = mid.getX()*scale;
-            double y = mid.getY()*scale;
-            g.fillOval((int) (x - (ovalScale * scale)), (int) (y - (ovalScale * scale)), (int) (2 * ovalScale * scale), (int) (2 * ovalScale * scale));
-        }
-        return g;
-    }
 }
