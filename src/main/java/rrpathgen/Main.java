@@ -69,7 +69,6 @@ public class Main extends JFrame {
             drawPanel.update();
             infoPanel.markerPanel.upateNodeTypes();
             infoPanel.editPanel.updateNodeTypes();
-            System.out.println("reload config");
         } catch (Exception e){
             e.printStackTrace();
         }

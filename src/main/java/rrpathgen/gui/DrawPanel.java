@@ -47,6 +47,11 @@ public class DrawPanel extends JPanel {
                 traj = new rrpathgen.trajectory.NewRRTrajectory();
                 break;
         }
+        Main.getManagers().forEach(nodeManager -> {
+            nodeManager.clear();
+        });
+        Main.currentM = 0;
+        Main.currentN = -1;
         traj.resetPath();
         preRenderedSplines = null;
 //        renderBackgroundSplines();
